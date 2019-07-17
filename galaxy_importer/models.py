@@ -15,30 +15,30 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import collections
+# import collections
 import json
 import re
 
-import marshmallow as mm
-from marshmallow import fields
+# import marshmallow as mm
+# from marshmallow import fields
 import attr
 import semantic_version
 
 from . import constants
-from galaxy.common import schema
-from .utils import readme as readmeutils
+# from galaxy.common import schema
+# from .utils import readme as readmeutils
 from .utils import spdx_licenses
 
 SHA1_LEN = 40
 
 # ---------------------------------------------------------
 
-PlatformInfo = collections.namedtuple(
-    'PlatformInfo', ['name', 'versions'])
-DependencyInfo = collections.namedtuple(
-    'DependencyInfo', ['namespace', 'name'])
-VideoLink = collections.namedtuple(
-    'VideoLink', ['url', 'description'])
+# PlatformInfo = collections.namedtuple(
+#     'PlatformInfo', ['name', 'versions'])
+# DependencyInfo = collections.namedtuple(
+#     'DependencyInfo', ['namespace', 'name'])
+# VideoLink = collections.namedtuple(
+#     'VideoLink', ['url', 'description'])
 
 
 def convert_none_to_empty_dict(val):
@@ -51,21 +51,21 @@ def convert_none_to_empty_dict(val):
     return val
 
 
-class Content(object):
-    """Represents common content data."""
-
-    def __init__(self, name, path, content_type,
-                 original_name=None, description='', readme=None,
-                 role_meta=None, metadata=None, scores=None):
-        self.name = name
-        self.original_name = original_name or name
-        self.path = path
-        self.content_type = content_type
-        self.description = description
-        self.readme = readme
-        self.role_meta = role_meta
-        self.metadata = metadata or {}
-        self.scores = scores
+# class Content(object):
+#     """Represents common content data."""
+# 
+#     def __init__(self, name, path, content_type,
+#                  original_name=None, description='', readme=None,
+#                  role_meta=None, metadata=None, scores=None):
+#         self.name = name
+#         self.original_name = original_name or name
+#         self.path = path
+#         self.content_type = content_type
+#         self.description = description
+#         self.readme = readme
+#         self.role_meta = role_meta
+#         self.metadata = metadata or {}
+#         self.scores = scores
 
 
 @attr.s(frozen=True)
@@ -301,77 +301,93 @@ class Collection(object):
     quality_score = attr.ib(default=None)
 
 
-# -----------------------------------------------------------------------------
-
-
-class PlatformInfoSchema(mm.Schema):
-    name = fields.Str()
-    versions = fields.List(fields.Str())
-
-    @mm.post_load
-    def make_object(self, data):
-        return PlatformInfo(**data)
-
-
-class DependencyInfoSchema(mm.Schema):
-    namespace = fields.Str()
-    name = fields.Str()
-
-    @mm.post_load
-    def make_object(self, data):
-        return DependencyInfo(**data)
-
-
-class VideoLinkSchema(mm.Schema):
-    url = fields.Str()
-    description = fields.Str()
-
-    @mm.post_load
-    def make_object(self, data):
-        return VideoLink(**data)
-
-
-class ReadmeFileSchema(mm.Schema):
-    """A schema for Readme class."""
-    mimetype = fields.Str()
-    raw = fields.Str()
-    checksum = fields.Str()
-
-    @mm.post_load
-    def make_object(self, data):
-        return readmeutils.ReadmeFile(**data)
-
-
-class RoleMetaSchema(mm.Schema):
-    author = fields.Str()
-    company = fields.Str()
-    license = fields.Str()
-    min_ansible_version = fields.Str(allow_none=True)
-    min_ansible_container_version = fields.Str(allow_none=True)
-    issue_tracker = fields.Str()
-    github_branch = fields.Str()
-
-    role_type = schema.Enum(constants.RoleType)
-    tags = fields.List(fields.Str())
-    platforms = fields.Nested(PlatformInfoSchema(), many=True)
-    cloud_platforms = fields.List(fields.Str())
-    dependencies = fields.Nested(DependencyInfoSchema(), many=True)
-    video_links = fields.Nested(VideoLinkSchema(), many=True)
-
-
-class ContentSchema(mm.Schema):
-    """A schema for Content class."""
-    name = fields.Str()
-    original_name = fields.Str()
-    path = fields.Str()
-    content_type = schema.Enum(constants.ContentType)
-    description = fields.Str()
-    # Note(cutwater): This is workaround to make properly serializable
-    # role metadata.
-    role_meta = fields.Nested(RoleMetaSchema())
-    readme = fields.Nested(ReadmeFileSchema())
-    metadata = fields.Dict()
-
-    @mm.post_load
-    def make_object(self, data):
-        return Content(**data)
+# # -----------------------------------------------------------------------------
+# 
+# 
+# class PlatformInfoSchema(mm.Schema):
+#     name = fields.Str()
+#     versions = fields.List(fields.Str())
+# 
+#     @mm.post_load
+#     def make_object(self, data):
+#         return PlatformInfo(**data)
+# 
+# 
+# class DependencyInfoSchema(mm.Schema):
+#     namespace = fields.Str()
+#     name = fields.Str()
+# 
+#     @mm.post_load
+#     def make_object(self, data):
+#         return DependencyInfo(**data)
+# 
+# 
+# class VideoLinkSchema(mm.Schema):
+#     url = fields.Str()
+#     description = fields.Str()
+# 
+#     @mm.post_load
+#     def make_object(self, data):
+#         return VideoLink(**data)
+# 
+# 
+# class ReadmeFileSchema(mm.Schema):
+#     """A schema for Readme class."""
+#     mimetype = fields.Str()
+#     raw = fields.Str()
+#     checksum = fields.Str()
+# 
+#     @mm.post_load
+#     def make_object(self, data):
+#         return readmeutils.ReadmeFile(**data)
+# 
+# 
+# class CommitInfoSchema(mm.Schema):
+#     """A schema for CommitInfo class."""
+#     sha = fields.Str(validate=validate.Length(equal=SHA1_LEN))
+#     author = fields.Str()
+#     author_email = fields.Str()
+#     author_date = fields.DateTime()
+#     committer = fields.Str()
+#     committer_email = fields.Str()
+#     committer_date = fields.DateTime()
+#     message = fields.Str()
+# 
+#     @mm.post_load
+#     def make_object(self, data):
+#         return git.CommitInfo(**data)
+# 
+# 
+# class RoleMetaSchema(mm.Schema):
+#     author = fields.Str()
+#     company = fields.Str()
+#     license = fields.Str()
+#     min_ansible_version = fields.Str(allow_none=True)
+#     min_ansible_container_version = fields.Str(allow_none=True)
+#     issue_tracker = fields.Str()
+#     github_branch = fields.Str()
+# 
+#     role_type = schema.Enum(constants.RoleType)
+#     tags = fields.List(fields.Str())
+#     platforms = fields.Nested(PlatformInfoSchema(), many=True)
+#     cloud_platforms = fields.List(fields.Str())
+#     dependencies = fields.Nested(DependencyInfoSchema(), many=True)
+#     video_links = fields.Nested(VideoLinkSchema(), many=True)
+# 
+# 
+# class ContentSchema(mm.Schema):
+#     """A schema for Content class."""
+#     name = fields.Str()
+#     original_name = fields.Str()
+#     path = fields.Str()
+#     content_type = schema.Enum(constants.ContentType)
+#     description = fields.Str()
+#     # Note(cutwater): This is workaround to make properly serializable
+#     # role metadata.
+#     role_meta = fields.Nested(RoleMetaSchema())
+#     readme = fields.Nested(ReadmeFileSchema())
+#     metadata = fields.Dict()
+# 
+#     @mm.post_load
+#     def make_object(self, data):
+#         return Content(**data)
