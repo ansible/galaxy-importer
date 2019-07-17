@@ -17,6 +17,8 @@
 
 import os
 import logging
+import tarfile
+import tempfile
 
 # import semantic_version
 
@@ -32,9 +34,15 @@ default_logger = logging.getLogger(__name__)
 ALLOWED_TYPES = ['text/markdown', 'text/x-rst']
 
 
-def import_collection(directory, filename, logger=None):
+def import_collection(filepath, logger=None):
     logger = logger or default_logger
-    return CollectionLoader(directory, filename, logger=logger).load()
+    filename = os.path.basename(filepath)
+
+    with tempfile.TemporaryDirectory() as extract_dir:
+        with tarfile.open(filepath, 'r') as pkg_tar:
+            pkg_tar.extractall(extract_dir)
+
+        return CollectionLoader(extract_dir, filename, logger=logger).load()
 
 
 class CollectionLoader(object):
