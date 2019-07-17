@@ -7,6 +7,8 @@ verify_ssl = true
 
 [packages]
 pyyaml = "*"
+semantic_version = "*"
+attrs = "*"
 
 [requires]
 python_version = "3.7"
