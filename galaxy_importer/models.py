@@ -24,10 +24,10 @@ from marshmallow import fields
 import attr
 import semantic_version
 
-from galaxy import constants
+from . import constants
 from galaxy.common import schema
-from galaxy.importer.utils import readme as readmeutils
-from galaxy.importer.utils import spdx_licenses
+from .utils import readme as readmeutils
+from .utils import spdx_licenses
 
 SHA1_LEN = 40
 

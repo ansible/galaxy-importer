@@ -20,11 +20,11 @@ import logging
 
 import semantic_version
 
-from galaxy.importer.models import CollectionArtifactManifest, Collection
-from galaxy.importer.utils import readme as readmeutils
-from galaxy.importer.finders import FileSystemFinder
-from galaxy.importer import loaders
-from galaxy.importer import exceptions as exc
+from .models import CollectionArtifactManifest, Collection
+from .utils import readme as readmeutils
+from .finders import FileSystemFinder
+from . import loaders
+from . import exceptions as exc
 
 
 default_logger = logging.getLogger(__name__)
