@@ -143,6 +143,9 @@
     "BSD-3-Clause-No-Nuclear-Warranty":{
         "deprecated":false
     },
+    "BSD-3-Clause-Open-MPI":{
+        "deprecated":false
+    },
     "BSD-4-Clause":{
         "deprecated":false
     },
@@ -171,6 +174,9 @@
         "deprecated":false
     },
     "BitTorrent-1.1":{
+        "deprecated":false
+    },
+    "BlueOak-1.0.0":{
         "deprecated":false
     },
     "Borceux":{
@@ -269,6 +275,9 @@
     "CC-BY-SA-4.0":{
         "deprecated":false
     },
+    "CC-PDDC":{
+        "deprecated":false
+    },
     "CC0-1.0":{
         "deprecated":false
     },
@@ -300,6 +309,12 @@
         "deprecated":false
     },
     "CECILL-C":{
+        "deprecated":false
+    },
+    "CERN-OHL-1.1":{
+        "deprecated":false
+    },
+    "CERN-OHL-1.2":{
         "deprecated":false
     },
     "CNRI-Jython":{
@@ -512,6 +527,9 @@
     "HPND":{
         "deprecated":false
     },
+    "HPND-sell-variant":{
+        "deprecated":false
+    },
     "HaskellReport":{
         "deprecated":false
     },
@@ -549,6 +567,9 @@
         "deprecated":false
     },
     "Interbase-1.0":{
+        "deprecated":false
+    },
+    "JPNIC":{
         "deprecated":false
     },
     "JSON":{
@@ -872,6 +893,9 @@
     "PHP-3.01":{
         "deprecated":false
     },
+    "Parity-6.0.0":{
+        "deprecated":false
+    },
     "Plexus":{
         "deprecated":false
     },
@@ -926,6 +950,12 @@
     "SGI-B-2.0":{
         "deprecated":false
     },
+    "SHL-0.5":{
+        "deprecated":false
+    },
+    "SHL-0.51":{
+        "deprecated":false
+    },
     "SISSL":{
         "deprecated":false
     },
@@ -942,6 +972,9 @@
         "deprecated":false
     },
     "SPL-1.0":{
+        "deprecated":false
+    },
+    "SSPL-1.0":{
         "deprecated":false
     },
     "SWL":{
@@ -975,6 +1008,9 @@
         "deprecated":true
     },
     "SugarCRM-1.1.3":{
+        "deprecated":false
+    },
+    "TAPR-OHL-1.0":{
         "deprecated":false
     },
     "TCL":{
@@ -1085,6 +1121,9 @@
     "Zlib":{
         "deprecated":false
     },
+    "blessing":{
+        "deprecated":false
+    },
     "bzip2-1.0.5":{
         "deprecated":false
     },
@@ -1119,6 +1158,9 @@
         "deprecated":false
     },
     "iMatix":{
+        "deprecated":false
+    },
+    "libpng-2.0":{
         "deprecated":false
     },
     "libtiff":{
