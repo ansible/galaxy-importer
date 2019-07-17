@@ -20,7 +20,7 @@ import logging
 import tarfile
 import tempfile
 
-from .models import CollectionArtifactManifest
+from .schema import CollectionArtifactManifest
 from . import exceptions as exc
 
 
