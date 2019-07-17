@@ -1,4 +1,4 @@
-# (c) 2012-2018, Ansible by Red Hat
+# (c) 2012-2019, Ansible by Red Hat
 #
 # This file is part of Ansible Galaxy
 #
@@ -21,10 +21,6 @@ class ImporterError(Exception):
     pass
 
 
-class RepositoryError(ImporterError):
-    pass
-
-
 class ManifestNotFound(ImporterError):
     pass
 
@@ -38,10 +34,6 @@ class ContentNotFound(ImporterError):
 
 
 class ContentLoadError(ImporterError):
-    pass
-
-
-class APBContentLoadError(ContentLoadError):
     pass
 
 

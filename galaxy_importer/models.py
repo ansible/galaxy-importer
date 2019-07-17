@@ -1,4 +1,4 @@
-# (c) 2012-2018, Ansible by Red Hat
+# (c) 2012-2019, Ansible by Red Hat
 #
 # This file is part of Ansible Galaxy
 #
@@ -21,13 +21,11 @@ import re
 
 import marshmallow as mm
 from marshmallow import fields
-from marshmallow import validate
 import attr
 import semantic_version
 
 from galaxy import constants
 from galaxy.common import schema
-from galaxy.importer.utils import git
 from galaxy.importer.utils import readme as readmeutils
 from galaxy.importer.utils import spdx_licenses
 
@@ -68,21 +66,6 @@ class Content(object):
         self.role_meta = role_meta
         self.metadata = metadata or {}
         self.scores = scores
-
-
-class Repository(object):
-    """Represents repository metadata."""
-
-    def __init__(self, branch, commit, format, contents,
-                 readme=None, name=None, description=None, quality_score=None):
-        self.branch = branch
-        self.commit = commit
-        self.format = format
-        self.contents = contents
-        self.readme = readme
-        self.name = name
-        self.description = description
-        self.quality_score = quality_score
 
 
 @attr.s(frozen=True)
@@ -359,22 +342,6 @@ class ReadmeFileSchema(mm.Schema):
         return readmeutils.ReadmeFile(**data)
 
 
-class CommitInfoSchema(mm.Schema):
-    """A schema for CommitInfo class."""
-    sha = fields.Str(validate=validate.Length(equal=SHA1_LEN))
-    author = fields.Str()
-    author_email = fields.Str()
-    author_date = fields.DateTime()
-    committer = fields.Str()
-    committer_email = fields.Str()
-    committer_date = fields.DateTime()
-    message = fields.Str()
-
-    @mm.post_load
-    def make_object(self, data):
-        return git.CommitInfo(**data)
-
-
 class RoleMetaSchema(mm.Schema):
     author = fields.Str()
     company = fields.Str()
@@ -408,17 +375,3 @@ class ContentSchema(mm.Schema):
     @mm.post_load
     def make_object(self, data):
         return Content(**data)
-
-
-class RepositorySchema(mm.Schema):
-    """A schema for Repository class."""
-    name = fields.Str()
-    branch = fields.Str()
-    commit = fields.Nested(CommitInfoSchema())
-    format = schema.Enum(constants.RepositoryFormat)
-    contents = fields.Nested(ContentSchema(), many=True)
-    readme = fields.Nested(ReadmeFileSchema())
-
-    @mm.post_load
-    def make_object(self, data):
-        return Repository(**data)
