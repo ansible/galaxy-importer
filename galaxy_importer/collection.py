@@ -59,6 +59,11 @@ class CollectionLoader(object):
 
     def load(self):
         self._load_collection_manifest()
+
+        # TEMP: Temporary output stub
+        import json
+        return json.dumps(self.collection_info.__dict__)
+
         # self._check_filename_matches_manifest()
         # self._load_collection_readme()
 
