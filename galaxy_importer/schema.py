@@ -22,7 +22,7 @@ import attr
 import semantic_version
 
 from . import constants
-from .utils import spdx_licenses
+from .utils.spdx_licenses import is_valid_license_id
 
 SHA1_LEN = 40
 
@@ -116,12 +116,7 @@ class BaseCollectionInfo(object):
     @license.validator
     def _check_licenses(self, attribute, value):
         """Check that all licenses in license list are valid."""
-        # load or return already loaded data
-        valid_license_ids = spdx_licenses.get_spdx()
-
-        invalid_licenses = [license_id for license_id in value
-                            if not self._is_valid_license_id(
-                                license_id, valid_license_ids)]
+        invalid_licenses = [id for id in value if not is_valid_license_id(id)]
         if invalid_licenses:
             self.value_error(
                 "Expecting 'license' to be a list of valid SPDX license "
@@ -129,22 +124,6 @@ class BaseCollectionInfo(object):
                 "in 'license' value {}. "
                 "For more info, visit https://spdx.org"
                 .format(', '.join(invalid_licenses), value))
-
-    @staticmethod
-    def _is_valid_license_id(license_id, valid_license_ids):
-        """Check if license_id is valid and non-deprecated SPDX ID."""
-        if license_id is None:
-            return False
-
-        valid = valid_license_ids.get(license_id, None)
-        if valid is None:
-            return False
-
-        # license was in list, but is deprecated
-        if valid and valid.get('deprecated', None):
-            return False
-
-        return True
 
     @dependencies.validator
     def _check_dependencies_format(self, attribute, dependencies):
