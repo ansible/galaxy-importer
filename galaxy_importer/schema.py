@@ -37,6 +37,42 @@ def convert_none_to_empty_dict(val):
     return val
 
 
+_FILENAME_RE = re.compile(
+    r'^(?P<namespace>\w+)-(?P<name>\w+)-'
+    r'(?P<version>[0-9a-zA-Z.+-]+)\.tar\.gz$'
+)
+
+
+@attr.s(slots=True)
+class CollectionFilename(object):
+
+    namespace = attr.ib()
+    name = attr.ib()
+    version = attr.ib(converter=semantic_version.Version)
+
+    def __str__(self):
+        return f'{self.namespace}-{self.name}-{self.version}.tar.gz'
+
+    @classmethod
+    def parse(cls, filename):
+        match = _FILENAME_RE.match(filename)
+        if not match:
+            raise ValueError(
+                'Invalid filename. Expected: '
+                '{namespace}-{name}-{version}.tar.gz'
+            )
+
+        return cls(**match.groupdict())
+
+    @namespace.validator
+    @name.validator
+    def _validator(self, attribute, value):
+        if not constants.NAME_REGEXP.match(value):
+            raise ValueError(
+                'Invalid {0}: {1!r}'.format(attribute.name, value)
+            )
+
+
 @attr.s(frozen=True)
 class BaseCollectionInfo(object):
     """Represents collection_info metadata in collection manifest.
