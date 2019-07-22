@@ -1,29 +1,28 @@
 import json
 import logging
 
-from pkg_resources import resource_filename
+from pkg_resources import resource_stream
 
 
 log = logging.getLogger(__name__)
 
-# use _get_spdx() to ref the spdx_license info, so it
-# only loaded from disk once
 _SPDX_LICENSES = None
+_SPDX_LICENSES_FILE = 'spdx_licenses.json'
 
 
 def _load_spdx():
-    license_path = resource_filename(__name__, 'spdx_licenses.json')
     try:
-        with open(license_path, 'r') as fo:
-            return json.load(fo)
+        with resource_stream(__name__, _SPDX_LICENSES_FILE) as stream:
+            return json.load(stream)
     except EnvironmentError as exc:
         log.warning('Unable to open %s to load the list of acceptable '
-                    'open source licenses: %s', license_path, exc)
+                    'open source licenses: %s', _SPDX_LICENSES_FILE, exc)
         log.exception(exc)
         return {}
 
 
 def _get_spdx():
+    """Gets the spdx_license info, so it is only loaded from disk once."""
     global _SPDX_LICENSES
 
     if not _SPDX_LICENSES:
