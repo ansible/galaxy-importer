@@ -44,35 +44,32 @@ def test_filename_parse():
         assert filename_obj.version == semantic_version.Version(VERSION_STR)
 
 
-def test_good_filename_format():
-    good_filenames = [
+@pytest.mark.parametrize(
+    'filename_str',
+    [
         f'{NAMESPACE}-{NAME}-{VERSION_STR}.tar.gz',
         f'{NAMESPACE}-{NAME}-0.1.1-alpha+build.2012-05-15.tar.gz',
+        pytest.param(f'{NAMESPACE}{NAME}{VERSION_STR}.tar.gz',
+                     marks=pytest.mark.xfail),  # 0 dashes
+        pytest.param(f'{NAMESPACE}-{NAME}{VERSION_STR}.tar.gz',
+                     marks=pytest.mark.xfail),  # 1 dash
+        pytest.param(f'{NAMESPACE}-{NAME}-{VERSION_STR}!.tar.gz',
+                     marks=pytest.mark.xfail),  # bang
+    ],
+)
+def test_filename_format(filename_str):
+    res = schema.CollectionFilename.parse(filename_str)
+    assert type(res) == schema.CollectionFilename
+
+
+@pytest.mark.parametrize(
+    'filename_str,error_subset',
+    [
+        (f'no__dunder-{NAME}-{VERSION_STR}.tar.gz', 'Invalid namespace:'),
+        (f'{NAMESPACE}-0startswithnum-{VERSION_STR}.tar.gz', 'Invalid name:'),
     ]
-    for filename_str in good_filenames:
-        res = schema.CollectionFilename.parse(filename_str)
-        assert type(res) == schema.CollectionFilename
-
-
-def test_bad_filename_format():
-    bad_filenames = [
-        f'{NAMESPACE}{NAME}{VERSION_STR}.tar.gz',  # 0 dashes
-        f'{NAMESPACE}-{NAME}{VERSION_STR}.tar.gz',  # 1 dash
-        f'{NAMESPACE}-{NAME}-{VERSION_STR}!.tar.gz',  # bang
-    ]
-    for filename_str in bad_filenames:
-        with pytest.raises(ValueError) as excinfo:
-            schema.CollectionFilename.parse(filename_str)
-        assert 'Invalid filename.' in str(excinfo.value)
-
-
-def test_bad_name_error():
-    filename_str = f'no__dunder-{NAME}-{VERSION_STR}.tar.gz'
+)
+def test_bad_name_error(filename_str, error_subset):
     with pytest.raises(ValueError) as excinfo:
         schema.CollectionFilename.parse(filename_str)
-    assert 'Invalid namespace:' in str(excinfo.value)
-
-    filename_str = f'{NAMESPACE}-0startswithnum-{VERSION_STR}.tar.gz'
-    with pytest.raises(ValueError) as excinfo:
-        schema.CollectionFilename.parse(filename_str)
-    assert 'Invalid name:' in str(excinfo.value)
+    assert error_subset in str(excinfo.value)
