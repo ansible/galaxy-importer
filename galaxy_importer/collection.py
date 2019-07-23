@@ -15,13 +15,15 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import os
 import logging
+import os
 import tarfile
 import tempfile
 
-from .schema import CollectionArtifactManifest
+import semantic_version
+
 from . import exceptions as exc
+from . import schema
 
 
 default_logger = logging.getLogger(__name__)
@@ -54,6 +56,7 @@ class CollectionLoader(object):
 
     def load(self):
         self._load_collection_manifest()
+        self._check_filename_matches_manifest()
 
         # TEMP: Temporary output stub
         import json
@@ -66,7 +69,17 @@ class CollectionLoader(object):
 
         with open(manifest_file, 'r') as f:
             try:
-                meta = CollectionArtifactManifest.parse(f.read())
+                meta = schema.CollectionArtifactManifest.parse(f.read())
             except ValueError as e:
                 raise exc.ManifestValidationError(str(e))
             self.collection_info = meta.collection_info
+
+    def _check_filename_matches_manifest(self):
+        metadata = self.collection_info
+        f = schema.CollectionFilename.parse(self.filename)
+        if f.namespace != metadata.namespace or f.name != metadata.name:
+            raise exc.ManifestValidationError(
+                'Filename did not match metadata')
+        if f.version != semantic_version.Version(metadata.version):
+            raise exc.ManifestValidationError(
+                'Filename version did not match metadata')
