@@ -40,11 +40,11 @@ def import_collection(filepath, logger=None):
     try:
         return _import_collection(filepath, logger)
     except Exception as exc:
-        collection = schema.ImportResult(
+        import_result = schema.ImportResult(
             result=RESULT_FAILED,
             error=str(exc),
         )
-        return json.dumps(attr.asdict(collection))
+        return json.dumps(attr.asdict(import_result))
 
 
 def _import_collection(filepath, logger):
@@ -74,15 +74,15 @@ class CollectionLoader(object):
         self._load_collection_manifest()
         self._check_filename_matches_manifest()
 
-        collection = schema.ImportResult(
-            collection_info=self.collection_info,
+        import_result = schema.ImportResult(
+            metadata=self.metadata,
             documentation=self.documentation,
             quality_score=self.quality_score,
             contents=self.contents,
             result=RESULT_COMPLETED,
             error=None,
         )
-        return json.dumps(attr.asdict(collection))
+        return json.dumps(attr.asdict(import_result))
 
     def _load_collection_manifest(self):
         manifest_file = os.path.join(self.path, 'MANIFEST.json')
