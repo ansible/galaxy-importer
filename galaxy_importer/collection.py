@@ -65,7 +65,7 @@ class CollectionLoader(object):
         self.path = path
         self.filename = filename
 
-        self.collection_info = None
+        self.metadata = None
         self.documentation = None
         self.quality_score = None
         self.contents = None
@@ -91,17 +91,17 @@ class CollectionLoader(object):
 
         with open(manifest_file, 'r') as f:
             try:
-                meta = schema.CollectionArtifactManifest.parse(f.read())
+                data = schema.CollectionArtifactManifest.parse(f.read())
             except ValueError as e:
                 raise exc.ManifestValidationError(str(e))
-            self.collection_info = meta.collection_info
+            self.metadata = data.collection_info
 
     def _check_filename_matches_manifest(self):
-        metadata = self.collection_info
         f = schema.CollectionFilename.parse(self.filename)
-        if f.namespace != metadata.namespace or f.name != metadata.name:
+        if (f.namespace != self.metadata.namespace or
+                f.name != self.metadata.name):
             raise exc.ManifestValidationError(
                 'Filename did not match metadata')
-        if f.version != semantic_version.Version(metadata.version):
+        if f.version != semantic_version.Version(self.metadata.version):
             raise exc.ManifestValidationError(
                 'Filename version did not match metadata')

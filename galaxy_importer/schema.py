@@ -279,7 +279,7 @@ class CollectionArtifactManifest(object):
 class ImportResult(object):
     """Result of the import process, collection metadata, and contents."""
 
-    collection_info = attr.ib(default=None, type=GalaxyCollectionInfo)
+    metadata = attr.ib(default=None, type=GalaxyCollectionInfo)
     documentation = attr.ib(factory=dict)
     quality_score = attr.ib(default=None)
     contents = attr.ib(factory=list)
