@@ -74,11 +74,8 @@ class CollectionFilename(object):
 
 
 @attr.s(frozen=True)
-class BaseCollectionInfo(object):
-    """Represents collection_info metadata in collection manifest.
-
-    Includes data validation expected when collection is built.
-    """
+class CollectionInfo(object):
+    """Represents collection_info metadata in collection manifest."""
 
     namespace = attr.ib(default=None)
     name = attr.ib(default=None)
@@ -230,7 +227,7 @@ class BaseCollectionInfo(object):
 class CollectionArtifactManifest(object):
     """Represents collection manifest metadata."""
 
-    collection_info = attr.ib(type=BaseCollectionInfo)
+    collection_info = attr.ib(type=CollectionInfo)
     format = attr.ib(default=1)
     file_manifest_file = attr.ib(factory=dict)
 
@@ -238,7 +235,7 @@ class CollectionArtifactManifest(object):
     def parse(cls, data):
         meta = json.loads(data)
         col_info = meta.pop('collection_info', None)
-        meta['collection_info'] = BaseCollectionInfo(**col_info)
+        meta['collection_info'] = CollectionInfo(**col_info)
         return cls(**meta)
 
 
@@ -246,7 +243,7 @@ class CollectionArtifactManifest(object):
 class ImportResult(object):
     """Result of the import process, collection metadata, and contents."""
 
-    metadata = attr.ib(default=None, type=BaseCollectionInfo)
+    metadata = attr.ib(default=None, type=CollectionInfo)
     documentation = attr.ib(factory=dict)
     quality_score = attr.ib(default=None)
     contents = attr.ib(factory=list)
