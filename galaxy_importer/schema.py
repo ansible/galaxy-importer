@@ -207,7 +207,7 @@ class CollectionInfo(object):
     def _check_non_null_str(self, attribute, value):
         """Check that if value is present, it must be a string."""
         if value is not None and not isinstance(value, str):
-            self.value_error(f"'{attribute}' must be a string")
+            self.value_error(f"'{attribute.name}' must be a string")
 
     def __attrs_post_init__(self):
         """Checks called post init validation."""
