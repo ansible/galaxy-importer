@@ -97,9 +97,7 @@ class BaseCollectionInfo(object):
     license_file = attr.ib(
         default=None,
         validator=attr.validators.optional(attr.validators.instance_of(str)))
-    readme = attr.ib(
-        default=None,
-        validator=attr.validators.optional(attr.validators.instance_of(str)))
+    readme = attr.ib(default=None)
 
     dependencies = attr.ib(
         factory=dict,
@@ -117,6 +115,8 @@ class BaseCollectionInfo(object):
     @namespace.validator
     @name.validator
     @version.validator
+    @readme.validator
+    @authors.validator
     def _check_required(self, attribute, value):
         """Check that value is present."""
         if not value:
@@ -193,12 +193,24 @@ class BaseCollectionInfo(object):
 
     @tags.validator
     def _check_tags(self, attribute, value):
-        """Check value against tag regular expression."""
+        """Check max tags and check against tag regular expression."""
+        if value is not None and len(value) > constants.MAX_TAGS_COUNT:
+            self.value_error(
+                f"Expecting no more than {constants.MAX_TAGS_COUNT} tags "
+                "in metadata")
         for tag in value:
-            # TODO update tag format once resolved
-            # https://github.com/ansible/galaxy/issues/1563
             if not re.match(constants.TAG_REGEXP, tag):
                 self.value_error(f"'tag' has invalid format: {tag}")
+
+    @description.validator
+    @repository.validator
+    @documentation.validator
+    @homepage.validator
+    @issues.validator
+    def _check_non_null_str(self, attribute, value):
+        """Check that if value is present, it must be a string."""
+        if value is not None and not isinstance(value, str):
+            self.value_error(f"'{attribute}' must be a string")
 
     def __attrs_post_init__(self):
         """Checks called post init validation."""
@@ -215,55 +227,10 @@ class BaseCollectionInfo(object):
 
 
 @attr.s(frozen=True)
-class GalaxyCollectionInfo(BaseCollectionInfo):
-    """Represents collection_info metadata in galaxy.
-
-    Includes additional data validation that is specific to galaxy.
-    """
-
-    def get_json(self):
-        return self.__dict__
-
-    def _check_required(self, name):
-        """Check that value is present."""
-        if not getattr(self, name):
-            self.value_error(f"'{name}' is required by galaxy")
-
-    def _check_non_null_str(self, name):
-        """Check that if value is present, it must be a string."""
-        value = getattr(self, name)
-        if value is not None and not isinstance(value, str):
-            self.value_error(f"'{name}' must be a string")
-
-    def _check_tags_count(self):
-        """Checks tag count in metadata against max tags count constant."""
-        tags = getattr(self, 'tags')
-        if tags is not None and len(tags) > constants.MAX_TAGS_COUNT:
-            self.value_error(
-                f"Expecting no more than {constants.MAX_TAGS_COUNT} tags "
-                "in metadata")
-
-    def __attrs_post_init__(self):
-        """Additional galaxy checks called post init."""
-        super().__attrs_post_init__()
-        self._check_required('readme')
-        self._check_required('authors')
-        self._check_tags_count()
-        for field in [
-                        'description',
-                        'repository',
-                        'documentation',
-                        'homepage',
-                        'issues',
-                     ]:
-            self._check_non_null_str(field)
-
-
-@attr.s(frozen=True)
 class CollectionArtifactManifest(object):
     """Represents collection manifest metadata."""
 
-    collection_info = attr.ib(type=GalaxyCollectionInfo)
+    collection_info = attr.ib(type=BaseCollectionInfo)
     format = attr.ib(default=1)
     file_manifest_file = attr.ib(factory=dict)
 
@@ -271,7 +238,7 @@ class CollectionArtifactManifest(object):
     def parse(cls, data):
         meta = json.loads(data)
         col_info = meta.pop('collection_info', None)
-        meta['collection_info'] = GalaxyCollectionInfo(**col_info)
+        meta['collection_info'] = BaseCollectionInfo(**col_info)
         return cls(**meta)
 
 
@@ -279,7 +246,7 @@ class CollectionArtifactManifest(object):
 class ImportResult(object):
     """Result of the import process, collection metadata, and contents."""
 
-    metadata = attr.ib(default=None, type=GalaxyCollectionInfo)
+    metadata = attr.ib(default=None, type=BaseCollectionInfo)
     documentation = attr.ib(factory=dict)
     quality_score = attr.ib(default=None)
     contents = attr.ib(factory=list)
