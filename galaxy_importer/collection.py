@@ -15,11 +15,13 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import json
 import logging
 import os
 import tarfile
 import tempfile
 
+import attr
 import semantic_version
 
 from . import exceptions as exc
@@ -29,10 +31,23 @@ from . import schema
 default_logger = logging.getLogger(__name__)
 
 ALLOWED_TYPES = ['text/markdown', 'text/x-rst']
+RESULT_COMPLETED = 'completed'
+RESULT_FAILED = 'failed'
 
 
 def import_collection(filepath, logger=None):
     logger = logger or default_logger
+    try:
+        return _import_collection(filepath, logger)
+    except Exception as exc:
+        import_result = schema.ImportResult(
+            result=RESULT_FAILED,
+            error=str(exc),
+        )
+        return json.dumps(attr.asdict(import_result))
+
+
+def _import_collection(filepath, logger):
     filename = os.path.basename(filepath)
 
     with tempfile.TemporaryDirectory() as extract_dir:
@@ -50,17 +65,24 @@ class CollectionLoader(object):
         self.path = path
         self.filename = filename
 
-        self.collection_info = None
+        self.metadata = None
+        self.documentation = None
+        self.quality_score = None
         self.contents = None
-        self.readme = None
 
     def load(self):
         self._load_collection_manifest()
         self._check_filename_matches_manifest()
 
-        # TEMP: Temporary output stub
-        import json
-        return json.dumps(self.collection_info.__dict__)
+        import_result = schema.ImportResult(
+            metadata=self.metadata,
+            documentation=self.documentation,
+            quality_score=self.quality_score,
+            contents=self.contents,
+            result=RESULT_COMPLETED,
+            error=None,
+        )
+        return json.dumps(attr.asdict(import_result))
 
     def _load_collection_manifest(self):
         manifest_file = os.path.join(self.path, 'MANIFEST.json')
@@ -69,17 +91,17 @@ class CollectionLoader(object):
 
         with open(manifest_file, 'r') as f:
             try:
-                meta = schema.CollectionArtifactManifest.parse(f.read())
+                data = schema.CollectionArtifactManifest.parse(f.read())
             except ValueError as e:
                 raise exc.ManifestValidationError(str(e))
-            self.collection_info = meta.collection_info
+            self.metadata = data.collection_info
 
     def _check_filename_matches_manifest(self):
-        metadata = self.collection_info
         f = schema.CollectionFilename.parse(self.filename)
-        if f.namespace != metadata.namespace or f.name != metadata.name:
+        if (f.namespace != self.metadata.namespace or
+                f.name != self.metadata.name):
             raise exc.ManifestValidationError(
                 'Filename did not match metadata')
-        if f.version != semantic_version.Version(metadata.version):
+        if f.version != semantic_version.Version(self.metadata.version):
             raise exc.ManifestValidationError(
                 'Filename version did not match metadata')

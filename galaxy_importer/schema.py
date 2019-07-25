@@ -273,3 +273,15 @@ class CollectionArtifactManifest(object):
         col_info = meta.pop('collection_info', None)
         meta['collection_info'] = GalaxyCollectionInfo(**col_info)
         return cls(**meta)
+
+
+@attr.s(frozen=True)
+class ImportResult(object):
+    """Result of the import process, collection metadata, and contents."""
+
+    metadata = attr.ib(default=None, type=GalaxyCollectionInfo)
+    documentation = attr.ib(factory=dict)
+    quality_score = attr.ib(default=None)
+    contents = attr.ib(factory=list)
+    result = attr.ib(default=None)
+    error = attr.ib(default=None)
