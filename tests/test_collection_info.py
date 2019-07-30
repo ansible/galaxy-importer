@@ -27,7 +27,7 @@ def collection_info():
         'name': 'jenkins',
         'version': '3.5.0',
         'license': ['MIT'],
-        'readme': 'README.rst',
+        'readme': 'README.md',
         'authors': ['Bob Smith <b.smith@acme.com>'],
         'tags': ['testcases']
     }
@@ -37,13 +37,19 @@ def collection_info():
 def test_collection_info(collection_info):
     res = CollectionInfo(**collection_info)
     assert type(res) == CollectionInfo
+    assert res.namespace == 'acme'
+    assert res.name == 'jenkins'
+    assert res.version == '3.5.0'
+    assert res.license == ['MIT']
+    assert res.readme == 'README.md'
+    assert res.authors == ['Bob Smith <b.smith@acme.com>']
+    assert res.tags == ['testcases']
 
 
 def test_readme_req(collection_info):
     collection_info['readme'] = ''
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=r"'readme' is required"):
         CollectionInfo(**collection_info)
-        assert "'readme' is required by galaxy" in str(exc)
 
 
 @pytest.mark.parametrize(
@@ -267,6 +273,12 @@ def test_non_null_str_fields(collection_info):
         '.empty_namespace',
         'a_user._leading_underscore',
         '5tarts_with_number.gunicorn',
+        'mynamespace.UPPERCASE_COLLECTION',
+        'MyNamespace.mixedcase_collection',
+        'mynamespace.my-dashed-collection',
+        'my-namespace.mydashedcollection',
+        'mynamespace.my spaced collection',
+        'my namespace.myspacedcollection',
     ]
 )
 def test_invalid_dep_format(collection_info, dependent_collection):
