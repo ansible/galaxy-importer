@@ -66,8 +66,7 @@ class CollectionLoader(object):
         self.filename = filename
 
         self.metadata = None
-        self.documentation = None
-        self.quality_score = None
+        self.docs_blob = None
         self.contents = None
 
     def load(self):
@@ -76,8 +75,7 @@ class CollectionLoader(object):
 
         import_result = schema.ImportResult(
             metadata=self.metadata,
-            documentation=self.documentation,
-            quality_score=self.quality_score,
+            docs_blob=self.docs_blob,
             contents=self.contents,
             result=RESULT_COMPLETED,
             error=None,
