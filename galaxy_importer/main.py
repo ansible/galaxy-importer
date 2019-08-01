@@ -18,7 +18,6 @@
 import argparse
 import json
 import logging
-from pprint import pprint
 import sys
 
 from . import collection
@@ -31,36 +30,34 @@ def main(args=None):
         level=logging.INFO)
     args = parse_args(args)
 
-    json_data = call_importer(filepath=args.filepath)
+    json_data = call_importer(file=args.file)
 
     if args.print_result:
-        pprint(json.loads(json_data))
+        print(json.dumps(json.loads(json_data), indent=4))
 
     write_output_file(json_data)
 
 
 def parse_args(args):
     parser = argparse.ArgumentParser(
-        description='Import collection and run linting')
+        description='Run importer on collection and save result to disk.')
     parser.add_argument(
-        '-f', '--filepath',
-        default=None,
-        required=True,
-        help='Artifact to import.')
+        'file',
+        help='artifact to import')
     parser.add_argument(
         '--print_result',
         dest='print_result',
         action='store_true',
-        help='Print importer result.')
+        help='print importer result to console')
     return parser.parse_args(args=args)
 
 
-def call_importer(filepath):
+def call_importer(file):
     """Returns result of galaxy_importer import process.
 
-    :param filepath: Artifact file to import.
+    :param file: Artifact file to import.
     """
-    json_data = collection.import_collection(filepath)
+    json_data = collection.import_collection(file)
     data = json.loads(json_data)
     if data['result'] == 'completed':
         print('Importer processing completed successfully')

@@ -26,12 +26,12 @@ def test_version():
 
 
 def test_parser():
-    parser = main.parse_args(['--filepath', 'path/to/my_file.tar.gz'])
-    assert parser.filepath == 'path/to/my_file.tar.gz'
+    parser = main.parse_args(['path/to/my_file.tar.gz'])
+    assert parser.file == 'path/to/my_file.tar.gz'
     assert not parser.print_result
 
-    parser = main.parse_args(['-f', 'my_file.tar.gz', '--print_result'])
-    assert parser.filepath == 'my_file.tar.gz'
+    parser = main.parse_args(['my_file.tar.gz', '--print_result'])
+    assert parser.file == 'my_file.tar.gz'
     assert parser.print_result
 
     # SystemExit with missing required --filepath
