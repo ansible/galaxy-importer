@@ -47,7 +47,7 @@ MANIFEST_JSON = """
   "dependencies": {
    "my_namespace.collection_nginx": ">=0.1.6",
    "network_user.collection_inspect": "2.0.0",
-   "network_user.deployment": "*"
+   "dave.deploy": "*"
   },
   "repository": null,
   "documentation": null,
@@ -78,7 +78,7 @@ def test_manifest_success():
         assert data['metadata']['dependencies'] == {
             'my_namespace.collection_nginx': '>=0.1.6',
             'network_user.collection_inspect': '2.0.0',
-            'network_user.deployment': '*'
+            'dave.deploy': '*'
         }
         assert data['metadata']['repository'] is None
         assert data['metadata']['homepage'] is None
@@ -87,14 +87,43 @@ def test_manifest_success():
         assert data['result'] == 'completed'
 
 
-def test_manifest_fail():
-    manifest_no_readme = MANIFEST_JSON.replace('README.md', '')
+@pytest.mark.parametrize(
+    'manifest_text,new_text,error_subset',
+    [
+        ('my_namespace', '', "'namespace' is required"),
+        ('my_namespace', '00my.name.space', "'namespace' has invalid format"),
+        ('my_collection', '', "'name' is required"),
+        ('my_collection', '_my_collection', "'name' has invalid format"),
+        ('2.0.2', '', "'version' is required"),
+        ('2.0.2', '2.2.0.0.2', "semantic version format"),
+        ('"John Doe"', '', "'authors' is required"),
+        ('[\n   "John Doe"\n  ]', '"John Doe"', "to be a list of strings"),
+        ('README.md', '', "'readme' is required"),
+        ('"fedora"', '["fedora"]', "to be a list of strings"),
+        ('"deployment",', '"tag",'*30, "Expecting no more than 20 tags"),
+        ('"A collection with various roles and plugins"', '[]', "be a string"),
+        ('"MIT"', '{}', "to be a list of strings"),
+        ('"MIT"', '"not-a-valid-license-id"', "list of valid SPDX license"),
+        ('"*"', '555', "Expecting depencency version to be string"),
+        ('"dave.deploy"', '"davedeploy"', "Invalid dependency format:"),
+        ('"dave.deploy"', '"007.deploy"', "Invalid dependency format: '007'"),
+        ('"dave.deploy"', '"my_namespace.my_collection"', "self dependency"),
+        ('"*"', '"3.4.0.4"', "version spec range invalid"),
+        ('"repository": null', '"repository": []', "must be a string"),
+        ('"documentation": null', '"documentation": []', "must be a string"),
+        ('"homepage": null', '"homepage": []', "must be a string"),
+        ('"issues": null', '"issues": []', "must be a string"),
+    ],
+)
+def test_manifest_fail(manifest_text, new_text, error_subset):
+    manifest_edited = MANIFEST_JSON.replace(manifest_text, new_text)
+    print(manifest_edited)
     with tempfile.TemporaryDirectory() as temp_dir:
         with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
-            fh.write(manifest_no_readme)
+            fh.write(manifest_edited)
 
         with pytest.raises(ManifestValidationError,
-                           match=r"'readme' is required"):
+                           match=error_subset):
             CollectionLoader(
                 temp_dir, 'my_namespace-my_collection-2.0.2.tar.gz').load()
 
@@ -105,5 +134,5 @@ def test_filename_not_match_manifest():
             fh.write(MANIFEST_JSON)
 
         with pytest.raises(ManifestValidationError,
-                           match=r"Filename did not match metadata"):
+                           match="Filename did not match metadata"):
             CollectionLoader(temp_dir, 'ns-coll-1.2.3.tar.gz').load()
