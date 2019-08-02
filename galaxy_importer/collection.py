@@ -72,7 +72,9 @@ class CollectionLoader(object):
 
     def load(self):
         self._load_collection_manifest()
-        self._check_filename_matches_manifest()
+        # TODO: add filename check when worker can pass filename with
+        # collection details instead of filename made of hash string
+        # self._check_filename_matches_manifest()
 
         import_result = schema.ImportResult(
             metadata=self.metadata,
