@@ -19,7 +19,7 @@ import argparse
 import logging
 import sys
 
-from . import collection
+from galaxy_importer import collection
 
 
 def start_import(filepath):

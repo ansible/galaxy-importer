@@ -21,8 +21,8 @@ import re
 import attr
 import semantic_version
 
-from . import constants
-from .utils.spdx_licenses import is_valid_license_id
+from galaxy_importer import constants
+from galaxy_importer.utils.spdx_licenses import is_valid_license_id
 
 SHA1_LEN = 40
 
