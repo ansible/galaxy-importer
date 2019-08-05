@@ -30,12 +30,12 @@ def main(args=None):
         level=logging.INFO)
     args = parse_args(args)
 
-    json_data = call_importer(file=args.file)
+    data = call_importer(file=args.file)
 
     if args.print_result:
-        print(json.dumps(json.loads(json_data), indent=4))
+        print(json.dumps(data, indent=4))
 
-    write_output_file(json_data)
+    write_output_file(data)
 
 
 def parse_args(args):
@@ -57,18 +57,17 @@ def call_importer(file):
 
     :param file: Artifact file to import.
     """
-    json_data = collection.import_collection(file)
-    data = json.loads(json_data)
+    data = collection.import_collection(file)
     if data['result'] == 'completed':
         print('Importer processing completed successfully')
     else:
         print(f'Error during importer proccessing: {data["error"]}')
-    return json_data
+    return data
 
 
-def write_output_file(json_data):
+def write_output_file(data):
     with open('importer_result.json', 'w') as output_file:
-        output_file.write(json_data)
+        output_file.write(json.dumps(data))
 
 
 if __name__ == '__main__':

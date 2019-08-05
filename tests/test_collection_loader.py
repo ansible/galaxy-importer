@@ -15,7 +15,6 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import json
 import os
 import pytest
 import tempfile
@@ -63,9 +62,8 @@ def test_manifest_success():
         with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
             fh.write(MANIFEST_JSON)
 
-        json_result = CollectionLoader(
+        data = CollectionLoader(
             temp_dir, 'my_namespace-my_collection-2.0.2.tar.gz').load()
-        data = json.loads(json_result)
         assert data['metadata']['namespace'] == 'my_namespace'
         assert data['metadata']['name'] == 'my_collection'
         assert data['metadata']['version'] == '2.0.2'
@@ -117,7 +115,6 @@ def test_manifest_success():
 )
 def test_manifest_fail(manifest_text, new_text, error_subset):
     manifest_edited = MANIFEST_JSON.replace(manifest_text, new_text)
-    print(manifest_edited)
     with tempfile.TemporaryDirectory() as temp_dir:
         with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
             fh.write(manifest_edited)
