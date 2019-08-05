@@ -45,7 +45,7 @@ def parse_args(args):
         'file',
         help='artifact to import')
     parser.add_argument(
-        '--print_result',
+        '--print-result',
         dest='print_result',
         action='store_true',
         help='print importer result to console')
