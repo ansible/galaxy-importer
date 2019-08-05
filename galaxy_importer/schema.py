@@ -244,8 +244,8 @@ class ImportResult(object):
     """Result of the import process, collection metadata, and contents."""
 
     metadata = attr.ib(default=None, type=CollectionInfo)
-    documentation = attr.ib(factory=dict)
-    quality_score = attr.ib(default=None)
+    docs_blob = attr.ib(factory=dict)
     contents = attr.ib(factory=list)
+    custom_license = attr.ib(default=None)
     result = attr.ib(default=None)
     error = attr.ib(default=None)
