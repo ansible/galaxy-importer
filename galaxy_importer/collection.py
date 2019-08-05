@@ -22,7 +22,6 @@ import tarfile
 import tempfile
 
 import attr
-import semantic_version
 
 from . import exceptions as exc
 from . import schema
@@ -72,9 +71,8 @@ class CollectionLoader(object):
 
     def load(self):
         self._load_collection_manifest()
-        # TODO: add filename check when worker can pass filename with
+        # TODO(awcrosby): add filename check when worker can pass filename with
         # collection details instead of filename made of hash string
-        # self._check_filename_matches_manifest()
 
         import_result = schema.ImportResult(
             metadata=self.metadata,
@@ -97,13 +95,3 @@ class CollectionLoader(object):
             except ValueError as e:
                 raise exc.ManifestValidationError(str(e))
             self.metadata = data.collection_info
-
-    def _check_filename_matches_manifest(self):
-        f = schema.CollectionFilename.parse(self.filename)
-        if (f.namespace != self.metadata.namespace or
-                f.name != self.metadata.name):
-            raise exc.ManifestValidationError(
-                'Filename did not match metadata')
-        if f.version != semantic_version.Version(self.metadata.version):
-            raise exc.ManifestValidationError(
-                'Filename version did not match metadata')
