@@ -20,7 +20,7 @@ import json
 import logging
 import sys
 
-from . import collection
+from galaxy_importer import collection
 
 
 def main(args=None):

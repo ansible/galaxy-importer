@@ -23,8 +23,8 @@ import tempfile
 import attr
 import semantic_version
 
-from . import exceptions as exc
-from . import schema
+from galaxy_importer import exceptions as exc
+from galaxy_importer import schema
 
 
 default_logger = logging.getLogger(__name__)
