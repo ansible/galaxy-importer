@@ -15,7 +15,6 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import json
 import logging
 import os
 import tarfile
@@ -44,7 +43,7 @@ def import_collection(filepath, logger=None):
             result=RESULT_FAILED,
             error=str(exc),
         )
-        return json.dumps(attr.asdict(import_result))
+        return attr.asdict(import_result)
 
 
 def _import_collection(filepath, logger):
@@ -82,7 +81,7 @@ class CollectionLoader(object):
             result=RESULT_COMPLETED,
             error=None,
         )
-        return json.dumps(attr.asdict(import_result))
+        return attr.asdict(import_result)
 
     def _load_collection_manifest(self):
         manifest_file = os.path.join(self.path, 'MANIFEST.json')
