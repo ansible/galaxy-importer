@@ -23,6 +23,7 @@ import tempfile
 import attr
 
 from galaxy_importer import exceptions as exc
+from galaxy_importer.finder import ContentFinder
 from galaxy_importer import schema
 
 
@@ -71,6 +72,7 @@ class CollectionLoader(object):
         self._load_collection_manifest()
         # TODO(awcrosby): add filename check when worker can pass filename with
         # collection details instead of filename made of hash string
+        self._load_contents()
 
         import_result = schema.ImportResult(
             metadata=self.metadata,
@@ -92,3 +94,12 @@ class CollectionLoader(object):
             except ValueError as e:
                 raise exc.ManifestValidationError(str(e))
             self.metadata = data.collection_info
+
+    def _load_contents(self):
+        contents = ContentFinder().find_contents(self.path, self.log)
+
+        # TEMP: logging found contents
+        self.log.info('')
+        self.log.info('=== Found contents ===')
+        for content in contents:
+            self.log.info(content.path)
