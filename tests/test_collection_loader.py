@@ -123,13 +123,3 @@ def test_manifest_fail(manifest_text, new_text, error_subset):
                            match=error_subset):
             CollectionLoader(
                 temp_dir, 'my_namespace-my_collection-2.0.2.tar.gz').load()
-
-
-def test_filename_not_match_manifest():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
-            fh.write(MANIFEST_JSON)
-
-        with pytest.raises(ManifestValidationError,
-                           match="Filename did not match metadata"):
-            CollectionLoader(temp_dir, 'ns-coll-1.2.3.tar.gz').load()
