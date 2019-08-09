@@ -178,6 +178,21 @@ def test_invalid_semver(collection_info, invalid_semver):
         CollectionInfo(**collection_info)
 
 
+def test_license(collection_info):
+    collection_info['license'] = ['MIT', 'GPL-2.0-only', 'Apache-2.0']
+    res = CollectionInfo(**collection_info)
+    assert res.license == ['MIT', 'GPL-2.0-only', 'Apache-2.0']
+    assert res.license_file is None
+
+    collection_info['license'] = ['MIT', 'not-a-real-license', 'n00p']
+    with pytest.raises(ValueError, match=r"Expecting 'license' to be a list of valid SPDX"):
+        CollectionInfo(**collection_info)
+
+    collection_info['license'] = 'MIT'
+    with pytest.raises(ValueError, match=r"'license' to be a list of strings"):
+        CollectionInfo(**collection_info)
+
+
 def test_license_file(collection_info):
     collection_info['license'] = []
     collection_info['license_file'] = 'my_very_own_license.txt'
@@ -185,17 +200,23 @@ def test_license_file(collection_info):
     assert len(res.license) == 0
     assert res.license_file == 'my_very_own_license.txt'
 
-
-def test_empty_lic_and_lic_file(collection_info):
-    collection_info['license'] = []
-    with pytest.raises(ValueError,
-                       match=r"'license' or 'license_file' are required"):
+    collection_info['license_file'] = ['my_very_own_license.txt']
+    with pytest.raises(ValueError, match=r"'license_file' must be a string"):
         CollectionInfo(**collection_info)
 
 
-def test_license_not_list_of_str(collection_info):
-    collection_info['license'] = 'MIT'
-    with pytest.raises(ValueError, match=r"'license' to be a list of strings"):
+def test_empty_lic_and_lic_file(collection_info):
+    collection_info['license'] = []
+    with pytest.raises(ValueError, match=r"'license' or 'license_file' are required"):
+        CollectionInfo(**collection_info)
+
+
+def test_both_lic_and_lic_file(collection_info):
+    collection_info['license_file'] = 'my_very_own_license.txt'
+    with pytest.raises(
+        ValueError,
+        match=r"'license' and 'license_file' keys are mutually exclusive"
+    ):
         CollectionInfo(**collection_info)
 
 
