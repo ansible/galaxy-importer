@@ -19,5 +19,4 @@ import re
 
 
 MAX_TAGS_COUNT = 20
-TAG_REGEXP = re.compile('^[a-z0-9]+$')
 NAME_REGEXP = re.compile(r'^(?!.*__)[a-z]+[0-9a-z_]*$')

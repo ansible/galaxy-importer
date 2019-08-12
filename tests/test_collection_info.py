@@ -94,14 +94,13 @@ def test_invalid_names(collection_info, invalid_name):
 @pytest.mark.parametrize(
     'valid_tags',
     [
+        ['good_tag', 'goodtag'],
         ['deployment'],
         ['fedora'],
         ['fedora29'],
-        ['4ubuntu'],
+        ['fedora_29'],
         ['alloneword'],
-        ['007'],
-        ['0x4e3'],
-        ['deployment', 'fedora', '007', 'alloneword']
+        ['deployment', 'fedora', 'a_007', 'alloneword']
     ]
 )
 def test_valid_tags(collection_info, valid_tags):
@@ -113,9 +112,12 @@ def test_valid_tags(collection_info, valid_tags):
 @pytest.mark.parametrize(
     'invalid_tags',
     [
-        ['bad_tag'],
-        ['goodtag', 'bad_tag'],
+        ['007'],
+        ['4ubuntu'],
+        ['0x4e3'],
         ['bad-tag'],
+        ['Badtag'],
+        ['badTAG'],
         ['bad-tag', 'goodtag'],
         ['bad tag'],
         ['bad.tag'],
@@ -131,11 +133,11 @@ def test_invalid_tags(collection_info, invalid_tags):
 
 
 def test_max_tags(collection_info):
-    collection_info['tags'] = [str(i) for i in range(90, 110)]
+    collection_info['tags'] = [str(f'tag_{i}') for i in range(90, 110)]
     res = CollectionInfo(**collection_info)
-    assert [str(x) for x in range(90, 110)] == res.tags
+    assert [str(f'tag_{i}') for i in range(90, 110)] == res.tags
 
-    collection_info['tags'] = [str(i) for i in range(90, 111)]
+    collection_info['tags'] = [str(f'tag_{i}') for i in range(90, 111)]
     with pytest.raises(ValueError, match=r'Expecting no more than '):
         CollectionInfo(**collection_info)
 

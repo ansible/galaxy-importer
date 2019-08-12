@@ -196,7 +196,7 @@ class CollectionInfo(object):
                 f"Expecting no more than {constants.MAX_TAGS_COUNT} tags "
                 "in metadata")
         for tag in value:
-            if not re.match(constants.TAG_REGEXP, tag):
+            if not re.match(constants.NAME_REGEXP, tag):
                 self.value_error(f"'tag' has invalid format: {tag}")
 
     @description.validator
