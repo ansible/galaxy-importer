@@ -24,6 +24,7 @@ import attr
 
 from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder
+from galaxy_importer import loaders
 from galaxy_importer import schema
 
 
@@ -64,6 +65,7 @@ class CollectionLoader(object):
         self.path = path
         self.filename = filename
 
+        self.content_objs = None
         self.metadata = None
         self.docs_blob = None
         self.contents = None
@@ -72,7 +74,15 @@ class CollectionLoader(object):
         self._load_collection_manifest()
         # TODO(awcrosby): add filename check when worker can pass filename with
         # collection details instead of filename made of hash string
-        self._load_contents()
+        self.content_objs = list(self._load_contents())
+
+        # TEMP: logging contents
+        for c in self.content_objs:
+            self.log.info(
+                f'Loaded {c.content_type.value}: {c.name}, {c.description}')
+
+        self.contents = self._build_contents_blob()
+        self.docs_blob = self.build_docs_blob()
 
         import_result = schema.ImportResult(
             metadata=self.metadata,
@@ -96,10 +106,18 @@ class CollectionLoader(object):
             self.metadata = data.collection_info
 
     def _load_contents(self):
-        contents = ContentFinder().find_contents(self.path, self.log)
+        """Find and load data for each content inside the collection."""
+        found_contents = ContentFinder().find_contents(self.path, self.log)
+        for content_type, rel_path in found_contents:
+            loader_cls = loaders.get_loader_cls(content_type)
+            loader = loader_cls(content_type, rel_path, self.path)
+            content_obj = loader.load()
+            yield content_obj
 
-        # TEMP: logging found contents
-        self.log.info('')
-        self.log.info('=== Found contents ===')
-        for content in contents:
-            self.log.info(content.path)
+    def _build_contents_blob(self):
+        """Build importer result contents from Content objects."""
+        pass
+
+    def build_docs_blob(self):
+        """Build importer result docs_blob from collection documentation."""
+        pass
