@@ -29,7 +29,7 @@ class ManifestValidationError(ImporterError):
     pass
 
 
-class ContentNotFound(ImporterError):
+class ContentFindError(ImporterError):
     pass
 
 

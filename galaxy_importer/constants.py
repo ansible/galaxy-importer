@@ -15,9 +15,33 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import enum
 import re
 
 
 MAX_TAGS_COUNT = 20
 TAG_REGEXP = re.compile('^[a-z0-9]+$')
 NAME_REGEXP = re.compile(r'^(?!.*__)[a-z]+[0-9a-z_]*$')
+
+
+class ContentType(enum.Enum):
+    ROLE = 'role'
+    MODULE = 'module'
+    MODULE_UTILS = 'module_utils'
+    ACTION_PLUGIN = 'action'
+    BECOME_PLUGIN = 'become'
+    CACHE_PLUGIN = 'cache'
+    CALLBACK_PLUGIN = 'callback'
+    CLICONF_PLUGIN = 'cliconf'
+    CONNECTION_PLUGIN = 'connection'
+    DOC_FRAGMENTS_PLUGIN = 'doc_fragments'
+    FILTER_PLUGIN = 'filter'
+    HTTPAPI_PLUGIN = 'httpapi'
+    INVENTORY_PLUGIN = 'inventory'
+    LOOKUP_PLUGIN = 'lookup'
+    NETCONF_PLUGIN = 'netconf'
+    SHELL_PLUGIN = 'shell'
+    STRATEGY_PLUGIN = 'strategy'
+    TERMINAL_PLUGIN = 'terminal'
+    TEST_PLUGIN = 'test'
+    VARS_PLUGIN = 'vars'
