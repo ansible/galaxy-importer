@@ -48,22 +48,22 @@ def import_collection(filepath, logger=None):
 
 
 def _import_collection(filepath, logger):
-    filename = os.path.basename(filepath)
-
     with tempfile.TemporaryDirectory() as extract_dir:
         with tarfile.open(filepath, 'r') as pkg_tar:
             pkg_tar.extractall(extract_dir)
 
-        return CollectionLoader(extract_dir, filename, logger=logger).load()
+        data = CollectionLoader(extract_dir, filepath, logger=logger).load()
+
+    return attr.asdict(data)
 
 
 class CollectionLoader(object):
     """Loads collection and content info."""
 
-    def __init__(self, path, filename, logger=None):
+    def __init__(self, path, filepath, logger=None):
         self.log = logger or default_logger
         self.path = path
-        self.filename = filename
+        self.filepath = filepath
 
         self.content_objs = None
         self.metadata = None
@@ -85,14 +85,13 @@ class CollectionLoader(object):
         self.contents = self._build_contents_blob()
         self.docs_blob = self.build_docs_blob()
 
-        import_result = schema.ImportResult(
+        return schema.ImportResult(
             metadata=self.metadata,
             docs_blob=self.docs_blob,
             contents=self.contents,
             result=RESULT_COMPLETED,
             error=None,
         )
-        return attr.asdict(import_result)
 
     def _load_collection_manifest(self):
         manifest_file = os.path.join(self.path, 'MANIFEST.json')
