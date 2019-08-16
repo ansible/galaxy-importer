@@ -17,6 +17,7 @@
 
 import logging
 import os
+from pkg_resources import iter_entry_points
 import tarfile
 import tempfile
 
@@ -53,6 +54,13 @@ def _import_collection(filepath, logger):
             pkg_tar.extractall(extract_dir)
 
         data = CollectionLoader(extract_dir, filepath, logger=logger).load()
+
+    _run_post_load_plugins(
+        artifact_path=filepath,
+        metadata=data.metadata,
+        content_objs=None,
+        logger=logger,
+    )
 
     return attr.asdict(data)
 
@@ -121,3 +129,15 @@ class CollectionLoader(object):
     def build_docs_blob(self):
         """Build importer result docs_blob from collection documentation."""
         pass
+
+
+def _run_post_load_plugins(artifact_path, metadata, content_objs, logger=None):
+    for ep in iter_entry_points(group='galaxy_importer.post_load_plugin'):
+        logger.debug(f'Running plugin: {ep.module_name}')
+        found_plugin = ep.load()
+        found_plugin(
+            artifact_path=artifact_path,
+            metadata=metadata,
+            content_objs=None,
+            logger=logger,
+        )
