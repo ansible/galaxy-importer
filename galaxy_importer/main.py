@@ -27,7 +27,7 @@ def main(args=None):
     logging.basicConfig(
         stream=sys.stdout,
         format='%(levelname)s: %(message)s',
-        level=logging.INFO)
+        level=logging.DEBUG)
     args = parse_args(args)
 
     data = call_importer(file=args.file)

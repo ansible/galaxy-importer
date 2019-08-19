@@ -240,12 +240,31 @@ class CollectionArtifactManifest(object):
 
 
 @attr.s(frozen=True)
+class ResultContentItem(object):
+    name = attr.ib()
+    content_type = attr.ib()
+    description = attr.ib()
+
+
+@attr.s(frozen=True)
 class ImportResult(object):
     """Result of the import process, collection metadata, and contents."""
 
     metadata = attr.ib(default=None, type=CollectionInfo)
     docs_blob = attr.ib(factory=dict)
-    contents = attr.ib(factory=list)
+    contents = attr.ib(factory=list, type=ResultContentItem)
     custom_license = attr.ib(default=None)
     result = attr.ib(default=None)
     error = attr.ib(default=None)
+
+
+@attr.s
+class Content(object):
+    """Represents content found in a collection."""
+
+    name = attr.ib()
+    content_type = attr.ib(type=constants.ContentType)
+    doc_strings = attr.ib(factory=dict)
+    description = attr.ib(default=None)
+    readme_file = attr.ib(default=None)
+    readme_html = attr.ib(default=None)
