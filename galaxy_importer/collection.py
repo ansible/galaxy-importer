@@ -77,8 +77,9 @@ class CollectionLoader(object):
         self.content_objs = list(self._load_contents())
 
         # TEMP: logging contents
+        self.log.debug(' ')
         for c in self.content_objs:
-            self.log.info(
+            self.log.debug(
                 f'Loaded {c.content_type.value}: {c.name}, {c.description}')
 
         self.contents = self._build_contents_blob()
