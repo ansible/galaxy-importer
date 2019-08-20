@@ -148,6 +148,7 @@ def test_load(mocked_run_ansible_doc, loader_module):
     assert res.content_type == constants.ContentType.MODULE
     assert res.readme_file is None
     assert res.readme_html is None
+    assert res.description == 'Sample module for testing'
     doc = list(filter(lambda item: item.name == 'doc', res.doc_strings))[0]
     assert doc.string['version_added'] == '2.8'
 
