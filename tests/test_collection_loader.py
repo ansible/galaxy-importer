@@ -140,3 +140,32 @@ def test_build_contents_blob():
         {'content_type': 'module', 'description': None, 'name': 'my_module'},
         {'content_type': 'role', 'description': None, 'name': 'my_role'}
     ]
+
+
+def test_build_docs_blob():
+    collection_loader = CollectionLoader('/tmpdir', 'filename')
+    collection_loader.content_objs = [
+        schema.Content(name='my_module', content_type=ContentType.MODULE),
+        schema.Content(name='my_role', content_type=ContentType.ROLE),
+    ]
+    res = collection_loader._build_docs_blob()
+    assert attr.asdict(res) == {
+        'collection_readme': None,
+        'documentation_files': None,
+        'contents': [
+            {
+                'content_name': 'my_module',
+                'content_type': 'module',
+                'doc_strings': [],
+                'readme_file': None,
+                'readme_html': None,
+            },
+            {
+                'content_name': 'my_role',
+                'content_type': 'role',
+                'doc_strings': [],
+                'readme_file': None,
+                'readme_html': None,
+            },
+        ],
+    }
