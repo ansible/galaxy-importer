@@ -67,7 +67,7 @@ def call_importer(file):
 
 def write_output_file(data):
     with open('importer_result.json', 'w') as output_file:
-        output_file.write(json.dumps(data))
+        output_file.write(json.dumps(data, indent=4))
 
 
 if __name__ == '__main__':
