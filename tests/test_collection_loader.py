@@ -19,8 +19,12 @@ import os
 import pytest
 import tempfile
 
+import attr
+
 from galaxy_importer.collection import CollectionLoader
+from galaxy_importer.constants import ContentType
 from galaxy_importer.exceptions import ManifestValidationError
+from galaxy_importer import schema
 
 
 MANIFEST_JSON = """
@@ -123,3 +127,16 @@ def test_manifest_fail(manifest_text, new_text, error_subset):
                            match=error_subset):
             CollectionLoader(
                 temp_dir, 'my_namespace-my_collection-2.0.2.tar.gz').load()
+
+
+def test_build_contents_blob():
+    collection_loader = CollectionLoader('/tmpdir', 'filename')
+    collection_loader.content_objs = [
+        schema.Content(name='my_module', content_type=ContentType.MODULE),
+        schema.Content(name='my_role', content_type=ContentType.ROLE),
+    ]
+    res = collection_loader._build_contents_blob()
+    assert [attr.asdict(item) for item in res] == [
+        {'content_type': 'module', 'description': None, 'name': 'my_module'},
+        {'content_type': 'role', 'description': None, 'name': 'my_role'}
+    ]

@@ -124,7 +124,14 @@ class CollectionLoader(object):
 
     def _build_contents_blob(self):
         """Build importer result contents from Content objects."""
-        pass
+        return [
+            schema.ResultContentItem(
+                name=c.name,
+                content_type=c.content_type.value,
+                description=c.description,
+            )
+            for c in self.content_objs
+        ]
 
     def build_docs_blob(self):
         """Build importer result docs_blob from collection documentation."""
