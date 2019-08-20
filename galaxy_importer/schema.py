@@ -258,13 +258,21 @@ class ImportResult(object):
     error = attr.ib(default=None)
 
 
+@attr.s(frozen=True)
+class DocString(object):
+    """Represents documentation blocks gathered from ansible-doc."""
+
+    name = attr.ib()
+    string = attr.ib()
+
+
 @attr.s
 class Content(object):
     """Represents content found in a collection."""
 
     name = attr.ib()
     content_type = attr.ib(type=constants.ContentType)
-    doc_strings = attr.ib(factory=dict)
+    doc_strings = attr.ib(factory=list, type=DocString)
     description = attr.ib(default=None)
     readme_file = attr.ib(default=None)
     readme_html = attr.ib(default=None)

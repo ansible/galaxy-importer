@@ -16,9 +16,11 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import abc
+import json
 import logging
 import os
 import re
+from subprocess import Popen, PIPE
 
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
@@ -30,6 +32,7 @@ default_logger = logging.getLogger(__name__)
 ANSIBLE_DOC_SUPPORTED_TYPES = [
     'become', 'cache', 'callback', 'cliconf', 'connection',
     'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
+ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
@@ -79,8 +82,7 @@ class ContentLoader(metaclass=abc.ABCMeta):
 class PluginLoader(ContentLoader):
     def load(self):
         self._log_loading()
-        if self.content_type.value in ANSIBLE_DOC_SUPPORTED_TYPES:
-            self._get_doc_strings()
+        self.doc_strings = self._get_doc_strings()
 
         return schema.Content(
             name=self.name,
@@ -92,8 +94,41 @@ class PluginLoader(ContentLoader):
         return os.path.splitext(os.path.basename(self.rel_path))[0]
 
     def _get_doc_strings(self):
+        if self.content_type.value not in ANSIBLE_DOC_SUPPORTED_TYPES:
+            return None
+
         self.log.info('Getting doc strings via ansible-doc')
-        pass
+        json_output = self._run_ansible_doc()
+
+        if not json_output:
+            return
+        data = json.loads(json_output)
+        if self.name not in data.keys():
+            self.log.error(f'No "{self.name}" key in ansible-doc output')
+            return None
+
+        def _get_name_string(key):
+            return schema.DocString(
+                name=key,
+                string=data[self.name].get(key, None),
+            )
+
+        return [_get_name_string(key) for key in ANSIBLE_DOC_KEYS]
+
+    def _run_ansible_doc(self):
+        cmd = [
+            'ansible-doc',
+            '--type', self.content_type.value,
+            '-M', os.path.dirname(self.rel_path),
+            self.name,
+            '--json']
+        self.log.debug(f'CMD: {" ".join(cmd)}')
+        proc = Popen(cmd, cwd=self.root, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
+        if proc.returncode:
+            self.log.error(f'Error running ansible-doc: {stderr}')
+            return None
+        return stdout
 
 
 class RoleLoader(ContentLoader):
