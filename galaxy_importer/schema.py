@@ -276,3 +276,37 @@ class Content(object):
     description = attr.ib(default=None)
     readme_file = attr.ib(default=None)
     readme_html = attr.ib(default=None)
+
+    def __attrs_post_init__(self):
+        """Set description if a plugin has doc_strings populated."""
+        if not self.doc_strings:
+            return
+        doc = list(
+            filter(lambda item: item.name == 'doc', self.doc_strings))[0]
+        if doc.string:
+            self.description = doc.string.get('short_description', None)
+
+
+@attr.s(frozen=True)
+class RenderedDocFile(object):
+    """Filename and html of a documenation file, part of DocsBlob."""
+    filename = attr.ib(default=None)
+    html = attr.ib(default=None)
+
+
+@attr.s(frozen=True)
+class DocsBlobContentItem(object):
+    """Documenation for piece of content, part of DocsBlob."""
+    content_name = attr.ib()
+    content_type = attr.ib()
+    doc_strings = attr.ib(factory=list, type=DocString)
+    readme_file = attr.ib(default=None)
+    readme_html = attr.ib(default=None)
+
+
+@attr.s(frozen=True)
+class DocsBlob(object):
+    """All documenation that is part of a collection."""
+    collection_readme = attr.ib(type=RenderedDocFile)
+    documentation_files = attr.ib(factory=list, type=RenderedDocFile)
+    contents = attr.ib(factory=list, type=DocsBlobContentItem)

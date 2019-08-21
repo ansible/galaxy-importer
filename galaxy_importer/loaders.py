@@ -122,7 +122,7 @@ class PluginLoader(ContentLoader):
             '-M', os.path.dirname(self.rel_path),
             self.name,
             '--json']
-        self.log.debug(f'CMD: {" ".join(cmd)}')
+        self.log.debug('CMD: {}'.format(' '.join(cmd)))
         proc = Popen(cmd, cwd=self.root, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode:

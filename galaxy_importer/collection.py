@@ -91,7 +91,7 @@ class CollectionLoader(object):
                 f'Loaded {c.content_type.value}: {c.name}, {c.description}')
 
         self.contents = self._build_contents_blob()
-        self.docs_blob = self.build_docs_blob()
+        self.docs_blob = self._build_docs_blob()
 
         return schema.ImportResult(
             metadata=self.metadata,
@@ -124,11 +124,33 @@ class CollectionLoader(object):
 
     def _build_contents_blob(self):
         """Build importer result contents from Content objects."""
-        pass
+        return [
+            schema.ResultContentItem(
+                name=c.name,
+                content_type=c.content_type.value,
+                description=c.description,
+            )
+            for c in self.content_objs
+        ]
 
-    def build_docs_blob(self):
+    def _build_docs_blob(self):
         """Build importer result docs_blob from collection documentation."""
-        pass
+        contents = [
+            schema.DocsBlobContentItem(
+                content_name=c.name,
+                content_type=c.content_type.value,
+                doc_strings=c.doc_strings,
+                readme_file=c.readme_file,
+                readme_html=c.readme_html,
+            )
+            for c in self.content_objs
+        ]
+
+        return schema.DocsBlob(
+            collection_readme=None,  # TODO: implement
+            documentation_files=None,  # TODO: implement
+            contents=contents,
+        )
 
 
 def _run_post_load_plugins(artifact_path, metadata, content_objs, logger=None):
