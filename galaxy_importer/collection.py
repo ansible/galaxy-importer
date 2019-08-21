@@ -38,14 +38,7 @@ RESULT_FAILED = 'failed'
 
 def import_collection(filepath, logger=None):
     logger = logger or default_logger
-    try:
-        return _import_collection(filepath, logger)
-    except Exception as exc:
-        import_result = schema.ImportResult(
-            result=RESULT_FAILED,
-            error=str(exc),
-        )
-        return attr.asdict(import_result)
+    return _import_collection(filepath, logger)
 
 
 def _import_collection(filepath, logger):
@@ -98,7 +91,6 @@ class CollectionLoader(object):
             docs_blob=self.docs_blob,
             contents=self.contents,
             result=RESULT_COMPLETED,
-            error=None,
         )
 
     def _load_collection_manifest(self):
