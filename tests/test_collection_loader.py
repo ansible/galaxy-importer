@@ -64,25 +64,25 @@ def test_manifest_success():
 
         data = CollectionLoader(
             temp_dir, 'my_namespace-my_collection-2.0.2.tar.gz').load()
-        assert data['metadata']['namespace'] == 'my_namespace'
-        assert data['metadata']['name'] == 'my_collection'
-        assert data['metadata']['version'] == '2.0.2'
-        assert data['metadata']['authors'] == ['John Doe']
-        assert data['metadata']['readme'] == 'README.md'
-        assert data['metadata']['tags'] == ['deployment', 'fedora']
-        assert data['metadata']['description'] == \
+        assert data.metadata.namespace == 'my_namespace'
+        assert data.metadata.name == 'my_collection'
+        assert data.metadata.version == '2.0.2'
+        assert data.metadata.authors == ['John Doe']
+        assert data.metadata.readme == 'README.md'
+        assert data.metadata.tags == ['deployment', 'fedora']
+        assert data.metadata.description == \
             'A collection with various roles and plugins'
-        assert data['metadata']['license_file'] is None
-        assert data['metadata']['dependencies'] == {
+        assert data.metadata.license_file is None
+        assert data.metadata.dependencies == {
             'my_namespace.collection_nginx': '>=0.1.6',
             'network_user.collection_inspect': '2.0.0',
             'dave.deploy': '*'
         }
-        assert data['metadata']['repository'] is None
-        assert data['metadata']['homepage'] is None
-        assert data['metadata']['issues'] is None
-        assert data['error'] is None
-        assert data['result'] == 'completed'
+        assert data.metadata.repository is None
+        assert data.metadata.homepage is None
+        assert data.metadata.issues is None
+        assert data.error is None
+        assert data.result == 'completed'
 
 
 @pytest.mark.parametrize(

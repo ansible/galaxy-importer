@@ -17,6 +17,7 @@
 
 import logging
 import os
+from pkg_resources import iter_entry_points
 import tarfile
 import tempfile
 
@@ -48,22 +49,29 @@ def import_collection(filepath, logger=None):
 
 
 def _import_collection(filepath, logger):
-    filename = os.path.basename(filepath)
-
     with tempfile.TemporaryDirectory() as extract_dir:
         with tarfile.open(filepath, 'r') as pkg_tar:
             pkg_tar.extractall(extract_dir)
 
-        return CollectionLoader(extract_dir, filename, logger=logger).load()
+        data = CollectionLoader(extract_dir, filepath, logger=logger).load()
+
+    _run_post_load_plugins(
+        artifact_path=filepath,
+        metadata=data.metadata,
+        content_objs=None,
+        logger=logger,
+    )
+
+    return attr.asdict(data)
 
 
 class CollectionLoader(object):
     """Loads collection and content info."""
 
-    def __init__(self, path, filename, logger=None):
+    def __init__(self, path, filepath, logger=None):
         self.log = logger or default_logger
         self.path = path
-        self.filename = filename
+        self.filepath = filepath
 
         self.content_objs = None
         self.metadata = None
@@ -85,14 +93,13 @@ class CollectionLoader(object):
         self.contents = self._build_contents_blob()
         self.docs_blob = self.build_docs_blob()
 
-        import_result = schema.ImportResult(
+        return schema.ImportResult(
             metadata=self.metadata,
             docs_blob=self.docs_blob,
             contents=self.contents,
             result=RESULT_COMPLETED,
             error=None,
         )
-        return attr.asdict(import_result)
 
     def _load_collection_manifest(self):
         manifest_file = os.path.join(self.path, 'MANIFEST.json')
@@ -122,3 +129,15 @@ class CollectionLoader(object):
     def build_docs_blob(self):
         """Build importer result docs_blob from collection documentation."""
         pass
+
+
+def _run_post_load_plugins(artifact_path, metadata, content_objs, logger=None):
+    for ep in iter_entry_points(group='galaxy_importer.post_load_plugin'):
+        logger.debug(f'Running plugin: {ep.module_name}')
+        found_plugin = ep.load()
+        found_plugin(
+            artifact_path=artifact_path,
+            metadata=metadata,
+            content_objs=None,
+            logger=logger,
+        )
