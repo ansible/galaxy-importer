@@ -32,8 +32,6 @@ from galaxy_importer import schema
 default_logger = logging.getLogger(__name__)
 
 ALLOWED_TYPES = ['text/markdown', 'text/x-rst']
-RESULT_COMPLETED = 'completed'
-RESULT_FAILED = 'failed'
 
 
 def import_collection(filepath, logger=None):
@@ -90,7 +88,6 @@ class CollectionLoader(object):
             metadata=self.metadata,
             docs_blob=self.docs_blob,
             contents=self.contents,
-            result=RESULT_COMPLETED,
         )
 
     def _load_collection_manifest(self):
