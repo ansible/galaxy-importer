@@ -31,6 +31,8 @@ def main(args=None):
     args = parse_args(args)
 
     data = call_importer(file=args.file)
+    if not data:
+        return
 
     if args.print_result:
         print(json.dumps(data, indent=4))
@@ -57,11 +59,13 @@ def call_importer(file):
 
     :param file: Artifact file to import.
     """
-    data = collection.import_collection(file)
-    if data['result'] == 'completed':
-        print('Importer processing completed successfully')
-    else:
-        print(f'Error during importer proccessing: {data["error"]}')
+    try:
+        data = collection.import_collection(file)
+    except Exception:
+        logging.error('Error during importer proccessing:', exc_info=True)
+        return None
+
+    logging.info('Importer processing completed successfully')
     return data
 
 
