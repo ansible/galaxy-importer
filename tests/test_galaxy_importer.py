@@ -17,12 +17,7 @@
 
 import pytest
 
-from galaxy_importer import __version__
 from galaxy_importer import main
-
-
-def test_version():
-    assert __version__ == '0.1.0'
 
 
 def test_parser():

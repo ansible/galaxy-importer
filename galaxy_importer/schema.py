@@ -254,8 +254,6 @@ class ImportResult(object):
     docs_blob = attr.ib(factory=dict)
     contents = attr.ib(factory=list, type=ResultContentItem)
     custom_license = attr.ib(default=None)
-    result = attr.ib(default=None)
-    error = attr.ib(default=None)
 
 
 @attr.s(frozen=True)

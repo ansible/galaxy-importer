@@ -85,8 +85,6 @@ def test_manifest_success():
         assert data.metadata.repository is None
         assert data.metadata.homepage is None
         assert data.metadata.issues is None
-        assert data.error is None
-        assert data.result == 'completed'
 
 
 @pytest.mark.parametrize(
