@@ -16,6 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import attr
+import json
 import pytest
 from unittest import mock
 
@@ -28,11 +29,20 @@ from galaxy_importer import schema
 ANSIBLE_DOC_OUTPUT = """
     {"my_sample_module": {
         "doc": {
-            "description": [
-                "Sample module for testing."
-            ],
+            "description": ["Sample module for testing."],
             "short_description": "Sample module for testing",
-            "version_added": "2.8"
+            "version_added": "2.8",
+            "options": {
+                "exclude": {
+                    "description": ["This is the message to send..."],
+                    "required": "true"
+                },
+                "use_new": {
+                    "description": ["Control is passed..."],
+                    "version_added": "2.7",
+                    "default": "auto"
+                }
+            }
         },
         "examples": null,
         "metadata": null,
@@ -137,6 +147,25 @@ def test_ansible_doc_unsupported_type():
     assert constants.ContentType.ACTION_PLUGIN.value not in \
         loaders.ANSIBLE_DOC_SUPPORTED_TYPES
     assert not loader_action._get_doc_strings()
+
+
+def test_ansible_doc_transform_options(loader_module):
+    data = json.loads(ANSIBLE_DOC_OUTPUT)
+    transformed_data = loader_module._transform_options(data)
+    options = transformed_data['my_sample_module']['doc']['options']
+    assert options == [
+        {
+            'name': 'exclude',
+            'description': ['This is the message to send...'],
+            'required': 'true',
+        },
+        {
+            'name': 'use_new',
+            'description': ['Control is passed...'],
+            'version_added': '2.7',
+            'default': 'auto'
+        }
+    ]
 
 
 @mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')
