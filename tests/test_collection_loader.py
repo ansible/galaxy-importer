@@ -18,13 +18,15 @@
 import os
 import pytest
 import tempfile
+from unittest import mock
 
 import attr
 
 from galaxy_importer.collection import CollectionLoader
 from galaxy_importer.constants import ContentType
-from galaxy_importer.exceptions import ManifestValidationError
+from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
+from galaxy_importer.utils import markup as markup_utils
 
 
 MANIFEST_JSON = """
@@ -61,7 +63,9 @@ MANIFEST_JSON = """
 """
 
 
-def test_manifest_success():
+@mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
+def test_manifest_success(_build_docs_blob):
+    _build_docs_blob.return_value = {}
     with tempfile.TemporaryDirectory() as temp_dir:
         with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
             fh.write(MANIFEST_JSON)
@@ -121,7 +125,7 @@ def test_manifest_fail(manifest_text, new_text, error_subset):
         with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
             fh.write(manifest_edited)
 
-        with pytest.raises(ManifestValidationError,
+        with pytest.raises(exc.ManifestValidationError,
                            match=error_subset):
             CollectionLoader(
                 temp_dir, 'my_namespace-my_collection-2.0.2.tar.gz').load()
@@ -140,7 +144,11 @@ def test_build_contents_blob():
     ]
 
 
-def test_build_docs_blob():
+@mock.patch('galaxy_importer.utils.markup.get_html')
+@mock.patch('galaxy_importer.utils.markup.get_readme_doc_file')
+def test_build_docs_blob_contents(get_readme_doc_file, get_html):
+    get_readme_doc_file.return_value.name = 'README.md'
+    get_html.return_value = '<p>A detailed guide</p>'
     collection_loader = CollectionLoader('/tmpdir', 'filename')
     collection_loader.content_objs = [
         schema.Content(name='my_module', content_type=ContentType.MODULE),
@@ -148,8 +156,9 @@ def test_build_docs_blob():
     ]
     res = collection_loader._build_docs_blob()
     assert attr.asdict(res) == {
-        'collection_readme': None,
-        'documentation_files': None,
+        'collection_readme': {'name': 'README.md',
+                              'html': '<p>A detailed guide</p>'},
+        'documentation_files': [],
         'contents': [
             {
                 'content_name': 'my_module',
@@ -167,3 +176,44 @@ def test_build_docs_blob():
             },
         ],
     }
+
+
+@mock.patch('galaxy_importer.utils.markup.get_html')
+@mock.patch('galaxy_importer.utils.markup.get_readme_doc_file')
+@mock.patch('galaxy_importer.utils.markup.get_doc_files')
+def test_build_docs_blob_doc_files(get_doc_files, get_readme, get_html):
+    get_readme.return_value.name = 'README.md'
+    get_html.return_value = '<p>A detailed guide</p>'
+    get_doc_files.return_value = [
+        markup_utils.DocFile(name='INTRO.md', text='Intro text',
+                             mimetype='text/markdown', hash=''),
+        markup_utils.DocFile(name='INTRO2.md', text='Intro text',
+                             mimetype='text/markdown', hash=''),
+    ]
+    collection_loader = CollectionLoader('/tmpdir', 'filename')
+    collection_loader.content_objs = []
+    res = collection_loader._build_docs_blob()
+    assert attr.asdict(res) == {
+        'collection_readme': {'name': 'README.md',
+                              'html': '<p>A detailed guide</p>'},
+        'documentation_files': [
+            {
+                'name': 'INTRO.md',
+                'html': '<p>A detailed guide</p>',
+            },
+            {
+                'name': 'INTRO2.md',
+                'html': '<p>A detailed guide</p>',
+            },
+        ],
+        'contents': [],
+    }
+
+
+@mock.patch('galaxy_importer.utils.markup.get_readme_doc_file')
+def test_build_docs_blob_no_readme(get_readme_doc_file):
+    get_readme_doc_file.return_value = None
+    collection_loader = CollectionLoader('/tmpdir', 'filename')
+    collection_loader.content_objs = []
+    with pytest.raises(exc.ImporterError):
+        collection_loader._build_docs_blob()
