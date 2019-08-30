@@ -32,7 +32,7 @@ from galaxy_importer.utils import markup as markup_utils
 
 default_logger = logging.getLogger(__name__)
 
-DOC_FOLDER = 'documentation'
+DOCUMENTATION_DIR = 'documentation'
 
 
 def import_collection(filepath, logger=None):
@@ -132,15 +132,13 @@ class CollectionLoader(object):
 
         readme = markup_utils.get_readme_doc_file(self.path)
         if not readme:
-            msg = 'No collection readme found'
-            self.log.error(msg)
-            raise exc.ImporterError(msg)
+            raise exc.ImporterError('No collection readme found')
         rendered_readme = schema.RenderedDocFile(
             name=readme.name, html=markup_utils.get_html(readme))
 
         rendered_doc_files = []
         doc_files = markup_utils.get_doc_files(
-            os.path.join(self.path, DOC_FOLDER))
+            os.path.join(self.path, DOCUMENTATION_DIR))
         if doc_files:
             rendered_doc_files = [
                 schema.RenderedDocFile(

@@ -159,9 +159,7 @@ class RoleLoader(ContentLoader):
         readme = markup_utils.get_readme_doc_file(
             os.path.join(self.root, self.rel_path))
         if not readme:
-            msg = 'No role readme found.'
-            self.log.error(msg)
-            raise exc.ContentLoadError(msg)
+            raise exc.ContentLoadError('No role readme found.')
         self.readme_file = readme.name
         self.readme_html = markup_utils.get_html(readme)
 

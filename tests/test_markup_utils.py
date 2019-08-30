@@ -48,13 +48,10 @@ TEXT_FORMATTING = '''
 DocFile = collections.namedtuple('DocFile', ['text', 'mimetype'])
 
 
-class FileCreateTestCase(TestCase):
+class TestFindGetFiles(TestCase):
     def setUp(self):
         self.setUpPyfakefs()
         self.directory = '/tmp'
-
-    def tearDown(self):
-        pass
 
     def test_find_readme(self):
         assert not markup_utils._find_readme(self.directory)
@@ -72,6 +69,7 @@ class FileCreateTestCase(TestCase):
             'INTRO.md',
         ]:
             self.fs.create_file(os.path.join(self.directory, invalid_name))
+
         assert not markup_utils._find_readme(self.directory)
 
     def test_get_readme_doc_file(self):
@@ -114,6 +112,7 @@ class FileCreateTestCase(TestCase):
             'EXAMPLES.md',
         ]:
             self.fs.create_file(os.path.join(self.directory, doc_file))
+
         self.fs.create_dir(os.path.join(self.directory, 'sub_dir_to_ignore'))
         res = markup_utils.get_doc_files(self.directory)
         assert len(res) == 3
@@ -123,49 +122,44 @@ class FileCreateTestCase(TestCase):
         assert 'EXAMPLES.md' in names
         assert 'WHOOPS.txt' not in names
 
-
-def test_get_html():
-    doc_file = DocFile(text=TEXT_SIMPLE, mimetype='text/markdown')
-    html = markup_utils.get_html(doc_file)
-    assert html == '<p>{}</p>'.format(TEXT_SIMPLE)
-
-    doc_file = DocFile(text=TEXT_SIMPLE, mimetype='text/rst')
-    html = markup_utils.get_html(doc_file)
-    assert html is None
+    def test_find_doc_files_no_dir(self):
+        res = markup_utils._find_doc_files(directory='/does_not_exist')
+        assert res == []
 
 
-def test_find_doc_files_no_dir():
-    res = markup_utils._find_doc_files(directory='/does_not_exist')
-    assert res == []
+class TestHtmlRender(TestCase):
+    def call_render(self, raw_text, mimetype):
+        doc_file = DocFile(text=raw_text, mimetype=mimetype)
+        return markup_utils._render_from_markdown(doc_file)
 
+    def test_get_html(self):
+        doc_file = DocFile(text=TEXT_SIMPLE, mimetype='text/markdown')
+        html = markup_utils.get_html(doc_file)
+        assert html == '<p>{}</p>'.format(TEXT_SIMPLE)
 
-def call_render(raw_text, mimetype):
-    doc_file = DocFile(text=raw_text, mimetype=mimetype)
-    return markup_utils._render_from_markdown(doc_file)
+        doc_file = DocFile(text=TEXT_SIMPLE, mimetype='text/rst')
+        html = markup_utils.get_html(doc_file)
+        assert html is None
 
+    def test_render_simple(self):
+        html = self.call_render(TEXT_SIMPLE, 'text/markdown')
+        assert html == '<p>{}</p>'.format(TEXT_SIMPLE)
 
-def test_render_simple():
-    html = call_render(TEXT_SIMPLE, 'text/markdown')
-    assert html == '<p>{}</p>'.format(TEXT_SIMPLE)
+    def test_render_bad_tag(self):
+        html = self.call_render(TEXT_BAD_TAG, 'text/markdown')
+        assert '<script>' not in html
 
+    def test_render_bad_html_hidden_in_md(self):
+        html = self.call_render(TEXT_BAD_HTML_IN_MD, 'text/markdown')
+        assert 'javascript' not in html
 
-def test_render_bad_tag():
-    html = call_render(TEXT_BAD_TAG, 'text/markdown')
-    assert '<script>' not in html
-
-
-def test_render_bad_html_hidden_in_md():
-    html = call_render(TEXT_BAD_HTML_IN_MD, 'text/markdown')
-    assert 'javascript' not in html
-
-
-def test_render_formatting():
-    html = call_render(TEXT_FORMATTING, 'text/markdown')
-    assert '<h1>Role</h1>' in html
-    assert '<a href="https://www.example.com">Tool</a>' in html
-    assert '<code>$PATH</code>' in html
-    assert '<h3>Installation</h3>' in html
-    assert '<code>package_version: "1.2.0"' in html
-    assert '<blockquote>\n<p>NOTE:' in html
-    assert 'Tool \'feature\' is <em>beta</em>' in html
-    assert '<ul>\n<li>Item1</li>' in html
+    def test_render_formatting(self):
+        html = self.call_render(TEXT_FORMATTING, 'text/markdown')
+        assert '<h1>Role</h1>' in html
+        assert '<a href="https://www.example.com">Tool</a>' in html
+        assert '<code>$PATH</code>' in html
+        assert '<h3>Installation</h3>' in html
+        assert '<code>package_version: "1.2.0"' in html
+        assert '<blockquote>\n<p>NOTE:' in html
+        assert 'Tool \'feature\' is <em>beta</em>' in html
+        assert '<ul>\n<li>Item1</li>' in html

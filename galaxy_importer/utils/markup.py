@@ -46,6 +46,10 @@ class FileSizeError(Exception):
 
 
 def get_readme_doc_file(directory):
+    """Find and get readme file from directory.
+
+    :return DocFile: Documentation file contents
+    """
     filename = _find_readme(directory)
     if not filename:
         return None
@@ -53,6 +57,10 @@ def get_readme_doc_file(directory):
 
 
 def get_doc_files(directory):
+    """Find and get list of documentation files from directory.
+
+    :return: List of DocFile documentation files
+    """
     filenames = _find_doc_files(directory)
     if not filenames:
         return None
@@ -60,12 +68,20 @@ def get_doc_files(directory):
 
 
 def get_html(doc_file):
+    """Get html for a documentation file.
+
+    :param doc_file: DocFile
+    """
     if doc_file.mimetype == 'text/markdown':
         return _render_from_markdown(doc_file)
     return None
 
 
 def _find_readme(directory):
+    """Look for and return valid readme file found in directory.
+
+    :return str: Filename of readme
+    """
     for ext in DOCFILE_EXTENSIONS:
         filename = os.path.join(directory, README_NAME + ext)
         if os.path.exists(filename):
@@ -74,6 +90,10 @@ def _find_readme(directory):
 
 
 def _find_doc_files(directory):
+    """Look for and return valid documentation files found in directory.
+
+    :return str: List of filenames
+    """
     result = []
     if not os.path.exists(directory):
         return result
@@ -88,6 +108,10 @@ def _find_doc_files(directory):
 
 
 def _get_file(directory, filename):
+    """Get documentation file from directory.
+
+    :return DocFile: Documentation file contents
+    """
     if not os.path.exists(filename):
         return None
 
@@ -111,6 +135,9 @@ def _get_file(directory, filename):
 
 
 def _render_from_markdown(doc_file):
+    """Render html from markdown documentation file.
+
+    :param doc_file: DocFile"""
     # notes on bleach coming after markdown, and bleach_whitelist pkg:
     # https://github.com/Python-Markdown/markdown/issues/225
     unsafe_html = markdown.markdown(doc_file.text, extensions=['extra'])
