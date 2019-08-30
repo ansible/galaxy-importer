@@ -23,6 +23,13 @@ MAX_TAGS_COUNT = 20
 NAME_REGEXP = re.compile(r'^(?!.*__)[a-z]+[0-9a-z_]*$')
 
 
+class ContentCategory(enum.Enum):
+    MODULE = 'module'
+    ROLE = 'role'
+    PLUGIN = 'plugin'
+    PLAYBOOK = 'playbook'
+
+
 class ContentType(enum.Enum):
     ROLE = 'role'
     MODULE = 'module'
@@ -44,3 +51,28 @@ class ContentType(enum.Enum):
     TERMINAL_PLUGIN = 'terminal'
     TEST_PLUGIN = 'test'
     VARS_PLUGIN = 'vars'
+
+    @property
+    def category(self):
+        return {
+            ContentType.ROLE: ContentCategory.ROLE,
+            ContentType.MODULE: ContentCategory.MODULE,
+            ContentType.MODULE_UTILS: ContentCategory.PLUGIN,
+            ContentType.ACTION_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.BECOME_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.CACHE_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.CALLBACK_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.CLICONF_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.CONNECTION_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.DOC_FRAGMENTS_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.FILTER_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.HTTPAPI_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.INVENTORY_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.LOOKUP_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.NETCONF_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.SHELL_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.STRATEGY_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.TERMINAL_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.TEST_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.VARS_PLUGIN: ContentCategory.PLUGIN,
+        }.get(self)

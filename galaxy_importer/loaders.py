@@ -178,8 +178,9 @@ class RoleLoader(ContentLoader):
 
 
 def get_loader_cls(content_type):
-    if content_type == constants.ContentType.ROLE:
-        loader_cls = RoleLoader
-    else:
-        loader_cls = PluginLoader
-    return loader_cls
+    if content_type.category == constants.ContentCategory.ROLE:
+        return RoleLoader
+    elif content_type.category in [constants.ContentCategory.PLUGIN,
+                                   constants.ContentCategory.MODULE]:
+        return PluginLoader
+    return None
