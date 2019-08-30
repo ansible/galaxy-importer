@@ -16,6 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import abc
+from copy import deepcopy
 import json
 import logging
 import os
@@ -107,6 +108,8 @@ class PluginLoader(ContentLoader):
             self.log.error(f'No "{self.name}" key in ansible-doc output')
             return None
 
+        data = self._transform_options(data)
+
         def _get_name_string(key):
             return schema.DocString(
                 name=key,
@@ -114,6 +117,18 @@ class PluginLoader(ContentLoader):
             )
 
         return [_get_name_string(key) for key in ANSIBLE_DOC_KEYS]
+
+    def _transform_options(self, data):
+        try:
+            options = data[self.name]['doc']['options']
+        except KeyError:
+            return data
+
+        options_new = [
+            {'name': option_name, **deepcopy(options[option_name])} for
+            option_name in options.keys()]
+        data[self.name]['doc']['options'] = options_new
+        return data
 
     def _run_ansible_doc(self):
         cmd = [
