@@ -287,8 +287,8 @@ class Content(object):
 
 @attr.s(frozen=True)
 class RenderedDocFile(object):
-    """Filename and html of a documenation file, part of DocsBlob."""
-    filename = attr.ib(default=None)
+    """Name and html of a documenation file, part of DocsBlob."""
+    name = attr.ib(default=None)
     html = attr.ib(default=None)
 
 
