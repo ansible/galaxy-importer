@@ -26,6 +26,7 @@ from subprocess import Popen, PIPE
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
+from galaxy_importer.utils import markup as markup_utils
 
 
 default_logger = logging.getLogger(__name__)
@@ -170,7 +171,12 @@ class RoleLoader(ContentLoader):
 
     def _get_readme(self):
         self.log.info('Getting role readme')
-        pass
+        readme = markup_utils.get_readme_doc_file(
+            os.path.join(self.root, self.rel_path))
+        if not readme:
+            raise exc.ContentLoadError('No role readme found.')
+        self.readme_file = readme.name
+        self.readme_html = markup_utils.get_html(readme)
 
     def _get_metadata_description(self):
         self.log.info('Getting role description')

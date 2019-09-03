@@ -293,9 +293,7 @@ def test_invalid_dep_format(collection_info, dependent_collection):
     'depencency',
     [
         {'alice.apache': 'bad_version'},
-        {'alice.apache': '1.2.*'},
         {'alice.apache': ''},
-        {'alice.apache': '*.*.*'},
         {'alice.apache': '>=1.0.0, <=2.0.0'},
         {'alice.apache': '>1 <2'},
     ]

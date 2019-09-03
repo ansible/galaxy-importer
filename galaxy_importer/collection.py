@@ -27,11 +27,12 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder
 from galaxy_importer import loaders
 from galaxy_importer import schema
+from galaxy_importer.utils import markup as markup_utils
 
 
 default_logger = logging.getLogger(__name__)
 
-ALLOWED_TYPES = ['text/markdown', 'text/x-rst']
+DOCUMENTATION_DIR = 'documentation'
 
 
 def import_collection(filepath, logger=None):
@@ -74,12 +75,6 @@ class CollectionLoader(object):
         # TODO(awcrosby): add filename check when worker can pass filename with
         # collection details instead of filename made of hash string
         self.content_objs = list(self._load_contents())
-
-        # TEMP: logging contents
-        self.log.debug(' ')
-        for c in self.content_objs:
-            self.log.debug(
-                f'Loaded {c.content_type.value}: {c.name}, {c.description}')
 
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
@@ -135,9 +130,25 @@ class CollectionLoader(object):
             for c in self.content_objs
         ]
 
+        readme = markup_utils.get_readme_doc_file(self.path)
+        if not readme:
+            raise exc.ImporterError('No collection readme found')
+        rendered_readme = schema.RenderedDocFile(
+            name=readme.name, html=markup_utils.get_html(readme))
+
+        rendered_doc_files = []
+        doc_files = markup_utils.get_doc_files(
+            os.path.join(self.path, DOCUMENTATION_DIR))
+        if doc_files:
+            rendered_doc_files = [
+                schema.RenderedDocFile(
+                    name=f.name, html=markup_utils.get_html(f))
+                for f in doc_files
+            ]
+
         return schema.DocsBlob(
-            collection_readme=None,  # TODO: implement
-            documentation_files=None,  # TODO: implement
+            collection_readme=rendered_readme,
+            documentation_files=rendered_doc_files,
             contents=contents,
         )
 
