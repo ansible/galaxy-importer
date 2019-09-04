@@ -163,14 +163,14 @@ def test_build_docs_blob_contents(get_readme_doc_file, get_html):
             {
                 'content_name': 'my_module',
                 'content_type': 'module',
-                'doc_strings': [],
+                'doc_strings': {},
                 'readme_file': None,
                 'readme_html': None,
             },
             {
                 'content_name': 'my_role',
                 'content_type': 'role',
-                'doc_strings': [],
+                'doc_strings': {},
                 'readme_file': None,
                 'readme_html': None,
             },

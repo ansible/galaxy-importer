@@ -110,14 +110,10 @@ class PluginLoader(ContentLoader):
             return None
 
         data = self._transform_options(data)
-
-        def _get_name_string(key):
-            return schema.DocString(
-                name=key,
-                string=data[self.name].get(key, None),
-            )
-
-        return [_get_name_string(key) for key in ANSIBLE_DOC_KEYS]
+        return {
+            key: data[self.name].get(key, None)
+            for key in ANSIBLE_DOC_KEYS
+        }
 
     def _transform_options(self, data):
         try:
