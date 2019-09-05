@@ -32,7 +32,7 @@ from galaxy_importer.utils import markup as markup_utils
 
 default_logger = logging.getLogger(__name__)
 
-DOCUMENTATION_DIR = 'documentation'
+DOCUMENTATION_DIR = 'docs'
 
 
 def import_collection(filepath, logger=None):
