@@ -21,6 +21,7 @@ import logging
 import sys
 
 from galaxy_importer import collection
+from galaxy_importer.exceptions import ImporterError
 
 
 def main(args=None):
@@ -61,8 +62,12 @@ def call_importer(file):
     """
     try:
         data = collection.import_collection(file)
+    except ImporterError as e:
+        logging.info('The import failed, the following '
+                     f'ImporterError was raised: {e!r}')
+        return None
     except Exception:
-        logging.error('Error during importer proccessing:', exc_info=True)
+        logging.error('Unexpected error occured:', exc_info=True)
         return None
 
     logging.info('Importer processing completed successfully')
