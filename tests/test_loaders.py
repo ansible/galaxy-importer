@@ -131,12 +131,10 @@ def test_get_doc_strings(mocked_run_ansible_doc, loader_module):
     mocked_run_ansible_doc.return_value = ANSIBLE_DOC_OUTPUT
     doc_strings = loader_module._get_doc_strings()
 
-    doc = list(filter(lambda item: item.name == 'doc', doc_strings))[0]
-    assert doc.string['version_added'] == '2.8'
-    assert doc.string['description'] == ['Sample module for testing.']
-
-    ret = list(filter(lambda item: item.name == 'return', doc_strings))[0]
-    assert ret.string is None
+    assert doc_strings['doc']['version_added'] == '2.8'
+    assert doc_strings['doc']['description'] == \
+        ['Sample module for testing.']
+    assert doc_strings['return'] is None
 
 
 def test_ansible_doc_unsupported_type():
@@ -178,8 +176,7 @@ def test_load(mocked_run_ansible_doc, loader_module):
     assert res.readme_file is None
     assert res.readme_html is None
     assert res.description == 'Sample module for testing'
-    doc = list(filter(lambda item: item.name == 'doc', res.doc_strings))[0]
-    assert doc.string['version_added'] == '2.8'
+    assert res.doc_strings['doc']['version_added'] == '2.8'
 
 
 @mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')

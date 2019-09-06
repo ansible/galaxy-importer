@@ -256,21 +256,13 @@ class ImportResult(object):
     custom_license = attr.ib(default=None)
 
 
-@attr.s(frozen=True)
-class DocString(object):
-    """Represents documentation blocks gathered from ansible-doc."""
-
-    name = attr.ib()
-    string = attr.ib()
-
-
 @attr.s
 class Content(object):
     """Represents content found in a collection."""
 
     name = attr.ib()
     content_type = attr.ib(type=constants.ContentType)
-    doc_strings = attr.ib(factory=list, type=DocString)
+    doc_strings = attr.ib(factory=dict)
     description = attr.ib(default=None)
     readme_file = attr.ib(default=None)
     readme_html = attr.ib(default=None)
@@ -279,10 +271,10 @@ class Content(object):
         """Set description if a plugin has doc_strings populated."""
         if not self.doc_strings:
             return
-        doc = list(
-            filter(lambda item: item.name == 'doc', self.doc_strings))[0]
-        if doc.string:
-            self.description = doc.string.get('short_description', None)
+        if not self.doc_strings.get('doc', None):
+            return
+        self.description = \
+            self.doc_strings['doc'].get('short_description', None)
 
 
 @attr.s(frozen=True)
@@ -297,7 +289,7 @@ class DocsBlobContentItem(object):
     """Documenation for piece of content, part of DocsBlob."""
     content_name = attr.ib()
     content_type = attr.ib()
-    doc_strings = attr.ib(factory=list, type=DocString)
+    doc_strings = attr.ib(factory=dict)
     readme_file = attr.ib(default=None)
     readme_html = attr.ib(default=None)
 
