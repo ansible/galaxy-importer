@@ -102,7 +102,7 @@ class CollectionLoader(object):
         found_contents = ContentFinder().find_contents(self.path, self.log)
         for content_type, rel_path in found_contents:
             loader_cls = loaders.get_loader_cls(content_type)
-            loader = loader_cls(content_type, rel_path, self.path)
+            loader = loader_cls(content_type, rel_path, self.path, self.log)
             content_obj = loader.load()
             yield content_obj
 
