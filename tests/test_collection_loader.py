@@ -15,6 +15,7 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+from collections import namedtuple
 import os
 import pytest
 import tempfile
@@ -28,6 +29,9 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
 
+
+CollectionFilename = \
+    namedtuple("CollectionFilename", ["namespace", "name", "version"])
 
 MANIFEST_JSON = """
 {
@@ -70,8 +74,8 @@ def test_manifest_success(_build_docs_blob):
         with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
             fh.write(MANIFEST_JSON)
 
-        data = CollectionLoader(
-            temp_dir, 'my_namespace-my_collection-2.0.2.tar.gz').load()
+        filename = CollectionFilename('my_namespace', 'my_collection', '2.0.2')
+        data = CollectionLoader(temp_dir, filename).load()
         assert data.metadata.namespace == 'my_namespace'
         assert data.metadata.name == 'my_collection'
         assert data.metadata.version == '2.0.2'

@@ -16,11 +16,23 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import argparse
+from collections import namedtuple
 import json
 import logging
+import os
+import re
 import sys
+import tarfile
 
 from galaxy_importer import collection
+
+CollectionFilename = \
+    namedtuple("CollectionFilename", ["namespace", "name", "version"])
+
+FILENAME_REGEXP = re.compile(
+    r"^(?P<namespace>\w+)-(?P<name>\w+)-"
+    r"(?P<version>[0-9a-zA-Z.+-]+)\.tar\.gz$"
+)
 
 
 def main(args=None):
@@ -59,11 +71,16 @@ def call_importer(file):
 
     :param file: Artifact file to import.
     """
-    try:
-        data = collection.import_collection(file)
-    except Exception:
-        logging.error('Error during importer proccessing:', exc_info=True)
-        return None
+    match = FILENAME_REGEXP.match(os.path.basename(file))
+    namespace, name, version = match.groups()
+    filename = CollectionFilename(namespace, name, version)
+
+    with tarfile.open(file, 'r') as file_obj:
+        try:
+            data = collection.import_collection(file_obj, filename)
+        except Exception:
+            logging.error('Error during importer proccessing:', exc_info=True)
+            return None
 
     logging.info('Importer processing completed successfully')
     return data
