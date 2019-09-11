@@ -58,6 +58,7 @@ class TestContentFinder(unittest.TestCase):
         assert 'second_module.py' in content_items
         assert '__init__.py' not in content_items
         assert 'my_role' in content_items
+        assert len(content_items) == 3
 
     def test_find_no_content(self):
         contents = ContentFinder().find_contents(self.temp_dir)
@@ -81,5 +82,10 @@ class TestContentFinder(unittest.TestCase):
     def test_error_file_in_roles_dir(self):
         with open(os.path.join(self.role_dir, 'main.yml'), 'w'):
             pass
-        with pytest.raises(exc.ContentFindError, match='File inside "roles"'):
-            ContentFinder().find_contents(self.temp_dir)
+        my_role_dir = os.path.join(self.role_dir, 'my_role')
+        os.mkdir(my_role_dir)
+
+        contents = ContentFinder().find_contents(self.temp_dir)
+        content_items = [os.path.basename(c.path) for c in contents]
+        assert 'my_role' in content_items
+        assert len(content_items) == 1

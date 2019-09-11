@@ -77,12 +77,9 @@ class ContentFinder(object):
     def _find_roles(self, content_type, content_dir):
         for dir_name in os.listdir(content_dir):
             file_path = os.path.join(content_dir, dir_name)
-            if not os.path.isdir(file_path):
-                raise exc.ContentFindError(
-                    'File inside "roles" directory not supported: '
-                    f'"{os.path.basename(file_path)}".')
-            rel_path = os.path.relpath(file_path, self.path)
-            yield Result(content_type, rel_path)
+            if os.path.isdir(file_path):
+                rel_path = os.path.relpath(file_path, self.path)
+                yield Result(content_type, rel_path)
 
     def _content_type_dirs(self):
         for content_type in constants.ContentType:
