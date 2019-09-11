@@ -71,7 +71,7 @@ class ContentLoader(metaclass=abc.ABCMeta):
         pass
 
     def _validate_name(self):
-        if not re.match(constants.NAME_REGEXP, self.name):
+        if not re.match(constants.CONTENT_NAME_REGEXP, self.name):
             raise exc.ContentNameError(
                 f'{self.content_type.value} name invalid format: {self.name}')
 
