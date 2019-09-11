@@ -50,7 +50,15 @@ ANSIBLE_DOC_OUTPUT = """
         },
         "examples": null,
         "metadata": null,
-        "return": null
+        "return": {
+            "message": {
+                "description": "The output message the sample module generates"
+            },
+            "original_message": {
+                "description": "The original name param that was passed in",
+                "type": "str"
+            }
+        }
     }}
 """
 
@@ -142,7 +150,6 @@ def test_get_doc_strings(mocked_run_ansible_doc, loader_module):
     assert doc_strings['doc']['version_added'] == '2.8'
     assert doc_strings['doc']['description'] == \
         ['Sample module for testing.']
-    assert doc_strings['return'] is None
 
 
 def test_ansible_doc_unsupported_type():
@@ -155,11 +162,10 @@ def test_ansible_doc_unsupported_type():
     assert not loader_action._get_doc_strings()
 
 
-def test_ansible_doc_transform_options(loader_module):
+def test_ansible_doc_transform_params(loader_module):
     data = json.loads(ANSIBLE_DOC_OUTPUT)
-    transformed_data = loader_module._transform_options(data)
-    options = transformed_data['my_sample_module']['doc']['options']
-    assert options == [
+    transformed_data = loader_module._transform_params(data)
+    assert transformed_data['my_sample_module']['doc']['options'] == [
         {
             'name': 'exclude',
             'description': ['This is the message to send...'],
@@ -170,6 +176,17 @@ def test_ansible_doc_transform_options(loader_module):
             'description': ['Control is passed...'],
             'version_added': '2.7',
             'default': 'auto'
+        }
+    ]
+    assert transformed_data['my_sample_module']['return'] == [
+        {
+            'name': 'message',
+            'description': 'The output message the sample module generates'
+        },
+        {
+            'name': 'original_message',
+            'description': 'The original name param that was passed in',
+            'type': 'str'
         }
     ]
 

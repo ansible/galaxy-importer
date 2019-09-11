@@ -111,22 +111,28 @@ class PluginLoader(ContentLoader):
             self.log.error(f'No "{self.name}" key in ansible-doc output')
             return None
 
-        data = self._transform_options(data)
+        data = self._transform_params(data)
         return {
             key: data[self.name].get(key, None)
             for key in ANSIBLE_DOC_KEYS
         }
 
-    def _transform_options(self, data):
-        try:
-            options = data[self.name]['doc']['options']
-        except KeyError:
-            return data
+    def _transform_params(self, data):
+        def transform(dict_of_dict):
+            return [
+                {'name': key, **deepcopy(dict_of_dict[key])} for
+                key in dict_of_dict.keys()
+            ]
 
-        options_new = [
-            {'name': option_name, **deepcopy(options[option_name])} for
-            option_name in options.keys()]
-        data[self.name]['doc']['options'] = options_new
+        doc = data[self.name]['doc']
+        if doc and 'options' in doc.keys() and \
+                isinstance(doc['options'], dict):
+            doc['options'] = transform(doc['options'])
+
+        ret = data[self.name]['return']
+        if ret and isinstance(ret, dict):
+            data[self.name]['return'] = transform(ret)
+
         return data
 
     def _run_ansible_doc(self):
