@@ -20,6 +20,7 @@ from copy import deepcopy
 import json
 import logging
 import os
+from pathlib import Path
 import re
 from subprocess import Popen, PIPE
 
@@ -35,6 +36,7 @@ ANSIBLE_DOC_SUPPORTED_TYPES = [
     'become', 'cache', 'callback', 'cliconf', 'connection',
     'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
 ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
+ANSIBLE_LINT_EXCEPTION_RETURN_CODE = 1
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
@@ -146,7 +148,8 @@ class PluginLoader(ContentLoader):
 class RoleLoader(ContentLoader):
     def load(self):
         self._log_loading()
-        self._lint()
+        for line in self._lint_role(self.rel_path):
+            self.log.warning(line)
         self._get_readme()
         self._get_metadata_description()
 
@@ -161,9 +164,33 @@ class RoleLoader(ContentLoader):
     def _make_name(self):
         return os.path.basename(self.rel_path)
 
-    def _lint(self):
+    def _lint_role(self, path):
         self.log.info('Linting role via ansible-lint')
-        pass
+        cmd = [
+            'ansible-lint', path,
+            '-p',
+            '-x', 'metadata',
+        ]
+        self.log.debug('CMD: ' + ' '.join(cmd))
+        proc = Popen(
+            cmd,
+            cwd=self.root,
+            encoding='utf-8',
+            stdout=PIPE,
+        )
+
+        for line in proc.stdout:
+            # shorten linter message filepath to last 3 parts of path
+            # /tmp/tmp_zyx/roles/role_test1/tasks/main.yml:19: [E201] Trail...
+            line_list = line.split(' ')
+            rel_path = os.path.join(*Path(line_list[0]).parts[-3:])
+            line_list[0] = rel_path
+            line = ' '.join(line_list)
+            yield line.strip()
+
+        # returncode 1 is app exception, 0 is no linter err, 2 is linter err
+        if proc.wait() == ANSIBLE_LINT_EXCEPTION_RETURN_CODE:
+            yield 'Exception running ansible-lint, could not complete linting'
 
     def _get_readme(self):
         self.log.info('Getting role readme')
