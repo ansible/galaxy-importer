@@ -21,7 +21,6 @@ import logging
 import os
 import re
 import sys
-import tarfile
 
 from galaxy_importer import collection
 
