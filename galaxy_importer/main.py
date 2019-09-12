@@ -38,7 +38,7 @@ def main(args=None):
         level=logging.DEBUG)
     args = parse_args(args)
 
-    data = call_importer(file=args.file)
+    data = call_importer(filepath=args.file)
     if not data:
         return
 
@@ -62,18 +62,18 @@ def parse_args(args):
     return parser.parse_args(args=args)
 
 
-def call_importer(file):
+def call_importer(filepath):
     """Returns result of galaxy_importer import process.
 
     :param file: Artifact file to import.
     """
-    match = FILENAME_REGEXP.match(os.path.basename(file))
+    match = FILENAME_REGEXP.match(os.path.basename(filepath))
     namespace, name, version = match.groups()
     filename = collection.CollectionFilename(namespace, name, version)
 
-    with tarfile.open(file, 'r') as file_obj:
+    with open(filepath, 'rb') as f:
         try:
-            data = collection.import_collection(file_obj, filename)
+            data = collection.import_collection(f, filename)
         except Exception:
             logging.error('Error during importer proccessing:', exc_info=True)
             return None

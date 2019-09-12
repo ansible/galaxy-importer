@@ -46,7 +46,7 @@ def import_collection(file, filename=None, logger=None):
 
 def _import_collection(file, filename, logger):
     with tempfile.TemporaryDirectory() as extract_dir:
-        with file.open() as pkg_file, tarfile.open(fileobj=pkg_file) as pkg_tar:
+        with tarfile.open(fileobj=file, mode='r') as pkg_tar:
             pkg_tar.extractall(extract_dir)
 
         data = CollectionLoader(extract_dir, filename, logger=logger).load()
