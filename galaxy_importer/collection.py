@@ -15,6 +15,7 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+from collections import namedtuple
 import logging
 import os
 from pkg_resources import iter_entry_points
@@ -33,6 +34,9 @@ from galaxy_importer.utils import markup as markup_utils
 default_logger = logging.getLogger(__name__)
 
 DOCUMENTATION_DIR = 'docs'
+
+CollectionFilename = \
+    namedtuple("CollectionFilename", ["namespace", "name", "version"])
 
 
 def import_collection(file, filename=None, logger=None):

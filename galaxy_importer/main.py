@@ -16,7 +16,6 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import argparse
-from collections import namedtuple
 import json
 import logging
 import os
@@ -25,9 +24,6 @@ import sys
 import tarfile
 
 from galaxy_importer import collection
-
-CollectionFilename = \
-    namedtuple("CollectionFilename", ["namespace", "name", "version"])
 
 FILENAME_REGEXP = re.compile(
     r"^(?P<namespace>\w+)-(?P<name>\w+)-"
@@ -73,7 +69,7 @@ def call_importer(file):
     """
     match = FILENAME_REGEXP.match(os.path.basename(file))
     namespace, name, version = match.groups()
-    filename = CollectionFilename(namespace, name, version)
+    filename = collection.CollectionFilename(namespace, name, version)
 
     with tarfile.open(file, 'r') as file_obj:
         try:
