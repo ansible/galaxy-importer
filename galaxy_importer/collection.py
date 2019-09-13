@@ -15,6 +15,7 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+from collections import namedtuple
 import logging
 import os
 from pkg_resources import iter_entry_points
@@ -34,21 +35,24 @@ default_logger = logging.getLogger(__name__)
 
 DOCUMENTATION_DIR = 'docs'
 
+CollectionFilename = \
+    namedtuple("CollectionFilename", ["namespace", "name", "version"])
 
-def import_collection(filepath, logger=None):
+
+def import_collection(file, filename=None, logger=None):
     logger = logger or default_logger
-    return _import_collection(filepath, logger)
+    return _import_collection(file, filename, logger)
 
 
-def _import_collection(filepath, logger):
+def _import_collection(file, filename, logger):
     with tempfile.TemporaryDirectory() as extract_dir:
-        with tarfile.open(filepath, 'r') as pkg_tar:
+        with tarfile.open(fileobj=file, mode='r') as pkg_tar:
             pkg_tar.extractall(extract_dir)
 
-        data = CollectionLoader(extract_dir, filepath, logger=logger).load()
+        data = CollectionLoader(extract_dir, filename, logger=logger).load()
 
     _run_post_load_plugins(
-        artifact_path=filepath,
+        artifact_file=file,
         metadata=data.metadata,
         content_objs=None,
         logger=logger,
@@ -60,10 +64,10 @@ def _import_collection(filepath, logger):
 class CollectionLoader(object):
     """Loads collection and content info."""
 
-    def __init__(self, path, filepath, logger=None):
+    def __init__(self, path, filename, logger=None):
         self.log = logger or default_logger
         self.path = path
-        self.filepath = filepath
+        self.filename = filename
 
         self.content_objs = None
         self.metadata = None
@@ -72,8 +76,7 @@ class CollectionLoader(object):
 
     def load(self):
         self._load_collection_manifest()
-        # TODO(awcrosby): add filename check when worker can pass filename with
-        # collection details instead of filename made of hash string
+        self._check_filename_matches_manifest()
         self.content_objs = list(self._load_contents())
 
         self.contents = self._build_contents_blob()
@@ -96,6 +99,17 @@ class CollectionLoader(object):
             except ValueError as e:
                 raise exc.ManifestValidationError(str(e))
             self.metadata = data.collection_info
+
+    def _check_filename_matches_manifest(self):
+        if not self.filename:
+            return
+        if self.filename.namespace != self.metadata.namespace \
+                or self.filename.name != self.metadata.name:
+            raise exc.ManifestValidationError(
+                'Filename did not match metadata')
+        if self.filename.version != self.metadata.version:
+            raise exc.ManifestValidationError(
+                'Filename version did not match metadata')
 
     def _load_contents(self):
         """Find and load data for each content inside the collection."""
@@ -153,12 +167,12 @@ class CollectionLoader(object):
         )
 
 
-def _run_post_load_plugins(artifact_path, metadata, content_objs, logger=None):
+def _run_post_load_plugins(artifact_file, metadata, content_objs, logger=None):
     for ep in iter_entry_points(group='galaxy_importer.post_load_plugin'):
         logger.debug(f'Running plugin: {ep.module_name}')
         found_plugin = ep.load()
         found_plugin(
-            artifact_path=artifact_path,
+            artifact_file=artifact_file,
             metadata=metadata,
             content_objs=None,
             logger=logger,

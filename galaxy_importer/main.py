@@ -18,9 +18,16 @@
 import argparse
 import json
 import logging
+import os
+import re
 import sys
 
 from galaxy_importer import collection
+
+FILENAME_REGEXP = re.compile(
+    r"^(?P<namespace>\w+)-(?P<name>\w+)-"
+    r"(?P<version>[0-9a-zA-Z.+-]+)\.tar\.gz$"
+)
 
 
 def main(args=None):
@@ -30,7 +37,7 @@ def main(args=None):
         level=logging.DEBUG)
     args = parse_args(args)
 
-    data = call_importer(file=args.file)
+    data = call_importer(filepath=args.file)
     if not data:
         return
 
@@ -54,16 +61,21 @@ def parse_args(args):
     return parser.parse_args(args=args)
 
 
-def call_importer(file):
+def call_importer(filepath):
     """Returns result of galaxy_importer import process.
 
     :param file: Artifact file to import.
     """
-    try:
-        data = collection.import_collection(file)
-    except Exception:
-        logging.error('Error during importer proccessing:', exc_info=True)
-        return None
+    match = FILENAME_REGEXP.match(os.path.basename(filepath))
+    namespace, name, version = match.groups()
+    filename = collection.CollectionFilename(namespace, name, version)
+
+    with open(filepath, 'rb') as f:
+        try:
+            data = collection.import_collection(f, filename)
+        except Exception:
+            logging.error('Error during importer proccessing:', exc_info=True)
+            return None
 
     logging.info('Importer processing completed successfully')
     return data
