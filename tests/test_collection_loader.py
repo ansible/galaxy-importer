@@ -221,3 +221,36 @@ def test_build_docs_blob_no_readme(get_readme_doc_file):
     collection_loader.content_objs = []
     with pytest.raises(exc.ImporterError):
         collection_loader._build_docs_blob()
+
+
+@mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
+def test_filename_empty_value(_build_docs_blob):
+    _build_docs_blob.return_value = {}
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
+            fh.write(MANIFEST_JSON)
+
+        filename = CollectionFilename(
+            namespace='my_namespace',
+            name='my_collection',
+            version=None)
+        data = CollectionLoader(temp_dir, filename).load()
+        assert data.metadata.namespace == 'my_namespace'
+        assert data.metadata.name == 'my_collection'
+        assert data.metadata.version == '2.0.2'
+
+        filename = None
+        data = CollectionLoader(temp_dir, filename).load()
+        assert data.metadata.namespace == 'my_namespace'
+        assert data.metadata.name == 'my_collection'
+        assert data.metadata.version == '2.0.2'
+
+
+def test_filename_not_match_metadata():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
+            fh.write(MANIFEST_JSON)
+
+        filename = CollectionFilename('diff_ns', 'my_collection', '2.0.2')
+        with pytest.raises(exc.ManifestValidationError):
+            CollectionLoader(temp_dir, filename).load()

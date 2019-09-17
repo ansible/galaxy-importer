@@ -103,13 +103,14 @@ class CollectionLoader(object):
     def _check_filename_matches_manifest(self):
         if not self.filename:
             return
-        if self.filename.namespace != self.metadata.namespace \
-                or self.filename.name != self.metadata.name:
-            raise exc.ManifestValidationError(
-                'Filename did not match metadata')
-        if self.filename.version != self.metadata.version:
-            raise exc.ManifestValidationError(
-                'Filename version did not match metadata')
+        for item in ['namespace', 'name', 'version']:
+            filename_item = getattr(self.filename, item, None)
+            metadata_item = getattr(self.metadata, item, None)
+            if not filename_item:
+                continue
+            if filename_item != metadata_item:
+                raise exc.ManifestValidationError(
+                    f'Filename {item} "{filename_item}" did not match metadata "{metadata_item}"')
 
     def _load_contents(self):
         """Find and load data for each content inside the collection."""
