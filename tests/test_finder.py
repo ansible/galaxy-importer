@@ -20,10 +20,7 @@ import shutil
 import tempfile
 import unittest
 
-import pytest
-
 from galaxy_importer.finder import ContentFinder
-from galaxy_importer import exceptions as exc
 
 
 class TestContentFinder(unittest.TestCase):
@@ -72,12 +69,17 @@ class TestContentFinder(unittest.TestCase):
         contents = ContentFinder().find_contents(self.temp_dir)
         assert not any(True for _ in contents)
 
-    def test_error_nested_plugin(self):
-        my_nested_module = os.path.join(self.module_dir, 'another_dir')
-        os.mkdir(my_nested_module)
-        with pytest.raises(
-                exc.ContentFindError, match='Nested plugins not supported'):
-            ContentFinder().find_contents(self.temp_dir)
+    def test_nested_plugin(self):
+        subdir1 = os.path.join(self.module_dir, 'subdir1')
+        os.mkdir(subdir1)
+        subdir2 = os.path.join(subdir1, 'subdir2')
+        os.mkdir(subdir2)
+        with open(os.path.join(subdir2, 'nested_module.py'), 'w'):
+            pass
+
+        contents = ContentFinder().find_contents(self.temp_dir)
+        assert list(contents)[0].path == \
+            'plugins/modules/subdir1/subdir2/nested_module.py'
 
     def test_error_file_in_roles_dir(self):
         with open(os.path.join(self.role_dir, 'main.yml'), 'w'):

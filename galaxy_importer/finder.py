@@ -21,7 +21,6 @@ import logging
 import os
 
 from galaxy_importer import constants
-from galaxy_importer import exceptions as exc
 
 
 default_logger = logging.getLogger(__name__)
@@ -61,18 +60,14 @@ class ContentFinder(object):
             yield from func(content_type, content_path)
 
     def _find_plugins(self, content_type, content_dir):
-        for file_name in os.listdir(content_dir):
-            file_path = os.path.join(content_dir, file_name)
-            if os.path.isdir(file_path):
-                raise exc.ContentFindError(
-                    f'Directory detected: "{os.path.basename(file_path)}". '
-                    'Nested plugins not supported.')
-            if (not os.path.isfile(file_path)
-                    or not file_name.endswith('.py')
-                    or file_name == '__init__.py'):
-                continue
-            rel_path = os.path.relpath(file_path, self.path)
-            yield Result(content_type, rel_path)
+        """Find all python files anywhere inside content_dir."""
+        for path, _, files in os.walk(content_dir):
+            for file in files:
+                if not file.endswith('.py') or file == '__init__.py':
+                    continue
+                file_path = os.path.join(path, file)
+                rel_path = os.path.relpath(file_path, self.path)
+                yield Result(content_type, rel_path)
 
     def _find_roles(self, content_type, content_dir):
         for dir_name in os.listdir(content_dir):
