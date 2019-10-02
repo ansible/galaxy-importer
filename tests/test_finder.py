@@ -31,8 +31,8 @@ class TestContentFinder(unittest.TestCase):
         self.module_dir = os.path.join(self.temp_dir, 'plugins', 'modules')
         os.mkdir(self.module_dir)
 
-        self.role_dir = os.path.join(self.temp_dir, 'roles')
-        os.mkdir(self.role_dir)
+        self.roles_dir = os.path.join(self.temp_dir, 'roles')
+        os.mkdir(self.roles_dir)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -45,8 +45,9 @@ class TestContentFinder(unittest.TestCase):
         with open(os.path.join(self.module_dir, 'second_module.py'), 'w'):
             pass
 
-        my_role_dir = os.path.join(self.role_dir, 'my_role')
-        os.mkdir(my_role_dir)
+        my_roles_dir = os.path.join(self.roles_dir, 'my_role')
+        os.mkdir(my_roles_dir)
+        os.mkdir(os.path.join(my_roles_dir, 'tasks'))
 
         contents = ContentFinder().find_contents(self.temp_dir)
 
@@ -81,11 +82,28 @@ class TestContentFinder(unittest.TestCase):
         assert list(contents)[0].path == \
             'plugins/modules/subdir1/subdir2/nested_module.py'
 
+    def test_nested_role(self):
+        subdir1 = os.path.join(self.roles_dir, 'subdir1')
+        os.mkdir(subdir1)
+        role_dir = os.path.join(subdir1, 'my_role')
+        os.mkdir(role_dir)
+
+        contents = ContentFinder().find_contents(self.temp_dir)
+        assert len(contents) == 0
+
+        dir_in_role = os.path.join(role_dir, 'tasks')
+        os.mkdir(dir_in_role)
+
+        contents = ContentFinder().find_contents(self.temp_dir)
+        assert list(contents)[0].path == \
+            'roles/subdir1/my_role'
+
     def test_error_file_in_roles_dir(self):
-        with open(os.path.join(self.role_dir, 'main.yml'), 'w'):
+        with open(os.path.join(self.roles_dir, 'main.yml'), 'w'):
             pass
-        my_role_dir = os.path.join(self.role_dir, 'my_role')
-        os.mkdir(my_role_dir)
+        my_roles_dir = os.path.join(self.roles_dir, 'my_role')
+        os.mkdir(my_roles_dir)
+        os.mkdir(os.path.join(my_roles_dir, 'tasks'))
 
         contents = ContentFinder().find_contents(self.temp_dir)
         content_items = [os.path.basename(c.path) for c in contents]

@@ -28,6 +28,8 @@ default_logger = logging.getLogger(__name__)
 Result = collections.namedtuple(
     'Result', ['content_type', 'path'])
 
+ROLE_SUBDIRS = ['tasks', 'vars', 'handlers', 'meta']
+
 
 class ContentFinder(object):
     """Searches for content in directories inside collection."""
@@ -70,11 +72,26 @@ class ContentFinder(object):
                 yield Result(content_type, rel_path)
 
     def _find_roles(self, content_type, content_dir):
-        for dir_name in os.listdir(content_dir):
-            file_path = os.path.join(content_dir, dir_name)
-            if os.path.isdir(file_path):
-                rel_path = os.path.relpath(file_path, self.path)
+        """Find all dirs inside roles dir where contents match a role."""
+
+        def is_dir_a_role(current_dir):
+            """Check for contents indicating directory is a role."""
+            _, dirs, _ = next(os.walk(current_dir))
+            if set(ROLE_SUBDIRS) & set(dirs):
+                return True
+            return False
+
+        def recurse_role_dir(path):
+            """Iterate over all subdirs and yield roles."""
+            if is_dir_a_role(path):
+                rel_path = os.path.relpath(path, self.path)
                 yield Result(content_type, rel_path)
+                return
+            path, dirs, _ = next(os.walk(path))
+            for dir in dirs:
+                yield from recurse_role_dir(os.path.join(path, dir))
+
+        yield from recurse_role_dir(content_dir)
 
     def _content_type_dirs(self):
         for content_type in constants.ContentType:
