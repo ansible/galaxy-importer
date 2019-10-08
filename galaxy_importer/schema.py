@@ -91,9 +91,7 @@ class CollectionInfo(object):
     authors = attr.ib(factory=list)
     tags = attr.ib(factory=list)
 
-    license_file = attr.ib(
-        default=None,
-        validator=attr.validators.optional(attr.validators.instance_of(str)))
+    license_file = attr.ib(default=None)
     readme = attr.ib(default=None)
 
     dependencies = attr.ib(
@@ -204,6 +202,7 @@ class CollectionInfo(object):
     @documentation.validator
     @homepage.validator
     @issues.validator
+    @license_file.validator
     def _check_non_null_str(self, attribute, value):
         """Check that if value is present, it must be a string."""
         if value is not None and not isinstance(value, str):
@@ -211,16 +210,21 @@ class CollectionInfo(object):
 
     def __attrs_post_init__(self):
         """Checks called post init validation."""
-        self._check_license_or_license_file(self.license, self.license_file)
+        self._check_license_or_license_file()
 
-    def _check_license_or_license_file(self, license_ids, license_file):
-        """Confirm presence of either license or license_file."""
-        if license_ids or license_file:
+    def _check_license_or_license_file(self):
+        """Confirm mutually exclusive presence of license or license_file."""
+        if bool(self.license) != bool(self.license_file):
             return
+
+        if self.license and self.license_file:
+            self.value_error(
+                "The 'license' and 'license_file' keys are mutually exclusive")
+
         self.value_error(
             "Valid values for 'license' or 'license_file' are required. "
-            f"But 'license' ({license_ids}) and "
-            f"'license_file' ({license_file}) were invalid.")
+            f"But 'license' ({self.license}) and "
+            f"'license_file' ({self.license_file}) were invalid.")
 
 
 @attr.s(frozen=True)

@@ -77,6 +77,7 @@ class CollectionLoader(object):
     def load(self):
         self._load_collection_manifest()
         self._check_filename_matches_manifest()
+        self._check_metadata_filepaths()
         self.content_objs = list(self._load_contents())
 
         self.contents = self._build_contents_blob()
@@ -166,6 +167,16 @@ class CollectionLoader(object):
             documentation_files=rendered_doc_files,
             contents=contents,
         )
+
+    def _check_metadata_filepaths(self):
+        paths = []
+        paths.append(os.path.join(self.path, self.metadata.readme))
+        if self.metadata.license_file:
+            paths.append(os.path.join(self.path, self.metadata.license_file))
+        for path in paths:
+            if not os.path.exists(path):
+                raise exc.ManifestValidationError(
+                    f'Could not find file {os.path.basename(path)}')
 
 
 def _run_post_load_plugins(artifact_file, metadata, content_objs, logger=None):

@@ -16,6 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 from collections import namedtuple
+import json
 import os
 import pytest
 import tempfile
@@ -73,6 +74,9 @@ def test_manifest_success(_build_docs_blob):
     with tempfile.TemporaryDirectory() as temp_dir:
         with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
             fh.write(MANIFEST_JSON)
+
+        with open(os.path.join(temp_dir, 'README.md'), 'w'):
+            pass
 
         filename = CollectionFilename('my_namespace', 'my_collection', '2.0.2')
         data = CollectionLoader(temp_dir, filename).load()
@@ -229,6 +233,8 @@ def test_filename_empty_value(_build_docs_blob):
     with tempfile.TemporaryDirectory() as temp_dir:
         with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
             fh.write(MANIFEST_JSON)
+        with open(os.path.join(temp_dir, 'README.md'), 'w'):
+            pass
 
         filename = CollectionFilename(
             namespace='my_namespace',
@@ -254,3 +260,29 @@ def test_filename_not_match_metadata():
         filename = CollectionFilename('diff_ns', 'my_collection', '2.0.2')
         with pytest.raises(exc.ManifestValidationError):
             CollectionLoader(temp_dir, filename).load()
+
+
+def test_license_file():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
+            manifest = json.loads(MANIFEST_JSON)
+            manifest['collection_info']['license'] = []
+            manifest['collection_info']['license_file'] = 'my_license.txt'
+            fh.write(json.dumps(manifest))
+        with open(os.path.join(temp_dir, 'README.md'), 'w'):
+            pass
+        with open(os.path.join(temp_dir, 'my_license.txt'), 'w'):
+            pass
+        data = CollectionLoader(temp_dir, filename=None).load()
+        assert data.metadata.license_file == 'my_license.txt'
+
+
+def test_missing_readme():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
+            fh.write(MANIFEST_JSON)
+        with pytest.raises(
+            exc.ManifestValidationError,
+            match=r"Could not find file README.md"
+        ):
+            CollectionLoader(temp_dir, filename=None).load()
