@@ -40,6 +40,10 @@ CollectionFilename = \
 
 
 def import_collection(file, filename=None, logger=None):
+    """Process import on collection artifact file object.
+
+    :raises exc.ImporterError: On errors that fail the import process.
+    """
     logger = logger or default_logger
     return _import_collection(file, filename, logger)
 
