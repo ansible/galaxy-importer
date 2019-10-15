@@ -21,13 +21,14 @@ import logging
 import os
 
 from galaxy_importer import constants
-from galaxy_importer import exceptions as exc
 
 
 default_logger = logging.getLogger(__name__)
 
 Result = collections.namedtuple(
     'Result', ['content_type', 'path'])
+
+ROLE_SUBDIRS = ['tasks', 'vars', 'handlers', 'meta']
 
 
 class ContentFinder(object):
@@ -61,25 +62,36 @@ class ContentFinder(object):
             yield from func(content_type, content_path)
 
     def _find_plugins(self, content_type, content_dir):
-        for file_name in os.listdir(content_dir):
-            file_path = os.path.join(content_dir, file_name)
-            if os.path.isdir(file_path):
-                raise exc.ContentFindError(
-                    f'Directory detected: "{os.path.basename(file_path)}". '
-                    'Nested plugins not supported.')
-            if (not os.path.isfile(file_path)
-                    or not file_name.endswith('.py')
-                    or file_name == '__init__.py'):
-                continue
-            rel_path = os.path.relpath(file_path, self.path)
-            yield Result(content_type, rel_path)
-
-    def _find_roles(self, content_type, content_dir):
-        for dir_name in os.listdir(content_dir):
-            file_path = os.path.join(content_dir, dir_name)
-            if os.path.isdir(file_path):
+        """Find all python files anywhere inside content_dir."""
+        for path, _, files in os.walk(content_dir):
+            for file in files:
+                if not file.endswith('.py') or file == '__init__.py':
+                    continue
+                file_path = os.path.join(path, file)
                 rel_path = os.path.relpath(file_path, self.path)
                 yield Result(content_type, rel_path)
+
+    def _find_roles(self, content_type, content_dir):
+        """Find all dirs inside roles dir where contents match a role."""
+
+        def is_dir_a_role(current_dir):
+            """Check for contents indicating directory is a role."""
+            _, dirs, _ = next(os.walk(current_dir))
+            if set(ROLE_SUBDIRS) & set(dirs):
+                return True
+            return False
+
+        def recurse_role_dir(path):
+            """Iterate over all subdirs and yield roles."""
+            if is_dir_a_role(path):
+                rel_path = os.path.relpath(path, self.path)
+                yield Result(content_type, rel_path)
+                return
+            path, dirs, _ = next(os.walk(path))
+            for dir in dirs:
+                yield from recurse_role_dir(os.path.join(path, dir))
+
+        yield from recurse_role_dir(content_dir)
 
     def _content_type_dirs(self):
         for content_type in constants.ContentType:
