@@ -162,9 +162,9 @@ def test_ansible_doc_unsupported_type():
     assert not loader_action._get_doc_strings()
 
 
-def test_ansible_doc_transform_params(loader_module):
+def test_ansible_doc_rams(loader_module):
     data = json.loads(ANSIBLE_DOC_OUTPUT)
-    transformed_data = loader_module._transform_params(data)
+    transformed_data = loader_module._transform_doc_strings(data)
     assert transformed_data['my_sample_module']['doc']['options'] == [
         {
             'name': 'exclude',
