@@ -127,13 +127,24 @@ class PluginLoader(ContentLoader):
                 key in dict_of_dict.keys()
             ]
 
-        doc = data[self.name]['doc']
+        def handle_nested_tables(obj, table_key):
+            """Recurse over dict to replace nested tables with updated format."""
+            if table_key in obj.keys() and isinstance(obj[table_key], dict):
+                obj[table_key] = dict_to_named_list(obj[table_key])
+                for row in obj[table_key]:
+                    handle_nested_tables(row, table_key)
+
+        doc = data[self.name].get('doc')
         if doc and 'options' in doc.keys() and isinstance(doc['options'], dict):
             doc['options'] = dict_to_named_list(doc['options'])
+            for d in doc['options']:
+                handle_nested_tables(d, table_key='suboptions')
 
-        ret = data[self.name]['return']
+        ret = data[self.name].get('return')
         if ret and isinstance(ret, dict):
             data[self.name]['return'] = dict_to_named_list(ret)
+            for d in data[self.name]['return']:
+                handle_nested_tables(d, table_key='contains')
 
         return data
 
