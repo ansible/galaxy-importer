@@ -111,27 +111,40 @@ class PluginLoader(ContentLoader):
             self.log.error(f'No "{self.name}" key in ansible-doc output')
             return None
 
-        data = self._transform_params(data)
+        data = self._transform_doc_strings(data)
         return {
             key: data[self.name].get(key, None)
             for key in ANSIBLE_DOC_KEYS
         }
 
-    def _transform_params(self, data):
-        def transform(dict_of_dict):
+    def _transform_doc_strings(self, data):
+        """Transform data meant for UI tables into format suitable for UI."""
+
+        def dict_to_named_list(dict_of_dict):
+            """Return new list of dicts for given dict of dicts."""
             return [
                 {'name': key, **deepcopy(dict_of_dict[key])} for
                 key in dict_of_dict.keys()
             ]
 
-        doc = data[self.name]['doc']
-        if doc and 'options' in doc.keys() and \
-                isinstance(doc['options'], dict):
-            doc['options'] = transform(doc['options'])
+        def handle_nested_tables(obj, table_key):
+            """Recurse over dict to replace nested tables with updated format."""
+            if table_key in obj.keys() and isinstance(obj[table_key], dict):
+                obj[table_key] = dict_to_named_list(obj[table_key])
+                for row in obj[table_key]:
+                    handle_nested_tables(row, table_key)
 
-        ret = data[self.name]['return']
+        doc = data[self.name].get('doc')
+        if doc and 'options' in doc.keys() and isinstance(doc['options'], dict):
+            doc['options'] = dict_to_named_list(doc['options'])
+            for d in doc['options']:
+                handle_nested_tables(d, table_key='suboptions')
+
+        ret = data[self.name].get('return')
         if ret and isinstance(ret, dict):
-            data[self.name]['return'] = transform(ret)
+            data[self.name]['return'] = dict_to_named_list(ret)
+            for d in data[self.name]['return']:
+                handle_nested_tables(d, table_key='contains')
 
         return data
 
