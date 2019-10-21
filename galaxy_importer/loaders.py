@@ -47,6 +47,16 @@ class ContentLoader(metaclass=abc.ABCMeta):
         :param rel_path: Path to content file or dir, relative to root path.
         :param root: Collection root path.
         :param logger: Optional logger instance.
+
+        ==Example==
+        Given:
+            root='/tmp/tmpgjbj53c9/ansible_collections/my_namespace/nginx'
+            rel_path='modules/plugins/storage/another_subdir/s3.py'
+        Attributes will be:
+            self.fq_collection_name: my_namespace.nginx
+            self.name: s3
+            self.path_name: storage.another_subdir.s3
+            self.fq_name: my_namespace.nginx.storage.another_subdir.s3
         """
         self.content_type = content_type
         self.rel_path = rel_path
@@ -60,6 +70,10 @@ class ContentLoader(metaclass=abc.ABCMeta):
 
         self.log = logger or default_logger
         self._validate_name()
+        self.tmp_dir = self._get_tmp_dir()
+        self.fq_collection_name = self._get_fq_collection_name()
+        self.path_name = self._get_path_name()
+        self.fq_name = self._get_fq_name()
 
     @abc.abstractmethod
     def load(self):
@@ -72,6 +86,23 @@ class ContentLoader(metaclass=abc.ABCMeta):
         """Returns content name generated from it's path."""
         pass
 
+    @abc.abstractmethod
+    def _get_path_name(self):
+        """Returns subdirectories as part content name.
+        'sub1.sub2.mod' for plugins/modules/sub1/sub2/mod.py"""
+        pass
+
+    def _get_fq_name(self):
+        return '{}.{}'.format(self.fq_collection_name, self.path_name)
+
+    def _get_tmp_dir(self):
+        root_parts = Path(self.root).parts
+        return os.path.join(*root_parts[:3])
+
+    def _get_fq_collection_name(self):
+        root_parts = Path(self.root).parts
+        return '{}.{}'.format(*root_parts[-2:])
+
     def _validate_name(self):
         if not re.match(constants.CONTENT_NAME_REGEXP, self.name):
             raise exc.ContentNameError(
@@ -80,7 +111,7 @@ class ContentLoader(metaclass=abc.ABCMeta):
     def _log_loading(self):
         self.log.info(' ')
         self.log.info(
-            f'===== LOADING {self.content_type.name}: {self.name} =====')
+            f'===== LOADING {self.content_type.name}: {self.path_name} =====')
 
 
 class PluginLoader(ContentLoader):
@@ -89,13 +120,17 @@ class PluginLoader(ContentLoader):
         self.doc_strings = self._get_doc_strings()
 
         return schema.Content(
-            name=self.name,
+            name=self.path_name,
             content_type=self.content_type,
             doc_strings=self.doc_strings,
         )
 
     def _make_name(self):
         return os.path.splitext(os.path.basename(self.rel_path))[0]
+
+    def _get_path_name(self):
+        dirname_parts = Path(os.path.dirname(self.rel_path)).parts[2:]
+        return '.'.join(list(dirname_parts) + [self.name])
 
     def _get_doc_strings(self):
         if self.content_type.value not in ANSIBLE_DOC_SUPPORTED_TYPES:
@@ -174,7 +209,7 @@ class RoleLoader(ContentLoader):
         self._get_metadata_description()
 
         return schema.Content(
-            name=self.name,
+            name=self.path_name,
             content_type=self.content_type,
             description=self.description,
             readme_file=self.readme_file,
@@ -183,6 +218,10 @@ class RoleLoader(ContentLoader):
 
     def _make_name(self):
         return os.path.basename(self.rel_path)
+
+    def _get_path_name(self):
+        dirname_parts = Path(os.path.dirname(self.rel_path)).parts[1:]
+        return '.'.join(list(dirname_parts) + [self.name])
 
     def _lint_role(self, path):
         self.log.info('Linting role via ansible-lint')
