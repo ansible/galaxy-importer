@@ -106,14 +106,15 @@ class PluginLoader(ContentLoader):
 
         if not json_output:
             return
-        data = json.loads(json_output)
-        if self.name not in data.keys():
-            self.log.error(f'No "{self.name}" key in ansible-doc output')
-            return None
 
+        data = json.loads(json_output)
+        if len(data.keys()) != 1:
+            raise exc.ImporterError('ansible-doc output did not return single top-level key')
+        data = list(data.values())[0]
         data = self._transform_doc_strings(data)
+
         return {
-            key: data[self.name].get(key, None)
+            key: data.get(key, None)
             for key in ANSIBLE_DOC_KEYS
         }
 
@@ -134,16 +135,16 @@ class PluginLoader(ContentLoader):
                 for row in obj[table_key]:
                     handle_nested_tables(row, table_key)
 
-        doc = data[self.name].get('doc')
+        doc = data.get('doc', None)
         if doc and 'options' in doc.keys() and isinstance(doc['options'], dict):
             doc['options'] = dict_to_named_list(doc['options'])
             for d in doc['options']:
                 handle_nested_tables(d, table_key='suboptions')
 
-        ret = data[self.name].get('return')
+        ret = data.get('return', None)
         if ret and isinstance(ret, dict):
-            data[self.name]['return'] = dict_to_named_list(ret)
-            for d in data[self.name]['return']:
+            data['return'] = dict_to_named_list(ret)
+            for d in data['return']:
                 handle_nested_tables(d, table_key='contains')
 
         return data
