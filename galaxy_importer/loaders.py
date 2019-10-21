@@ -186,13 +186,14 @@ class PluginLoader(ContentLoader):
 
     def _run_ansible_doc(self):
         cmd = [
+            'env', f'ANSIBLE_COLLECTIONS_PATHS={self.tmp_dir}',
             'ansible-doc',
+            self.fq_name,
             '--type', self.content_type.value,
-            '-M', os.path.dirname(self.rel_path),
-            self.name,
-            '--json']
+            '--json',
+        ]
         self.log.debug('CMD: {}'.format(' '.join(cmd)))
-        proc = Popen(cmd, cwd=self.root, stdout=PIPE, stderr=PIPE)
+        proc = Popen(' '.join(cmd), cwd=self.root, stdout=PIPE, stderr=PIPE, shell=True)
         stdout, stderr = proc.communicate()
         if proc.returncode:
             self.log.error(f'Error running ansible-doc: {stderr}')
