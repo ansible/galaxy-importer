@@ -67,7 +67,7 @@ def loader_module():
     return loaders.PluginLoader(
         content_type=constants.ContentType.MODULE,
         rel_path='plugins/modules/my_sample_module.py',
-        root='/tmp/tmpiskt5e2n')
+        root='/tmp/tmpiskt5e2n/ansible_collections/my_ns/my_collection')
 
 
 @pytest.fixture
@@ -75,7 +75,7 @@ def loader_role():
     return loaders.RoleLoader(
         content_type=constants.ContentType.ROLE,
         rel_path='roles/my_sample_role',
-        root=None)
+        root='/tmp/tmpiskt5e2n/ansible_collections/my_ns/my_collection')
 
 
 def test_get_loader_cls():
@@ -145,10 +145,13 @@ def test_run_ansible_doc_exception(mocked_popen, loader_module):
 def test_get_doc_strings(mocked_run_ansible_doc, loader_module):
     mocked_run_ansible_doc.return_value = ANSIBLE_DOC_OUTPUT
     doc_strings = loader_module._get_doc_strings()
-
     assert doc_strings['doc']['version_added'] == '2.8'
     assert doc_strings['doc']['description'] == \
         ['Sample module for testing.']
+
+    with pytest.raises(exc.ImporterError, match="did not return single top-level key"):
+        mocked_run_ansible_doc.return_value = '{}'
+        loader_module._get_doc_strings()
 
 
 def test_ansible_doc_unsupported_type():
@@ -223,6 +226,7 @@ def temp_root():
 
 
 def test_ansiblelint_file(loader_role):
+    loader_role.root = None
     with tempfile.NamedTemporaryFile('w') as fp:
         fp.write(ANSIBLELINT_TASK_SUDO_WARN)
         fp.flush()
@@ -232,6 +236,7 @@ def test_ansiblelint_file(loader_role):
 
 def test_ansiblelint_role(temp_root, loader_role):
     task_dir = os.path.join(temp_root, 'tasks')
+    loader_role.root = None
     os.makedirs(task_dir)
     with open(os.path.join(task_dir, 'main.yml'), 'w') as fp:
         fp.write(ANSIBLELINT_TASK_SUDO_WARN)
@@ -243,6 +248,7 @@ def test_ansiblelint_role(temp_root, loader_role):
 
 
 def test_ansiblelint_role_no_warn(temp_root, loader_role):
+    loader_role.root = None
     task_dir = os.path.join(temp_root, 'tasks')
     os.makedirs(task_dir)
     with open(os.path.join(task_dir, 'main.yml'), 'w') as fp:

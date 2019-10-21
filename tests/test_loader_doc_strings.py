@@ -54,8 +54,9 @@ def test_doc_options(loader_module):
         }
     """
     data = json.loads(ansible_doc_output)
+    data = list(data.values())[0]
     transformed_data = loader_module._transform_doc_strings(data)
-    assert transformed_data['my_sample_module']['doc']['options'] == [
+    assert transformed_data['doc']['options'] == [
         {
             'name': 'exclude',
             'description': ['This is the message to send...'],
@@ -109,8 +110,9 @@ def test_doc_nested_suboptions(loader_module):
         }
     """
     data = json.loads(ansible_doc_output)
+    data = list(data.values())[0]
     transformed_data = loader_module._transform_doc_strings(data)
-    assert transformed_data['my_sample_module']['doc']['options'] == [
+    assert transformed_data['doc']['options'] == [
         {
             'name': 'exclude',
             'description': ['This is the message to send...'],
@@ -162,8 +164,9 @@ def test_return(loader_module):
     """
 
     data = json.loads(ansible_doc_output)
+    data = list(data.values())[0]
     transformed_data = loader_module._transform_doc_strings(data)
-    assert transformed_data['my_sample_module']['return'] == [
+    assert transformed_data['return'] == [
         {
             'name': 'message',
             'description': ['The output message the sample module generates']
@@ -207,8 +210,9 @@ def test_return_nested_contains(loader_module):
     """
 
     data = json.loads(ansible_doc_output)
+    data = list(data.values())[0]
     transformed_data = loader_module._transform_doc_strings(data)
-    assert transformed_data['my_sample_module']['return'] == [
+    assert transformed_data['return'] == [
         {
             'name': 'resources',
             'contains': [
