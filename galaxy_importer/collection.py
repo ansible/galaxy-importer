@@ -16,6 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 from collections import namedtuple
+import json
 import logging
 import os
 from pkg_resources import iter_entry_points
@@ -49,10 +50,17 @@ def import_collection(file, filename=None, logger=None):
 
 
 def _import_collection(file, filename, logger):
-    with tempfile.TemporaryDirectory() as extract_dir:
+    with tarfile.open(fileobj=file, mode='r') as pkg_tar:
+        manifest_file = pkg_tar.extractfile('MANIFEST.json')
+        manifest_data = json.load(manifest_file)
+    metadata = manifest_data['collection_info']
+    sub_path = 'ansible_collections/{}/{}'.format(metadata['namespace'], metadata['name'])
+    file.seek(0)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        extract_dir = os.path.join(tmp_dir, sub_path)
         with tarfile.open(fileobj=file, mode='r') as pkg_tar:
             pkg_tar.extractall(extract_dir)
-
         data = CollectionLoader(extract_dir, filename, logger=logger).load()
 
     _run_post_load_plugins(
