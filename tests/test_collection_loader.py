@@ -68,35 +68,48 @@ MANIFEST_JSON = """
 """
 
 
+@pytest.fixture
+def tmp_collection_root():
+    import shutil
+    try:
+        tmp_dir = tempfile.TemporaryDirectory().name
+        sub_path = 'ansible_collections/placeholder_namespace/placeholder_name'
+        collection_root = os.path.join(tmp_dir, sub_path)
+        os.makedirs(collection_root)
+        yield collection_root
+    finally:
+        # TODO: check if this applies to dir not just file
+        shutil.rmtree(tmp_dir)
+
+
 @mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
-def test_manifest_success(_build_docs_blob):
+def test_manifest_success(_build_docs_blob, tmp_collection_root):
     _build_docs_blob.return_value = {}
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
-            fh.write(MANIFEST_JSON)
+    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
+        fh.write(MANIFEST_JSON)
 
-        with open(os.path.join(temp_dir, 'README.md'), 'w'):
-            pass
+    with open(os.path.join(tmp_collection_root, 'README.md'), 'w'):
+        pass
 
-        filename = CollectionFilename('my_namespace', 'my_collection', '2.0.2')
-        data = CollectionLoader(temp_dir, filename).load()
-        assert data.metadata.namespace == 'my_namespace'
-        assert data.metadata.name == 'my_collection'
-        assert data.metadata.version == '2.0.2'
-        assert data.metadata.authors == ['John Doe']
-        assert data.metadata.readme == 'README.md'
-        assert data.metadata.tags == ['deployment', 'fedora']
-        assert data.metadata.description == \
-            'A collection with various roles and plugins'
-        assert data.metadata.license_file is None
-        assert data.metadata.dependencies == {
-            'my_namespace.collection_nginx': '>=0.1.6',
-            'network_user.collection_inspect': '2.0.0',
-            'dave.deploy': '*'
-        }
-        assert data.metadata.repository is None
-        assert data.metadata.homepage is None
-        assert data.metadata.issues is None
+    filename = CollectionFilename('my_namespace', 'my_collection', '2.0.2')
+    data = CollectionLoader(tmp_collection_root, filename).load()
+    assert data.metadata.namespace == 'my_namespace'
+    assert data.metadata.name == 'my_collection'
+    assert data.metadata.version == '2.0.2'
+    assert data.metadata.authors == ['John Doe']
+    assert data.metadata.readme == 'README.md'
+    assert data.metadata.tags == ['deployment', 'fedora']
+    assert data.metadata.description == \
+        'A collection with various roles and plugins'
+    assert data.metadata.license_file is None
+    assert data.metadata.dependencies == {
+        'my_namespace.collection_nginx': '>=0.1.6',
+        'network_user.collection_inspect': '2.0.0',
+        'dave.deploy': '*'
+    }
+    assert data.metadata.repository is None
+    assert data.metadata.homepage is None
+    assert data.metadata.issues is None
 
 
 @pytest.mark.parametrize(
@@ -127,16 +140,15 @@ def test_manifest_success(_build_docs_blob):
         ('"issues": null', '"issues": []', "must be a string"),
     ],
 )
-def test_manifest_fail(manifest_text, new_text, error_subset):
+def test_manifest_fail(manifest_text, new_text, error_subset, tmp_collection_root):
     manifest_edited = MANIFEST_JSON.replace(manifest_text, new_text)
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
-            fh.write(manifest_edited)
+    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
+        fh.write(manifest_edited)
 
-        with pytest.raises(exc.ManifestValidationError,
-                           match=error_subset):
-            CollectionLoader(
-                temp_dir, 'my_namespace-my_collection-2.0.2.tar.gz').load()
+    with pytest.raises(exc.ManifestValidationError,
+                       match=error_subset):
+        CollectionLoader(
+            tmp_collection_root, 'my_namespace-my_collection-2.0.2.tar.gz').load()
 
 
 def test_build_contents_blob():
@@ -228,61 +240,66 @@ def test_build_docs_blob_no_readme(get_readme_doc_file):
 
 
 @mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
-def test_filename_empty_value(_build_docs_blob):
+def test_filename_empty_value(_build_docs_blob, tmp_collection_root):
     _build_docs_blob.return_value = {}
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
-            fh.write(MANIFEST_JSON)
-        with open(os.path.join(temp_dir, 'README.md'), 'w'):
-            pass
+    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
+        fh.write(MANIFEST_JSON)
+    with open(os.path.join(tmp_collection_root, 'README.md'), 'w'):
+        pass
 
-        filename = CollectionFilename(
-            namespace='my_namespace',
-            name='my_collection',
-            version=None)
-        data = CollectionLoader(temp_dir, filename).load()
-        assert data.metadata.namespace == 'my_namespace'
-        assert data.metadata.name == 'my_collection'
-        assert data.metadata.version == '2.0.2'
-
-        filename = None
-        data = CollectionLoader(temp_dir, filename).load()
-        assert data.metadata.namespace == 'my_namespace'
-        assert data.metadata.name == 'my_collection'
-        assert data.metadata.version == '2.0.2'
+    filename = CollectionFilename(
+        namespace='my_namespace',
+        name='my_collection',
+        version=None)
+    data = CollectionLoader(tmp_collection_root, filename).load()
+    assert data.metadata.namespace == 'my_namespace'
+    assert data.metadata.name == 'my_collection'
+    assert data.metadata.version == '2.0.2'
 
 
-def test_filename_not_match_metadata():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
-            fh.write(MANIFEST_JSON)
+@mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
+def test_filename_none(_build_docs_blob, tmp_collection_root):
+    _build_docs_blob.return_value = {}
+    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
+        fh.write(MANIFEST_JSON)
+    with open(os.path.join(tmp_collection_root, 'README.md'), 'w'):
+        pass
 
-        filename = CollectionFilename('diff_ns', 'my_collection', '2.0.2')
-        with pytest.raises(exc.ManifestValidationError):
-            CollectionLoader(temp_dir, filename).load()
-
-
-def test_license_file():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
-            manifest = json.loads(MANIFEST_JSON)
-            manifest['collection_info']['license'] = []
-            manifest['collection_info']['license_file'] = 'my_license.txt'
-            fh.write(json.dumps(manifest))
-        with open(os.path.join(temp_dir, 'README.md'), 'w'):
-            pass
-        with open(os.path.join(temp_dir, 'my_license.txt'), 'w'):
-            pass
-        data = CollectionLoader(temp_dir, filename=None).load()
-        assert data.metadata.license_file == 'my_license.txt'
+    filename = None
+    data = CollectionLoader(tmp_collection_root, filename).load()
+    assert data.metadata.namespace == 'my_namespace'
+    assert data.metadata.name == 'my_collection'
+    assert data.metadata.version == '2.0.2'
 
 
-def test_missing_readme():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with open(os.path.join(temp_dir, 'MANIFEST.json'), 'w') as fh:
-            fh.write(MANIFEST_JSON)
-        with pytest.raises(
-            exc.ManifestValidationError,
-            match=r"Could not find file README.md"
-        ):
-            CollectionLoader(temp_dir, filename=None).load()
+def test_filename_not_match_metadata(tmp_collection_root):
+    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
+        fh.write(MANIFEST_JSON)
+
+    filename = CollectionFilename('diff_ns', 'my_collection', '2.0.2')
+    with pytest.raises(exc.ManifestValidationError):
+        CollectionLoader(tmp_collection_root, filename).load()
+
+
+def test_license_file(tmp_collection_root):
+    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
+        manifest = json.loads(MANIFEST_JSON)
+        manifest['collection_info']['license'] = []
+        manifest['collection_info']['license_file'] = 'my_license.txt'
+        fh.write(json.dumps(manifest))
+    with open(os.path.join(tmp_collection_root, 'README.md'), 'w'):
+        pass
+    with open(os.path.join(tmp_collection_root, 'my_license.txt'), 'w'):
+        pass
+    data = CollectionLoader(tmp_collection_root, filename=None).load()
+    assert data.metadata.license_file == 'my_license.txt'
+
+
+def test_missing_readme(tmp_collection_root):
+    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
+        fh.write(MANIFEST_JSON)
+    with pytest.raises(
+        exc.ManifestValidationError,
+        match=r"Could not find file README.md"
+    ):
+        CollectionLoader(tmp_collection_root, filename=None).load()
