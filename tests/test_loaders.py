@@ -195,6 +195,17 @@ ANSIBLELINT_TASK_SUDO_WARN = """---
     line: '# added via ansible'
 """
 
+ROLE_METADATA = """---
+galaxy_info:
+  description: Test description inside metadata
+  license: MIT
+"""
+
+ROLE_METADATA_MISSING_DESC = """---
+galaxy_info:
+  license: MIT
+"""
+
 
 @pytest.fixture
 def temp_root():
@@ -244,3 +255,69 @@ def test_ansible_lint_exception(mocked_popen, loader_role):
     mocked_popen.return_value.wait.return_value = 1
     res = list(loader_role._lint_role('.'))
     assert 'Exception running ansible-lint' in res[0]
+
+
+def test_find_metadata_file_path(temp_root, loader_role):
+    res = loader_role._find_metadata_file_path(temp_root)
+    assert res is None
+
+    meta_dir = os.path.join(temp_root, 'meta')
+    os.mkdir(meta_dir)
+    with open(os.path.join(meta_dir, 'main.yml'), 'w'):
+        pass
+    res = loader_role._find_metadata_file_path(temp_root)
+    assert res == os.path.join(temp_root, 'meta', 'main.yml')
+
+
+def test_get_role_metadata_desc(temp_root, loader_role):
+    loader_role.rel_path = temp_root
+    meta_dir = os.path.join(temp_root, 'meta')
+    os.mkdir(meta_dir)
+
+    res = loader_role._get_metadata_description()
+    assert res is None
+
+    with open(os.path.join(meta_dir, 'main.yml'), 'w') as fp:
+        fp.write(ROLE_METADATA)
+    res = loader_role._get_metadata_description()
+    assert res == 'Test description inside metadata'
+
+    with open(os.path.join(meta_dir, 'main.yml'), 'w') as fp:
+        fp.write(ROLE_METADATA_MISSING_DESC)
+    res = loader_role._get_metadata_description()
+    assert res is None
+
+
+def test_get_role_readme(temp_root, loader_role):
+    loader_role.root = temp_root
+    loader_role.rel_path = ''
+    with open(os.path.join(temp_root, 'README.md'), 'w') as fp:
+        fp.write('This is the role readme text')
+    readme = loader_role._get_readme()
+    assert readme.name == 'README.md'
+    assert readme.text == 'This is the role readme text'
+
+
+def test_get_role_readme_fail(temp_root, loader_role):
+    loader_role.root = temp_root
+    loader_role.rel_path = ''
+    with pytest.raises(exc.ContentLoadError):
+        loader_role._get_readme()
+
+
+@mock.patch.object(loaders.RoleLoader, '_lint_role')
+def test_load_role(mocked_lint_role, temp_root, loader_role):
+    mocked_lint_role.return_value = 'ANSIBLE_LINT_OUTPUT'
+    loader_role.root = ''
+    loader_role.rel_path = temp_root
+
+    with open(os.path.join(temp_root, 'README.md'), 'w') as fp:
+        fp.write('This is the role readme text')
+    with open(os.path.join(temp_root, 'meta.yml'), 'w') as fp:
+        fp.write(ROLE_METADATA)
+
+    res = loader_role.load()
+    assert isinstance(res, schema.Content)
+    assert res.name == 'my_sample_role'
+    assert res.content_type == constants.ContentType.ROLE
+    assert res.description == 'Test description inside metadata'
