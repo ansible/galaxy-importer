@@ -112,59 +112,17 @@ def test_bad_role_name():
             root='/tmp/tmpiskt5e2n')
 
 
-@mock.patch.object(loaders.PluginLoader, '_get_doc_strings')
-def test_plugin_loader_annotated_type(mocked_get_doc_strings, loader_module):
-    mocked_get_doc_strings.return_value = None
+@mock.patch.object(loaders.DocStringLoader, 'load')
+def test_plugin_loader_annotated_type(mocked_doc_strings_load, loader_module):
+    mocked_doc_strings_load.return_value = None
     assert loader_module.name == 'my_sample_module'
     res = loader_module.load()
-    mocked_get_doc_strings.assert_called_once()
+    mocked_doc_strings_load.assert_called_once()
     assert isinstance(res, schema.Content)
-    assert isinstance(
-        res.content_type, attr.fields(schema.Content).content_type.type)
+    assert isinstance(res.content_type, attr.fields(schema.Content).content_type.type)
 
 
-@mock.patch('galaxy_importer.loaders.Popen')
-def test_run_ansible_doc(mocked_popen, loader_module):
-    mocked_popen.return_value.communicate.return_value = (
-        'expected output', '')
-    mocked_popen.return_value.returncode = 0
-    res = loader_module._run_ansible_doc()
-    assert res == 'expected output'
-
-
-@mock.patch('galaxy_importer.loaders.Popen')
-def test_run_ansible_doc_exception(mocked_popen, loader_module):
-    mocked_popen.return_value.communicate.return_value = (
-        'output', 'error that causes exception')
-    mocked_popen.return_value.returncode = 1
-    res = loader_module._run_ansible_doc()
-    assert not res
-
-
-@mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')
-def test_get_doc_strings(mocked_run_ansible_doc, loader_module):
-    mocked_run_ansible_doc.return_value = ANSIBLE_DOC_OUTPUT
-    doc_strings = loader_module._get_doc_strings()
-    assert doc_strings['doc']['version_added'] == '2.8'
-    assert doc_strings['doc']['description'] == \
-        ['Sample module for testing.']
-
-    with pytest.raises(exc.ImporterError, match="did not return single top-level key"):
-        mocked_run_ansible_doc.return_value = '{}'
-        loader_module._get_doc_strings()
-
-
-def test_ansible_doc_unsupported_type():
-    loader_action = loaders.PluginLoader(
-        content_type=constants.ContentType.ACTION_PLUGIN,
-        rel_path='plugins/action/my_plugin.py',
-        root='/tmp/tmpiskt5e2n')
-    assert constants.ContentType.ACTION_PLUGIN.value not in \
-        loaders.ANSIBLE_DOC_SUPPORTED_TYPES
-    assert not loader_action._get_doc_strings()
-
-
-@mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')
+@mock.patch.object(loaders.DocStringLoader, '_run_ansible_doc')
 def test_load(mocked_run_ansible_doc, loader_module):
     mocked_run_ansible_doc.return_value = ANSIBLE_DOC_OUTPUT
     res = loader_module.load()
@@ -175,29 +133,6 @@ def test_load(mocked_run_ansible_doc, loader_module):
     assert res.readme_html is None
     assert res.description == 'Sample module for testing'
     assert res.doc_strings['doc']['version_added'] == '2.8'
-
-
-@mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')
-def test_ansible_doc_no_output(mocked_run_ansible_doc, loader_module):
-    mocked_run_ansible_doc.return_value = ''
-    loader_module._get_doc_strings()
-    assert loader_module.doc_strings is None
-
-
-@mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')
-def test_ansible_doc_missing_key(mocked_run_ansible_doc, loader_module):
-    ansible_doc_output = """
-        {"wrong_key_name": {
-            "doc": {
-                "description": [
-                    "Sample module for testing."
-                ]
-            }
-        }}
-    """
-    mocked_run_ansible_doc.return_value = ansible_doc_output
-    loader_module._get_doc_strings()
-    assert loader_module.doc_strings is None
 
 
 ANSIBLELINT_TASK_OK = """---

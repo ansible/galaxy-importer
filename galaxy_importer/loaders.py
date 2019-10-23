@@ -63,7 +63,6 @@ class ContentLoader(metaclass=abc.ABCMeta):
         self.root = root
         self.name = self._make_name()
 
-        self.doc_strings = None
         self.description = None
         self.readme_file = None
         self.readme_html = None
@@ -117,12 +116,17 @@ class ContentLoader(metaclass=abc.ABCMeta):
 class PluginLoader(ContentLoader):
     def load(self):
         self._log_loading()
-        self.doc_strings = self._get_doc_strings()
+        doc_strings = DocStringLoader(
+            content_type=self.content_type.value,
+            path=self.tmp_dir,
+            fq_name=self.fq_name,
+            logger=self.log,
+        ).load()
 
         return schema.Content(
             name=self.path_name,
             content_type=self.content_type,
-            doc_strings=self.doc_strings,
+            doc_strings=doc_strings,
         )
 
     def _make_name(self):
@@ -132,8 +136,16 @@ class PluginLoader(ContentLoader):
         dirname_parts = Path(os.path.dirname(self.rel_path)).parts[2:]
         return '.'.join(list(dirname_parts) + [self.name])
 
-    def _get_doc_strings(self):
-        if self.content_type.value not in ANSIBLE_DOC_SUPPORTED_TYPES:
+
+class DocStringLoader():
+    def __init__(self, content_type, path, fq_name, logger=None):
+        self.content_type = content_type
+        self.path = path
+        self.fq_name = fq_name
+        self.log = logger or default_logger
+
+    def load(self):
+        if self.content_type not in ANSIBLE_DOC_SUPPORTED_TYPES:
             return None
 
         self.log.info('Getting doc strings via ansible-doc')
@@ -143,6 +155,8 @@ class PluginLoader(ContentLoader):
             return
 
         data = json.loads(json_output)
+        if not isinstance(data, dict):
+            raise exc.ImporterError('ansible-doc output not dictionary as expected')
         if len(data.keys()) != 1:
             raise exc.ImporterError('ansible-doc output did not return single top-level key')
         data = list(data.values())[0]
@@ -153,7 +167,24 @@ class PluginLoader(ContentLoader):
             for key in ANSIBLE_DOC_KEYS
         }
 
-    def _transform_doc_strings(self, data):
+    def _run_ansible_doc(self):
+        cmd = [
+            'env', f'ANSIBLE_COLLECTIONS_PATHS={self.path}',
+            'ansible-doc',
+            self.fq_name,
+            '--type', self.content_type,
+            '--json',
+        ]
+        self.log.debug('CMD: {}'.format(' '.join(cmd)))
+        proc = Popen(cmd, cwd=self.path, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
+        if proc.returncode:
+            self.log.error(f'Error running ansible-doc: {stderr}')
+            return None
+        return stdout
+
+    @staticmethod
+    def _transform_doc_strings(data):
         """Transform data meant for UI tables into format suitable for UI."""
 
         def dict_to_named_list(dict_of_dict):
@@ -183,22 +214,6 @@ class PluginLoader(ContentLoader):
                 handle_nested_tables(d, table_key='contains')
 
         return data
-
-    def _run_ansible_doc(self):
-        cmd = [
-            'env', f'ANSIBLE_COLLECTIONS_PATHS={self.tmp_dir}',
-            'ansible-doc',
-            self.fq_name,
-            '--type', self.content_type.value,
-            '--json',
-        ]
-        self.log.debug('CMD: {}'.format(' '.join(cmd)))
-        proc = Popen(cmd, cwd=self.root, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate()
-        if proc.returncode:
-            self.log.error(f'Error running ansible-doc: {stderr}')
-            return None
-        return stdout
 
 
 class RoleLoader(ContentLoader):
