@@ -193,7 +193,7 @@ class PluginLoader(ContentLoader):
             '--json',
         ]
         self.log.debug('CMD: {}'.format(' '.join(cmd)))
-        proc = Popen(' '.join(cmd), cwd=self.root, stdout=PIPE, stderr=PIPE, shell=True)
+        proc = Popen(cmd, cwd=self.root, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode:
             self.log.error(f'Error running ansible-doc: {stderr}')
