@@ -201,8 +201,8 @@ class DocStringLoader():
                 for row in obj[table_key]:
                     handle_nested_tables(row, table_key)
 
-        doc = data.get('doc', None)
-        if doc and 'options' in doc.keys() and isinstance(doc['options'], dict):
+        doc = data.get('doc', {})
+        if isinstance(doc.get('options'), dict):
             doc['options'] = dict_to_named_list(doc['options'])
             for d in doc['options']:
                 handle_nested_tables(d, table_key='suboptions')
