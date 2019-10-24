@@ -179,7 +179,7 @@ class DocStringLoader():
         proc = Popen(cmd, cwd=self.path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode:
-            self.log.error(f'Error running ansible-doc: {stderr}')
+            self.log.error(f'Error running ansible-doc: returncode={proc.returncode} {stderr}')
             return None
         return stdout
 
