@@ -52,55 +52,53 @@ class ContentLoader(metaclass=abc.ABCMeta):
         Given:
             root='/tmp/tmpgjbj53c9/ansible_collections/my_namespace/nginx'
             rel_path='modules/plugins/storage/another_subdir/s3.py'
-        Attributes will be:
-            self.fq_collection_name: my_namespace.nginx
-            self.name: s3
-            self.path_name: storage.another_subdir.s3
-            self.fq_name: my_namespace.nginx.storage.another_subdir.s3
+        Names will be:
+            fq_collection_name: my_namespace.nginx
+            name: s3
+            path_name: storage.another_subdir.s3
+            fq_name: my_namespace.nginx.storage.another_subdir.s3
         """
         self.content_type = content_type
         self.rel_path = rel_path
         self.root = root
-        self.name = self._make_name()
 
-        self.description = None
-        self.readme_file = None
-        self.readme_html = None
+        self.name = self._make_name(self.rel_path)
+        self._validate_name()
+        self.path_name = self._make_path_name(self.rel_path, self.name)
 
         self.log = logger or default_logger
-        self._validate_name()
-        self.tmp_dir = self._get_tmp_dir()
-        self.fq_collection_name = self._get_fq_collection_name()
-        self.path_name = self._get_path_name()
-        self.fq_name = self._get_fq_name()
 
     @abc.abstractmethod
     def load(self):
         """Loads data from content inside collection.
         :return: Content object."""
-        pass
 
+    @staticmethod
     @abc.abstractmethod
-    def _make_name(self):
+    def _make_name(rel_path):
         """Returns content name generated from it's path."""
-        pass
 
+    @staticmethod
     @abc.abstractmethod
-    def _get_path_name(self):
+    def _make_path_name(rel_path, name):
         """Returns subdirectories as part content name.
         'sub1.sub2.mod' for plugins/modules/sub1/sub2/mod.py"""
-        pass
 
-    def _get_fq_name(self):
-        return '{}.{}'.format(self.fq_collection_name, self.path_name)
-
-    def _get_tmp_dir(self):
-        root_parts = Path(self.root).parts
+    @staticmethod
+    def _get_tmp_dir(root):
+        root_parts = Path(root).parts
         return os.path.join(*root_parts[:3])
 
-    def _get_fq_collection_name(self):
-        root_parts = Path(self.root).parts
+    @staticmethod
+    def _get_fq_collection_name(root):
+        root_parts = Path(root).parts
         return '{}.{}'.format(*root_parts[-2:])
+
+    def _get_fq_name(self, root, path_name):
+        return '{}.{}'.format(
+            self._get_fq_collection_name(root),
+            path_name,
+        )
 
     def _validate_name(self):
         if not re.match(constants.CONTENT_NAME_REGEXP, self.name):
@@ -118,8 +116,8 @@ class PluginLoader(ContentLoader):
         self._log_loading()
         doc_strings = DocStringLoader(
             content_type=self.content_type.value,
-            path=self.tmp_dir,
-            fq_name=self.fq_name,
+            path=self._get_tmp_dir(self.root),
+            fq_name=self._get_fq_name(self.root, self.path_name),
             logger=self.log,
         ).load()
 
@@ -129,12 +127,14 @@ class PluginLoader(ContentLoader):
             doc_strings=doc_strings,
         )
 
-    def _make_name(self):
-        return os.path.splitext(os.path.basename(self.rel_path))[0]
+    @staticmethod
+    def _make_name(rel_path):
+        return os.path.splitext(os.path.basename(rel_path))[0]
 
-    def _get_path_name(self):
-        dirname_parts = Path(os.path.dirname(self.rel_path)).parts[2:]
-        return '.'.join(list(dirname_parts) + [self.name])
+    @staticmethod
+    def _make_path_name(rel_path, name):
+        dirname_parts = Path(os.path.dirname(rel_path)).parts[2:]
+        return '.'.join(list(dirname_parts) + [name])
 
 
 class DocStringLoader():
@@ -221,23 +221,25 @@ class RoleLoader(ContentLoader):
         self._log_loading()
         for line in self._lint_role(self.rel_path):
             self.log.warning(line)
-        self._get_readme()
-        self._get_metadata_description()
+        readme = self._get_readme()
+        description = self._get_metadata_description()
 
         return schema.Content(
             name=self.path_name,
             content_type=self.content_type,
-            description=self.description,
-            readme_file=self.readme_file,
-            readme_html=self.readme_html,
+            description=description,
+            readme_file=readme.name,
+            readme_html=markup_utils.get_html(readme),
         )
 
-    def _make_name(self):
-        return os.path.basename(self.rel_path)
+    @staticmethod
+    def _make_name(rel_path):
+        return os.path.basename(rel_path)
 
-    def _get_path_name(self):
-        dirname_parts = Path(os.path.dirname(self.rel_path)).parts[1:]
-        return '.'.join(list(dirname_parts) + [self.name])
+    @staticmethod
+    def _make_path_name(rel_path, name):
+        dirname_parts = Path(os.path.dirname(rel_path)).parts[1:]
+        return '.'.join(list(dirname_parts) + [name])
 
     def _lint_role(self, path):
         self.log.info('Linting role via ansible-lint')
@@ -273,12 +275,11 @@ class RoleLoader(ContentLoader):
             os.path.join(self.root, self.rel_path))
         if not readme:
             raise exc.ContentLoadError('No role readme found.')
-        self.readme_file = readme.name
-        self.readme_html = markup_utils.get_html(readme)
+        return readme
 
     def _get_metadata_description(self):
         self.log.info('Getting role description')
-        pass
+        return ''
 
 
 def get_loader_cls(content_type):
