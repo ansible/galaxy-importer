@@ -49,10 +49,11 @@ def import_collection(file, filename=None, logger=None):
 
 
 def _import_collection(file, filename, logger):
-    with tempfile.TemporaryDirectory() as extract_dir:
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        sub_path = 'ansible_collections/placeholder_namespace/placeholder_name'
+        extract_dir = os.path.join(tmp_dir, sub_path)
         with tarfile.open(fileobj=file, mode='r') as pkg_tar:
             pkg_tar.extractall(extract_dir)
-
         data = CollectionLoader(extract_dir, filename, logger=logger).load()
 
     _run_post_load_plugins(
@@ -80,6 +81,7 @@ class CollectionLoader(object):
 
     def load(self):
         self._load_collection_manifest()
+        self._rename_extract_path()
         self._check_filename_matches_manifest()
         self._check_metadata_filepaths()
         self.content_objs = list(self._load_contents())
@@ -104,6 +106,18 @@ class CollectionLoader(object):
             except ValueError as e:
                 raise exc.ManifestValidationError(str(e))
             self.metadata = data.collection_info
+
+    def _rename_extract_path(self):
+        old_ns_dir = os.path.dirname(self.path)
+        ansible_collections_dir = os.path.dirname(old_ns_dir)
+        new_ns_dir = os.path.join(ansible_collections_dir, self.metadata.namespace)
+        os.rename(old_ns_dir, new_ns_dir)
+
+        old_name_dir = os.path.join(new_ns_dir, os.path.basename(self.path))
+        new_name_dir = os.path.join(new_ns_dir, self.metadata.name)
+        os.rename(old_name_dir, new_name_dir)
+        self.path = new_name_dir
+        self.log.debug(f'Renamed extract dir to: {self.path}')
 
     def _check_filename_matches_manifest(self):
         if not self.filename:

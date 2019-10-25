@@ -67,7 +67,7 @@ def loader_module():
     return loaders.PluginLoader(
         content_type=constants.ContentType.MODULE,
         rel_path='plugins/modules/my_sample_module.py',
-        root='/tmp/tmpiskt5e2n')
+        root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection')
 
 
 @pytest.fixture
@@ -75,7 +75,23 @@ def loader_role():
     return loaders.RoleLoader(
         content_type=constants.ContentType.ROLE,
         rel_path='roles/my_sample_role',
-        root=None)
+        root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection')
+
+
+@pytest.fixture
+def loader_module_subdirs():
+    return loaders.PluginLoader(
+        content_type=constants.ContentType.MODULE,
+        rel_path='plugins/modules/subdir1/subdir2/my_sample_module.py',
+        root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection')
+
+
+@pytest.fixture
+def loader_role_subdirs():
+    return loaders.RoleLoader(
+        content_type=constants.ContentType.ROLE,
+        rel_path='roles/subdir1/subdir2/my_sample_role',
+        root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection')
 
 
 def test_get_loader_cls():
@@ -90,10 +106,22 @@ def test_get_loader_cls():
 
 def test_init_plugin_loader(loader_module):
     assert loader_module.name == 'my_sample_module'
+    assert loader_module.path_name == 'my_sample_module'
 
 
 def test_init_role_loader(loader_role):
     assert loader_role.name == 'my_sample_role'
+    assert loader_role.path_name == 'my_sample_role'
+
+
+def test_init_plugin_loader_subdirs(loader_module_subdirs):
+    assert loader_module_subdirs.name == 'my_sample_module'
+    assert loader_module_subdirs.path_name == 'subdir1.subdir2.my_sample_module'
+
+
+def test_init_role_loader_subdirs(loader_role_subdirs):
+    assert loader_role_subdirs.name == 'my_sample_role'
+    assert loader_role_subdirs.path_name == 'subdir1.subdir2.my_sample_role'
 
 
 def test_bad_plugin_name():
@@ -101,7 +129,7 @@ def test_bad_plugin_name():
         loaders.PluginLoader(
             content_type=constants.ContentType.MODULE,
             rel_path='plugins/modules/bad-name-dashes.py',
-            root='/tmp/tmpiskt5e2n')
+            root='')
 
 
 def test_bad_role_name():
@@ -109,92 +137,47 @@ def test_bad_role_name():
         loaders.RoleLoader(
             content_type=constants.ContentType.ROLE,
             rel_path='roles/bad-name-dashes',
-            root='/tmp/tmpiskt5e2n')
+            root='')
 
 
-@mock.patch.object(loaders.PluginLoader, '_get_doc_strings')
-def test_plugin_loader_annotated_type(mocked_get_doc_strings, loader_module):
-    mocked_get_doc_strings.return_value = None
+def test_get_tmp_dir(loader_module):
+    root = '/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection'
+    res = loader_module._get_tmp_dir(root)
+    assert res == '/tmp_placeholder/tmp_placeholder'
+
+
+def test_get_fq_collection_name(loader_module):
+    root = '/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection'
+    assert loader_module._get_fq_collection_name(root) == 'my_ns.my_collection'
+
+
+def test_get_fq_name(loader_module):
+    root = '/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection'
+    res = loader_module._get_fq_name(root, 'subdir.my_module')
+    assert res == 'my_ns.my_collection.subdir.my_module'
+
+
+@mock.patch.object(loaders.DocStringLoader, 'load')
+def test_plugin_loader_annotated_type(mocked_doc_strings_load, loader_module):
+    mocked_doc_strings_load.return_value = None
     assert loader_module.name == 'my_sample_module'
     res = loader_module.load()
-    mocked_get_doc_strings.assert_called_once()
+    mocked_doc_strings_load.assert_called_once()
     assert isinstance(res, schema.Content)
-    assert isinstance(
-        res.content_type, attr.fields(schema.Content).content_type.type)
+    assert isinstance(res.content_type, attr.fields(schema.Content).content_type.type)
 
 
-@mock.patch('galaxy_importer.loaders.Popen')
-def test_run_ansible_doc(mocked_popen, loader_module):
-    mocked_popen.return_value.communicate.return_value = (
-        'expected output', '')
-    mocked_popen.return_value.returncode = 0
-    res = loader_module._run_ansible_doc()
-    assert res == 'expected output'
-
-
-@mock.patch('galaxy_importer.loaders.Popen')
-def test_run_ansible_doc_exception(mocked_popen, loader_module):
-    mocked_popen.return_value.communicate.return_value = (
-        'output', 'error that causes exception')
-    mocked_popen.return_value.returncode = 1
-    res = loader_module._run_ansible_doc()
-    assert not res
-
-
-@mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')
-def test_get_doc_strings(mocked_run_ansible_doc, loader_module):
+@mock.patch.object(loaders.DocStringLoader, '_run_ansible_doc')
+def test_load(mocked_run_ansible_doc, loader_module_subdirs):
     mocked_run_ansible_doc.return_value = ANSIBLE_DOC_OUTPUT
-    doc_strings = loader_module._get_doc_strings()
-
-    assert doc_strings['doc']['version_added'] == '2.8'
-    assert doc_strings['doc']['description'] == \
-        ['Sample module for testing.']
-
-
-def test_ansible_doc_unsupported_type():
-    loader_action = loaders.PluginLoader(
-        content_type=constants.ContentType.ACTION_PLUGIN,
-        rel_path='plugins/action/my_plugin.py',
-        root='/tmp/tmpiskt5e2n')
-    assert constants.ContentType.ACTION_PLUGIN.value not in \
-        loaders.ANSIBLE_DOC_SUPPORTED_TYPES
-    assert not loader_action._get_doc_strings()
-
-
-@mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')
-def test_load(mocked_run_ansible_doc, loader_module):
-    mocked_run_ansible_doc.return_value = ANSIBLE_DOC_OUTPUT
-    res = loader_module.load()
+    res = loader_module_subdirs.load()
     assert isinstance(res, schema.Content)
-    assert res.name == 'my_sample_module'
+    assert res.name == 'subdir1.subdir2.my_sample_module'
     assert res.content_type == constants.ContentType.MODULE
     assert res.readme_file is None
     assert res.readme_html is None
     assert res.description == 'Sample module for testing'
     assert res.doc_strings['doc']['version_added'] == '2.8'
-
-
-@mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')
-def test_ansible_doc_no_output(mocked_run_ansible_doc, loader_module):
-    mocked_run_ansible_doc.return_value = ''
-    loader_module._get_doc_strings()
-    assert loader_module.doc_strings is None
-
-
-@mock.patch.object(loaders.PluginLoader, '_run_ansible_doc')
-def test_ansible_doc_missing_key(mocked_run_ansible_doc, loader_module):
-    ansible_doc_output = """
-        {"wrong_key_name": {
-            "doc": {
-                "description": [
-                    "Sample module for testing."
-                ]
-            }
-        }}
-    """
-    mocked_run_ansible_doc.return_value = ansible_doc_output
-    loader_module._get_doc_strings()
-    assert loader_module.doc_strings is None
 
 
 ANSIBLELINT_TASK_OK = """---
@@ -223,6 +206,7 @@ def temp_root():
 
 
 def test_ansiblelint_file(loader_role):
+    loader_role.root = None
     with tempfile.NamedTemporaryFile('w') as fp:
         fp.write(ANSIBLELINT_TASK_SUDO_WARN)
         fp.flush()
@@ -232,6 +216,7 @@ def test_ansiblelint_file(loader_role):
 
 def test_ansiblelint_role(temp_root, loader_role):
     task_dir = os.path.join(temp_root, 'tasks')
+    loader_role.root = None
     os.makedirs(task_dir)
     with open(os.path.join(task_dir, 'main.yml'), 'w') as fp:
         fp.write(ANSIBLELINT_TASK_SUDO_WARN)
@@ -243,6 +228,7 @@ def test_ansiblelint_role(temp_root, loader_role):
 
 
 def test_ansiblelint_role_no_warn(temp_root, loader_role):
+    loader_role.root = None
     task_dir = os.path.join(temp_root, 'tasks')
     os.makedirs(task_dir)
     with open(os.path.join(task_dir, 'main.yml'), 'w') as fp:

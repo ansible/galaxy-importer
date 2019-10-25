@@ -47,30 +47,58 @@ class ContentLoader(metaclass=abc.ABCMeta):
         :param rel_path: Path to content file or dir, relative to root path.
         :param root: Collection root path.
         :param logger: Optional logger instance.
+
+        ==Example==
+        Given:
+            root='/tmp/tmpgjbj53c9/ansible_collections/my_namespace/nginx'
+            rel_path='modules/plugins/storage/another_subdir/s3.py'
+        Names will be:
+            fq_collection_name: my_namespace.nginx
+            name: s3
+            path_name: storage.another_subdir.s3
+            fq_name: my_namespace.nginx.storage.another_subdir.s3
         """
         self.content_type = content_type
         self.rel_path = rel_path
         self.root = root
-        self.name = self._make_name()
 
-        self.doc_strings = None
-        self.description = None
-        self.readme_file = None
-        self.readme_html = None
+        self.name = self._make_name(self.rel_path)
+        self._validate_name()
+        self.path_name = self._make_path_name(self.rel_path, self.name)
 
         self.log = logger or default_logger
-        self._validate_name()
 
     @abc.abstractmethod
     def load(self):
         """Loads data from content inside collection.
         :return: Content object."""
-        pass
 
+    @staticmethod
     @abc.abstractmethod
-    def _make_name(self):
+    def _make_name(rel_path):
         """Returns content name generated from it's path."""
-        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def _make_path_name(rel_path, name):
+        """Returns subdirectories as part content name.
+        'sub1.sub2.mod' for plugins/modules/sub1/sub2/mod.py"""
+
+    @staticmethod
+    def _get_tmp_dir(root):
+        root_parts = Path(root).parts
+        return os.path.join(*root_parts[:3])
+
+    @staticmethod
+    def _get_fq_collection_name(root):
+        root_parts = Path(root).parts
+        return '{}.{}'.format(*root_parts[-2:])
+
+    def _get_fq_name(self, root, path_name):
+        return '{}.{}'.format(
+            self._get_fq_collection_name(root),
+            path_name,
+        )
 
     def _validate_name(self):
         if not re.match(constants.CONTENT_NAME_REGEXP, self.name):
@@ -80,44 +108,85 @@ class ContentLoader(metaclass=abc.ABCMeta):
     def _log_loading(self):
         self.log.info(' ')
         self.log.info(
-            f'===== LOADING {self.content_type.name}: {self.name} =====')
+            f'===== LOADING {self.content_type.name}: {self.path_name} =====')
 
 
 class PluginLoader(ContentLoader):
     def load(self):
         self._log_loading()
-        self.doc_strings = self._get_doc_strings()
+        doc_strings = DocStringLoader(
+            content_type=self.content_type.value,
+            path=self._get_tmp_dir(self.root),
+            fq_name=self._get_fq_name(self.root, self.path_name),
+            logger=self.log,
+        ).load()
 
         return schema.Content(
-            name=self.name,
+            name=self.path_name,
             content_type=self.content_type,
-            doc_strings=self.doc_strings,
+            doc_strings=doc_strings,
         )
 
-    def _make_name(self):
-        return os.path.splitext(os.path.basename(self.rel_path))[0]
+    @staticmethod
+    def _make_name(rel_path):
+        return os.path.splitext(os.path.basename(rel_path))[0]
 
-    def _get_doc_strings(self):
-        if self.content_type.value not in ANSIBLE_DOC_SUPPORTED_TYPES:
+    @staticmethod
+    def _make_path_name(rel_path, name):
+        dirname_parts = Path(os.path.dirname(rel_path)).parts[2:]
+        return '.'.join(list(dirname_parts) + [name])
+
+
+class DocStringLoader():
+    def __init__(self, content_type, path, fq_name, logger=None):
+        self.content_type = content_type
+        self.path = path
+        self.fq_name = fq_name
+        self.log = logger or default_logger
+
+    def load(self):
+        if self.content_type not in ANSIBLE_DOC_SUPPORTED_TYPES:
             return None
 
         self.log.info('Getting doc strings via ansible-doc')
         json_output = self._run_ansible_doc()
 
         if not json_output:
-            return
-        data = json.loads(json_output)
-        if self.name not in data.keys():
-            self.log.error(f'No "{self.name}" key in ansible-doc output')
             return None
 
+        data = json.loads(json_output)
+        if not isinstance(data, dict):
+            self.log.error('ansible-doc output not dictionary as expected')
+            return None
+        if len(data.keys()) != 1:
+            self.log.error('ansible-doc output did not return single top-level key')
+            return None
+        data = list(data.values())[0]
         data = self._transform_doc_strings(data)
+
         return {
-            key: data[self.name].get(key, None)
+            key: data.get(key, None)
             for key in ANSIBLE_DOC_KEYS
         }
 
-    def _transform_doc_strings(self, data):
+    def _run_ansible_doc(self):
+        cmd = [
+            'env', f'ANSIBLE_COLLECTIONS_PATHS={self.path}',
+            'ansible-doc',
+            self.fq_name,
+            '--type', self.content_type,
+            '--json',
+        ]
+        self.log.debug('CMD: {}'.format(' '.join(cmd)))
+        proc = Popen(cmd, cwd=self.path, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
+        if proc.returncode:
+            self.log.error(f'Error running ansible-doc: returncode={proc.returncode} {stderr}')
+            return None
+        return stdout
+
+    @staticmethod
+    def _transform_doc_strings(data):
         """Transform data meant for UI tables into format suitable for UI."""
 
         def dict_to_named_list(dict_of_dict):
@@ -134,34 +203,19 @@ class PluginLoader(ContentLoader):
                 for row in obj[table_key]:
                     handle_nested_tables(row, table_key)
 
-        doc = data[self.name].get('doc')
-        if doc and 'options' in doc.keys() and isinstance(doc['options'], dict):
+        doc = data.get('doc', {})
+        if isinstance(doc.get('options'), dict):
             doc['options'] = dict_to_named_list(doc['options'])
             for d in doc['options']:
                 handle_nested_tables(d, table_key='suboptions')
 
-        ret = data[self.name].get('return')
+        ret = data.get('return', None)
         if ret and isinstance(ret, dict):
-            data[self.name]['return'] = dict_to_named_list(ret)
-            for d in data[self.name]['return']:
+            data['return'] = dict_to_named_list(ret)
+            for d in data['return']:
                 handle_nested_tables(d, table_key='contains')
 
         return data
-
-    def _run_ansible_doc(self):
-        cmd = [
-            'ansible-doc',
-            '--type', self.content_type.value,
-            '-M', os.path.dirname(self.rel_path),
-            self.name,
-            '--json']
-        self.log.debug('CMD: {}'.format(' '.join(cmd)))
-        proc = Popen(cmd, cwd=self.root, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate()
-        if proc.returncode:
-            self.log.error(f'Error running ansible-doc: {stderr}')
-            return None
-        return stdout
 
 
 class RoleLoader(ContentLoader):
@@ -169,19 +223,25 @@ class RoleLoader(ContentLoader):
         self._log_loading()
         for line in self._lint_role(self.rel_path):
             self.log.warning(line)
-        self._get_readme()
-        self._get_metadata_description()
+        readme = self._get_readme()
+        description = self._get_metadata_description()
 
         return schema.Content(
-            name=self.name,
+            name=self.path_name,
             content_type=self.content_type,
-            description=self.description,
-            readme_file=self.readme_file,
-            readme_html=self.readme_html,
+            description=description,
+            readme_file=readme.name,
+            readme_html=markup_utils.get_html(readme),
         )
 
-    def _make_name(self):
-        return os.path.basename(self.rel_path)
+    @staticmethod
+    def _make_name(rel_path):
+        return os.path.basename(rel_path)
+
+    @staticmethod
+    def _make_path_name(rel_path, name):
+        dirname_parts = Path(os.path.dirname(rel_path)).parts[1:]
+        return '.'.join(list(dirname_parts) + [name])
 
     def _lint_role(self, path):
         self.log.info('Linting role via ansible-lint')
@@ -217,12 +277,11 @@ class RoleLoader(ContentLoader):
             os.path.join(self.root, self.rel_path))
         if not readme:
             raise exc.ContentLoadError('No role readme found.')
-        self.readme_file = readme.name
-        self.readme_html = markup_utils.get_html(readme)
+        return readme
 
     def _get_metadata_description(self):
         self.log.info('Getting role description')
-        pass
+        return ''
 
 
 def get_loader_cls(content_type):
