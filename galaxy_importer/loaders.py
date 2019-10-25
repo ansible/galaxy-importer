@@ -23,6 +23,7 @@ import os
 from pathlib import Path
 import re
 from subprocess import Popen, PIPE
+import yaml
 
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
@@ -37,6 +38,7 @@ ANSIBLE_DOC_SUPPORTED_TYPES = [
     'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
 ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
 ANSIBLE_LINT_EXCEPTION_RETURN_CODE = 1
+ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
@@ -281,7 +283,32 @@ class RoleLoader(ContentLoader):
 
     def _get_metadata_description(self):
         self.log.info('Getting role description')
-        return ''
+        description = None
+        meta_path = self._find_metadata_file_path(self.rel_path)
+
+        if not meta_path:
+            self.log.warning('No role metadata found')
+            return description
+
+        with open(meta_path) as fp:
+            try:
+                role_metadata = yaml.safe_load(fp)
+            except Exception:
+                self.log.error('Error during parsing of role metadata')
+        try:
+            description = role_metadata['galaxy_info']['description']
+        except KeyError:
+            self.log.warning('No role description found in role metadata')
+        return description
+
+    @staticmethod
+    def _find_metadata_file_path(rel_path):
+        """Gets path to role metadata file."""
+        for file in ROLE_META_FILES:
+            meta_path = os.path.join(rel_path, file)
+            if os.path.exists(meta_path):
+                return meta_path
+        return None
 
 
 def get_loader_cls(content_type):
