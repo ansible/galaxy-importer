@@ -20,7 +20,6 @@ import pytest
 from unittest import mock
 
 from galaxy_importer import constants
-from galaxy_importer import exceptions as exc
 from galaxy_importer import loaders
 
 
@@ -111,13 +110,13 @@ def test_get_doc_strings(mocked_run_ansible_doc, doc_string_loader):
     assert doc_strings['doc']['description'] == \
         ['Sample module for testing.']
 
-    with pytest.raises(exc.ImporterError, match="did not return single top-level key"):
-        mocked_run_ansible_doc.return_value = '{}'
-        doc_string_loader.load()
+    mocked_run_ansible_doc.return_value = '{}'
+    doc_strings = doc_string_loader.load()
+    assert not doc_strings
 
-    with pytest.raises(exc.ImporterError, match="ansible-doc output not dictionary as expected"):
-        mocked_run_ansible_doc.return_value = '[]'
-        doc_string_loader.load()
+    mocked_run_ansible_doc.return_value = '[]'
+    doc_strings = doc_string_loader.load()
+    assert not doc_strings
 
 
 def test_return(doc_string_loader):
