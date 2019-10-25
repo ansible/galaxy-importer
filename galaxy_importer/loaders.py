@@ -152,13 +152,15 @@ class DocStringLoader():
         json_output = self._run_ansible_doc()
 
         if not json_output:
-            return
+            return None
 
         data = json.loads(json_output)
         if not isinstance(data, dict):
-            raise exc.ImporterError('ansible-doc output not dictionary as expected')
+            self.log.error('ansible-doc output not dictionary as expected')
+            return None
         if len(data.keys()) != 1:
-            raise exc.ImporterError('ansible-doc output did not return single top-level key')
+            self.log.error('ansible-doc output did not return single top-level key')
+            return None
         data = list(data.values())[0]
         data = self._transform_doc_strings(data)
 
