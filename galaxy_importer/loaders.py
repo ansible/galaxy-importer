@@ -89,7 +89,7 @@ class ContentLoader(metaclass=abc.ABCMeta):
     @staticmethod
     def _get_tmp_dir(root):
         root_parts = Path(root).parts
-        return os.path.join(*root_parts[:3])
+        return os.path.join(*root_parts[:-3])
 
     @staticmethod
     def _get_fq_collection_name(root):
