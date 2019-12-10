@@ -44,11 +44,12 @@ ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
 
 class ContentLoader(metaclass=abc.ABCMeta):
 
-    def __init__(self, content_type, rel_path, root, logger=None):
+    def __init__(self, content_type, rel_path, root, doc_strings=None, logger=None):
         """
         :param content_type: Content type.
         :param rel_path: Path to content file or dir, relative to root path.
         :param root: Collection root path.
+        :param doc_strings: ansible-doc output for all plugins in collection
         :param logger: Optional logger instance.
 
         ==Example==
@@ -69,6 +70,7 @@ class ContentLoader(metaclass=abc.ABCMeta):
         self._validate_name()
         self.path_name = self._make_path_name(self.rel_path, self.name)
 
+        self.doc_strings = doc_strings or {}
         self.log = logger or default_logger
 
     @abc.abstractmethod
@@ -86,11 +88,6 @@ class ContentLoader(metaclass=abc.ABCMeta):
     def _make_path_name(rel_path, name):
         """Returns subdirectories as part content name.
         'sub1.sub2.mod' for plugins/modules/sub1/sub2/mod.py"""
-
-    @staticmethod
-    def _get_tmp_dir(root):
-        root_parts = Path(root).parts
-        return os.path.join(*root_parts[:-3])
 
     @staticmethod
     def _get_fq_collection_name(root):
@@ -117,18 +114,21 @@ class ContentLoader(metaclass=abc.ABCMeta):
 class PluginLoader(ContentLoader):
     def load(self):
         self._log_loading()
-        doc_strings = DocStringLoader(
-            content_type=self.content_type.value,
-            path=self._get_tmp_dir(self.root),
-            fq_name=self._get_fq_name(self.root, self.path_name),
-            logger=self.log,
-        ).load()
+        doc_strings = self._get_plugin_doc_strings()
 
         return schema.Content(
             name=self.path_name,
             content_type=self.content_type,
             doc_strings=doc_strings,
         )
+
+    def _get_plugin_doc_strings(self):
+        """Return plugin doc_strings, if exists, from collection doc_strings."""
+        fq_name = self._get_fq_name(self.root, self.path_name)
+        try:
+            return self.doc_strings[self.content_type.value][fq_name]
+        except KeyError:
+            return None
 
     @staticmethod
     def _make_name(rel_path):
