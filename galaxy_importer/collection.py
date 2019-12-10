@@ -84,6 +84,13 @@ class CollectionLoader(object):
         self._rename_extract_path()
         self._check_filename_matches_manifest()
         self._check_metadata_filepaths()
+
+        self.doc_strings = loaders.DocStringLoader(
+            path=self.path,
+            fq_collection_name='{}.{}'.format(self.metadata.namespace, self.metadata.name),
+            logger=self.log,
+        ).load()
+
         self.content_objs = list(self._load_contents())
 
         self.contents = self._build_contents_blob()
