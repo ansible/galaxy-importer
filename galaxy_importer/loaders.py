@@ -106,9 +106,7 @@ class ContentLoader(metaclass=abc.ABCMeta):
                 f'{self.content_type.value} name invalid format: {self.name}')
 
     def _log_loading(self):
-        self.log.info(' ')
-        self.log.info(
-            f'===== LOADING {self.content_type.name}: {self.path_name} =====')
+        self.log.info(f'Loading {self.content_type.value} {self.path_name}')
 
 
 class PluginLoader(ContentLoader):
@@ -238,10 +236,10 @@ class DocStringLoader():
 class RoleLoader(ContentLoader):
     def load(self):
         self._log_loading()
+        description = self._get_metadata_description()
+        readme = self._get_readme()
         for line in self._lint_role(self.rel_path):
             self.log.warning(line)
-        readme = self._get_readme()
-        description = self._get_metadata_description()
 
         return schema.Content(
             name=self.path_name,
@@ -261,7 +259,7 @@ class RoleLoader(ContentLoader):
         return '.'.join(list(dirname_parts) + [name])
 
     def _lint_role(self, path):
-        self.log.info('Linting role via ansible-lint')
+        self.log.info(f'Linting role {self.path_name} via ansible-lint...')
         cmd = [
             'ansible-lint', path,
             '-p',
@@ -289,7 +287,6 @@ class RoleLoader(ContentLoader):
             yield 'Exception running ansible-lint, could not complete linting'
 
     def _get_readme(self):
-        self.log.info('Getting role readme')
         readme = markup_utils.get_readme_doc_file(
             os.path.join(self.root, self.rel_path))
         if not readme:
@@ -297,12 +294,11 @@ class RoleLoader(ContentLoader):
         return readme
 
     def _get_metadata_description(self):
-        self.log.info('Getting role description')
         description = None
         meta_path = self._find_metadata_file_path(self.rel_path)
 
         if not meta_path:
-            self.log.warning('No role metadata found')
+            self.log.warning('Could not get role description, no role metadata found')
             return description
 
         with open(meta_path) as fp:
