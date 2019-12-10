@@ -36,6 +36,7 @@ default_logger = logging.getLogger(__name__)
 ANSIBLE_DOC_SUPPORTED_TYPES = [
     'become', 'cache', 'callback', 'cliconf', 'connection',
     'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
+ANSIBLE_DOC_PLUGIN_MAP = {'module': 'modules'}
 ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
 ANSIBLE_LINT_EXCEPTION_RETURN_CODE = 1
 ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
@@ -140,52 +141,66 @@ class PluginLoader(ContentLoader):
 
 
 class DocStringLoader():
-    def __init__(self, content_type, path, fq_name, logger=None):
-        self.content_type = content_type
+    """Process ansible-doc doc strings for entire collection.
+
+    Load by calling ansible-doc once in batch for each plugin type."""
+    def __init__(self, path, fq_collection_name, logger=None):
         self.path = path
-        self.fq_name = fq_name
+        self.fq_collection_name = fq_collection_name
         self.log = logger or default_logger
 
     def load(self):
-        if self.content_type not in ANSIBLE_DOC_SUPPORTED_TYPES:
-            return None
-
         self.log.info('Getting doc strings via ansible-doc')
-        json_output = self._run_ansible_doc()
+        docs = {}
+        for plugin_type in ANSIBLE_DOC_SUPPORTED_TYPES:
+            plugin_dir_name = ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
 
-        if not json_output:
-            return None
+            plugins = self._get_plugins(os.path.join(self.path, 'plugins', plugin_dir_name))
 
-        data = json.loads(json_output)
-        if not isinstance(data, dict):
-            self.log.error('ansible-doc output not dictionary as expected')
-            return None
-        if len(data.keys()) != 1:
-            self.log.error('ansible-doc output did not return single top-level key')
-            return None
-        data = list(data.values())[0]
-        data = self._transform_doc_strings(data)
+            if plugins:
+                data = self._run_ansible_doc(plugin_type, plugins)
+                data = self._process_doc_strings(data)
+                docs[plugin_type] = data
 
-        return {
-            key: data.get(key, None)
-            for key in ANSIBLE_DOC_KEYS
-        }
+        return docs
 
-    def _run_ansible_doc(self):
+    def _get_plugins(self, plugin_dir):
+        plugins = []
+        for root, _, files in os.walk(plugin_dir):
+            for filename in files:
+                if not filename.endswith('.py') or filename == '__init__.py':
+                    continue
+                file_path = os.path.join(root, filename)
+                sub_dirs = os.path.relpath(root, plugin_dir)
+
+                fq_name_parts = [self.fq_collection_name]
+                if sub_dirs and sub_dirs != '.':
+                    fq_name_parts.extend(sub_dirs.split('/'))
+                fq_name_parts.append(os.path.basename(file_path)[:-3])
+
+                plugins.append('.'.join(fq_name_parts))
+        return plugins
+
+    def _run_ansible_doc(self, plugin_type, plugins):
+        collections_path = '/'.join(self.path.split('/')[:-3])
         cmd = [
-            'env', f'ANSIBLE_COLLECTIONS_PATHS={self.path}',
+            'env', f'ANSIBLE_COLLECTIONS_PATHS={collections_path}',
             'ansible-doc',
-            self.fq_name,
-            '--type', self.content_type,
+            '--type', plugin_type,
             '--json',
-        ]
+        ] + plugins
         self.log.debug('CMD: {}'.format(' '.join(cmd)))
-        proc = Popen(cmd, cwd=self.path, stdout=PIPE, stderr=PIPE)
+        proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode:
             self.log.error(f'Error running ansible-doc: returncode={proc.returncode} {stderr}')
             return None
-        return stdout
+        return json.loads(stdout)
+
+    def _process_doc_strings(self, doc_strings):
+        for plugin_key, value in doc_strings.items():
+            doc_strings[plugin_key] = self._transform_doc_strings(value)
+        return doc_strings
 
     @staticmethod
     def _transform_doc_strings(data):
