@@ -16,65 +16,60 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import json
+import os
 import pytest
+import shutil
+import tempfile
 from unittest import mock
 
-from galaxy_importer import constants
 from galaxy_importer import loaders
-
-
-ANSIBLE_DOC_OUTPUT = """
-    {"my_sample_module": {
-        "doc": {
-            "description": ["Sample module for testing."],
-            "short_description": "Sample module for testing",
-            "version_added": "2.8",
-            "options": {
-                "exclude": {
-                    "description": ["This is the message to send..."],
-                    "required": "true"
-                },
-                "use_new": {
-                    "description": ["Control is passed..."],
-                    "version_added": "2.7",
-                    "default": "auto"
-                }
-            }
-        },
-        "examples": null,
-        "metadata": null,
-        "return": {
-            "message": {
-                "description": "The output message the sample module generates"
-            },
-            "original_message": {
-                "description": "The original name param that was passed in",
-                "type": "str"
-            }
-        }
-    }}
-"""
 
 
 @pytest.fixture
 def doc_string_loader():
     return loaders.DocStringLoader(
-        content_type=constants.ContentType.MODULE.value,
-        path=None,
-        fq_name='my_namespace.my_collection.my_sample_module')
+        path='/tmp_dir/tmp123/ansible_collections/my_namespace/my_collection',
+        fq_collection_name='my_namespace.my_collection')
 
 
 def test_init_loader(doc_string_loader):
-    assert doc_string_loader.content_type == 'module'
-    assert doc_string_loader.fq_name == 'my_namespace.my_collection.my_sample_module'
+    assert doc_string_loader.fq_collection_name == 'my_namespace.my_collection'
+
+
+def test_get_plugins(doc_string_loader):
+    temp_dir = tempfile.mkdtemp()
+    with open(os.path.join(temp_dir, '__init__.py'), 'w'):
+        pass
+    with open(os.path.join(temp_dir, 'should_be_ignored.txt'), 'w'):
+        pass
+    with open(os.path.join(temp_dir, 'my_module.py'), 'w'):
+        pass
+    plugins = doc_string_loader._get_plugins(temp_dir)
+
+    assert plugins == ['my_namespace.my_collection.my_module']
+    shutil.rmtree(temp_dir)
+
+
+def test_get_plugins_subdirs(doc_string_loader):
+    temp_dir = tempfile.mkdtemp()
+    subdir1 = os.path.join(temp_dir, 'subdir1')
+    os.mkdir(subdir1)
+    subdir2 = os.path.join(subdir1, 'subdir2')
+    os.mkdir(subdir2)
+    with open(os.path.join(subdir2, 'nested_plugin.py'), 'w'):
+        pass
+    plugins = doc_string_loader._get_plugins(temp_dir)
+
+    assert plugins == ['my_namespace.my_collection.subdir1.subdir2.nested_plugin']
+    shutil.rmtree(temp_dir)
 
 
 @mock.patch('galaxy_importer.loaders.Popen')
 def test_run_ansible_doc(mocked_popen, doc_string_loader):
     mocked_popen.return_value.communicate.return_value = (
-        'expected output', '')
+        '"expected output"', '')
     mocked_popen.return_value.returncode = 0
-    res = doc_string_loader._run_ansible_doc()
+    res = doc_string_loader._run_ansible_doc(plugin_type='', plugins=[])
     assert res == 'expected output'
 
 
@@ -83,43 +78,49 @@ def test_run_ansible_doc_exception(mocked_popen, doc_string_loader):
     mocked_popen.return_value.communicate.return_value = (
         'output', 'error that causes exception')
     mocked_popen.return_value.returncode = 1
-    res = doc_string_loader._run_ansible_doc()
+    res = doc_string_loader._run_ansible_doc(plugin_type='', plugins=[])
     assert not res
-
-
-def test_ansible_doc_unsupported_type():
-    action_plugin_loader = loaders.DocStringLoader(
-        content_type=constants.ContentType.ACTION_PLUGIN.value,
-        path=None,
-        fq_name='my_namespace.my_collection.my_sample_module')
-    assert constants.ContentType.ACTION_PLUGIN.value not in loaders.ANSIBLE_DOC_SUPPORTED_TYPES
-    assert not action_plugin_loader.load()
 
 
 @mock.patch.object(loaders.DocStringLoader, '_run_ansible_doc')
 def test_ansible_doc_no_output(mocked_run_ansible_doc, doc_string_loader):
     mocked_run_ansible_doc.return_value = ''
-    assert doc_string_loader.load() is None
+    assert doc_string_loader.load() == {}
 
 
-@mock.patch.object(loaders.DocStringLoader, '_run_ansible_doc')
-def test_get_doc_strings(mocked_run_ansible_doc, doc_string_loader):
-    mocked_run_ansible_doc.return_value = ANSIBLE_DOC_OUTPUT
-    doc_strings = doc_string_loader.load()
-    assert doc_strings['doc']['version_added'] == '2.8'
-    assert doc_strings['doc']['description'] == \
-        ['Sample module for testing.']
+def test_process_doc_strings_not_dict(doc_string_loader):
+    ansible_doc_output = """
+        {
+            "my_sample_module": {
+                "return": {
+                    "message": {
+                        "description": ["The output message the sample module generates"]
+                    },
+                    "original_message": {
+                        "description": ["The original name param that was passed in"],
+                        "type": "str"
+                    }
+                }
+            }
+        }
+    """
 
-    mocked_run_ansible_doc.return_value = '{}'
-    doc_strings = doc_string_loader.load()
-    assert not doc_strings
+    data = json.loads(ansible_doc_output)
+    res = doc_string_loader._process_doc_strings(data)
+    assert res['my_sample_module']['return'] == [
+        {
+            'name': 'message',
+            'description': ['The output message the sample module generates']
+        },
+        {
+            'name': 'original_message',
+            'description': ['The original name param that was passed in'],
+            'type': 'str'
+        }
+    ]
 
-    mocked_run_ansible_doc.return_value = '[]'
-    doc_strings = doc_string_loader.load()
-    assert not doc_strings
 
-
-def test_return(doc_string_loader):
+def test_transform_doc_strings_return(doc_string_loader):
     ansible_doc_output = """
         {
             "my_sample_module": {
@@ -152,7 +153,7 @@ def test_return(doc_string_loader):
     ]
 
 
-def test_doc_options(doc_string_loader):
+def test_transform_doc_strings_options(doc_string_loader):
     ansible_doc_output = """
         {
             "my_sample_module": {
@@ -193,7 +194,7 @@ def test_doc_options(doc_string_loader):
     ]
 
 
-def test_return_nested_contains(doc_string_loader):
+def test_transform_doc_strings_nested_contains(doc_string_loader):
     ansible_doc_output = """
         {
             "my_sample_module": {
@@ -255,7 +256,7 @@ def test_return_nested_contains(doc_string_loader):
     ]
 
 
-def test_doc_nested_suboptions(doc_string_loader):
+def test_transform_doc_strings_nested_suboptions(doc_string_loader):
     ansible_doc_output = """
         {
             "my_sample_module": {
@@ -328,3 +329,50 @@ def test_doc_nested_suboptions(doc_string_loader):
             ]
         }
     ]
+
+
+@mock.patch.object(loaders.DocStringLoader, '_run_ansible_doc')
+def test_load(mocked_run_ansible_doc, doc_string_loader):
+    ansible_doc_output = """
+        {
+            "my_module": {
+                "return": {
+                    "message": {
+                        "description": ["The output message the sample module generates"]
+                    },
+                    "original_message": {
+                        "description": ["The original name param that was passed in"],
+                        "type": "str"
+                    }
+                }
+            }
+        }
+    """
+    mocked_run_ansible_doc.return_value = json.loads(ansible_doc_output)
+
+    tmp_root = tempfile.mkdtemp()
+    doc_string_loader.path = tmp_root
+    plugins = os.path.join(tmp_root, 'plugins')
+    os.mkdir(plugins)
+    modules = os.path.join(plugins, 'modules')
+    os.mkdir(modules)
+    with open(os.path.join(modules, 'my_module.py'), 'w'):
+        pass
+
+    res = doc_string_loader.load()
+    assert res == {
+        'module': {
+            'my_module': {
+                'return': [
+                    {
+                        'description': ['The output message the sample module generates'],
+                        'name': 'message'
+                    },
+                    {
+                        'description': ['The original name param that was passed in'],
+                        'name': 'original_message', 'type': 'str'}
+                ]
+            }
+        }
+    }
+    shutil.rmtree(tmp_root)
