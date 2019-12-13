@@ -155,14 +155,20 @@ class DocStringLoader():
 
             plugins = self._get_plugins(os.path.join(self.path, 'plugins', plugin_dir_name))
 
-            if plugins:
-                data = self._run_ansible_doc(plugin_type, plugins)
-                data = self._process_doc_strings(data)
-                docs[plugin_type] = data
+            if not plugins:
+                continue
+
+            data = self._run_ansible_doc(plugin_type, plugins)
+            data = self._process_doc_strings(data)
+            docs[plugin_type] = data
 
         return docs
 
     def _get_plugins(self, plugin_dir):
+        """Get list of fully qualified plugin names inside directory.
+
+        Ex: ['google.gcp.service_facts', 'google.gcp.storage.subdir2.gc_storage']
+        """
         plugins = []
         for root, _, files in os.walk(plugin_dir):
             for filename in files:
@@ -191,16 +197,17 @@ class DocStringLoader():
         proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode:
-            self.log.error(f'Error running ansible-doc: returncode={proc.returncode} {stderr}')
+            self.log.error('Error running ansible-doc: cmd="{cmd}" returncode="{rc}" {err}'.format(
+                cmd=' '.join(cmd), rc=proc.returncode, err=stderr
+            ))
             return {}
         return json.loads(stdout)
 
     def _process_doc_strings(self, doc_strings):
-        if not doc_strings:
-            return {}
+        processed_doc_strings = {}
         for plugin_key, value in doc_strings.items():
-            doc_strings[plugin_key] = self._transform_doc_strings(value)
-        return doc_strings
+            processed_doc_strings[plugin_key] = self._transform_doc_strings(value)
+        return processed_doc_strings
 
     @staticmethod
     def _transform_doc_strings(data):

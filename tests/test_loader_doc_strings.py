@@ -16,10 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import json
-import os
 import pytest
-import shutil
-import tempfile
 from unittest import mock
 
 from galaxy_importer import loaders
@@ -36,32 +33,18 @@ def test_init_loader(doc_string_loader):
     assert doc_string_loader.fq_collection_name == 'my_namespace.my_collection'
 
 
-def test_get_plugins(doc_string_loader):
-    temp_dir = tempfile.mkdtemp()
-    with open(os.path.join(temp_dir, '__init__.py'), 'w'):
-        pass
-    with open(os.path.join(temp_dir, 'should_be_ignored.txt'), 'w'):
-        pass
-    with open(os.path.join(temp_dir, 'my_module.py'), 'w'):
-        pass
-    plugins = doc_string_loader._get_plugins(temp_dir)
-
+def test_get_plugins(doc_string_loader, tmpdir):
+    tmpdir.join('__init__.py').write('')
+    tmpdir.join('should_be_ignored.txt').write('')
+    tmpdir.join('my_module.py').write('')
+    plugins = doc_string_loader._get_plugins(str(tmpdir))
     assert plugins == ['my_namespace.my_collection.my_module']
-    shutil.rmtree(temp_dir)
 
 
-def test_get_plugins_subdirs(doc_string_loader):
-    temp_dir = tempfile.mkdtemp()
-    subdir1 = os.path.join(temp_dir, 'subdir1')
-    os.mkdir(subdir1)
-    subdir2 = os.path.join(subdir1, 'subdir2')
-    os.mkdir(subdir2)
-    with open(os.path.join(subdir2, 'nested_plugin.py'), 'w'):
-        pass
-    plugins = doc_string_loader._get_plugins(temp_dir)
-
+def test_get_plugins_subdirs(doc_string_loader, tmpdir):
+    tmpdir.mkdir('subdir1').mkdir('subdir2').join('nested_plugin.py').write('')
+    plugins = doc_string_loader._get_plugins(str(tmpdir))
     assert plugins == ['my_namespace.my_collection.subdir1.subdir2.nested_plugin']
-    shutil.rmtree(temp_dir)
 
 
 @mock.patch('galaxy_importer.loaders.Popen')
@@ -332,7 +315,7 @@ def test_transform_doc_strings_nested_suboptions(doc_string_loader):
 
 
 @mock.patch.object(loaders.DocStringLoader, '_run_ansible_doc')
-def test_load(mocked_run_ansible_doc, doc_string_loader):
+def test_load(mocked_run_ansible_doc, doc_string_loader, tmpdir):
     ansible_doc_output = """
         {
             "my_module": {
@@ -350,14 +333,8 @@ def test_load(mocked_run_ansible_doc, doc_string_loader):
     """
     mocked_run_ansible_doc.return_value = json.loads(ansible_doc_output)
 
-    tmp_root = tempfile.mkdtemp()
-    doc_string_loader.path = tmp_root
-    plugins = os.path.join(tmp_root, 'plugins')
-    os.mkdir(plugins)
-    modules = os.path.join(plugins, 'modules')
-    os.mkdir(modules)
-    with open(os.path.join(modules, 'my_module.py'), 'w'):
-        pass
+    doc_string_loader.path = str(tmpdir)
+    tmpdir.mkdir('plugins').mkdir('modules').join('my_module.py').write('')
 
     res = doc_string_loader.load()
     assert res == {
@@ -375,24 +352,16 @@ def test_load(mocked_run_ansible_doc, doc_string_loader):
             }
         }
     }
-    shutil.rmtree(tmp_root)
 
 
 @mock.patch('galaxy_importer.loaders.Popen')
-def test_load_ansible_doc_error(mocked_popen, doc_string_loader):
+def test_load_ansible_doc_error(mocked_popen, doc_string_loader, tmpdir):
     mocked_popen.return_value.communicate.return_value = (
         'output', 'error that causes exception')
     mocked_popen.return_value.returncode = 1
 
-    tmp_root = tempfile.mkdtemp()
-    doc_string_loader.path = tmp_root
-    plugins = os.path.join(tmp_root, 'plugins')
-    os.mkdir(plugins)
-    modules = os.path.join(plugins, 'inventory')
-    os.mkdir(modules)
-    with open(os.path.join(modules, 'my_plugin.py'), 'w'):
-        pass
+    doc_string_loader.path = str(tmpdir)
+    tmpdir.mkdir('plugins').mkdir('inventory').join('my_plugin.py').write('')
 
     res = doc_string_loader.load()
-    shutil.rmtree(tmp_root)
     assert res == {'inventory': {}}
