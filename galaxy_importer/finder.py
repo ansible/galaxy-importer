@@ -44,7 +44,7 @@ class ContentFinder(object):
         self.path = path
         self.log = logger or default_logger
 
-        self.log.info('Content search - Analyzing collection structure')
+        self.log.info('Finding content inside collection')
         contents = self._find_content()
 
         try:

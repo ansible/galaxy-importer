@@ -36,6 +36,7 @@ default_logger = logging.getLogger(__name__)
 ANSIBLE_DOC_SUPPORTED_TYPES = [
     'become', 'cache', 'callback', 'cliconf', 'connection',
     'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
+ANSIBLE_DOC_PLUGIN_MAP = {'module': 'modules'}
 ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
 ANSIBLE_LINT_EXCEPTION_RETURN_CODE = 1
 ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
@@ -43,11 +44,12 @@ ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
 
 class ContentLoader(metaclass=abc.ABCMeta):
 
-    def __init__(self, content_type, rel_path, root, logger=None):
+    def __init__(self, content_type, rel_path, root, doc_strings=None, logger=None):
         """
         :param content_type: Content type.
         :param rel_path: Path to content file or dir, relative to root path.
         :param root: Collection root path.
+        :param doc_strings: ansible-doc output for all plugins in collection
         :param logger: Optional logger instance.
 
         ==Example==
@@ -68,6 +70,7 @@ class ContentLoader(metaclass=abc.ABCMeta):
         self._validate_name()
         self.path_name = self._make_path_name(self.rel_path, self.name)
 
+        self.doc_strings = doc_strings or {}
         self.log = logger or default_logger
 
     @abc.abstractmethod
@@ -87,11 +90,6 @@ class ContentLoader(metaclass=abc.ABCMeta):
         'sub1.sub2.mod' for plugins/modules/sub1/sub2/mod.py"""
 
     @staticmethod
-    def _get_tmp_dir(root):
-        root_parts = Path(root).parts
-        return os.path.join(*root_parts[:-3])
-
-    @staticmethod
     def _get_fq_collection_name(root):
         root_parts = Path(root).parts
         return '{}.{}'.format(*root_parts[-2:])
@@ -108,26 +106,27 @@ class ContentLoader(metaclass=abc.ABCMeta):
                 f'{self.content_type.value} name invalid format: {self.name}')
 
     def _log_loading(self):
-        self.log.info(' ')
-        self.log.info(
-            f'===== LOADING {self.content_type.name}: {self.path_name} =====')
+        self.log.info(f'Loading {self.content_type.value} {self.path_name}')
 
 
 class PluginLoader(ContentLoader):
     def load(self):
         self._log_loading()
-        doc_strings = DocStringLoader(
-            content_type=self.content_type.value,
-            path=self._get_tmp_dir(self.root),
-            fq_name=self._get_fq_name(self.root, self.path_name),
-            logger=self.log,
-        ).load()
+        doc_strings = self._get_plugin_doc_strings()
 
         return schema.Content(
             name=self.path_name,
             content_type=self.content_type,
             doc_strings=doc_strings,
         )
+
+    def _get_plugin_doc_strings(self):
+        """Return plugin doc_strings, if exists, from collection doc_strings."""
+        fq_name = self._get_fq_name(self.root, self.path_name)
+        try:
+            return self.doc_strings[self.content_type.value][fq_name]
+        except KeyError:
+            return None
 
     @staticmethod
     def _make_name(rel_path):
@@ -140,52 +139,75 @@ class PluginLoader(ContentLoader):
 
 
 class DocStringLoader():
-    def __init__(self, content_type, path, fq_name, logger=None):
-        self.content_type = content_type
+    """Process ansible-doc doc strings for entire collection.
+
+    Load by calling ansible-doc once in batch for each plugin type."""
+    def __init__(self, path, fq_collection_name, logger=None):
         self.path = path
-        self.fq_name = fq_name
+        self.fq_collection_name = fq_collection_name
         self.log = logger or default_logger
 
     def load(self):
-        if self.content_type not in ANSIBLE_DOC_SUPPORTED_TYPES:
-            return None
-
         self.log.info('Getting doc strings via ansible-doc')
-        json_output = self._run_ansible_doc()
+        docs = {}
+        for plugin_type in ANSIBLE_DOC_SUPPORTED_TYPES:
+            plugin_dir_name = ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
 
-        if not json_output:
-            return None
+            plugins = self._get_plugins(os.path.join(self.path, 'plugins', plugin_dir_name))
 
-        data = json.loads(json_output)
-        if not isinstance(data, dict):
-            self.log.error('ansible-doc output not dictionary as expected')
-            return None
-        if len(data.keys()) != 1:
-            self.log.error('ansible-doc output did not return single top-level key')
-            return None
-        data = list(data.values())[0]
-        data = self._transform_doc_strings(data)
+            if not plugins:
+                continue
 
-        return {
-            key: data.get(key, None)
-            for key in ANSIBLE_DOC_KEYS
-        }
+            data = self._run_ansible_doc(plugin_type, plugins)
+            data = self._process_doc_strings(data)
+            docs[plugin_type] = data
 
-    def _run_ansible_doc(self):
+        return docs
+
+    def _get_plugins(self, plugin_dir):
+        """Get list of fully qualified plugin names inside directory.
+
+        Ex: ['google.gcp.service_facts', 'google.gcp.storage.subdir2.gc_storage']
+        """
+        plugins = []
+        for root, _, files in os.walk(plugin_dir):
+            for filename in files:
+                if not filename.endswith('.py') or filename == '__init__.py':
+                    continue
+                file_path = os.path.join(root, filename)
+                sub_dirs = os.path.relpath(root, plugin_dir)
+
+                fq_name_parts = [self.fq_collection_name]
+                if sub_dirs and sub_dirs != '.':
+                    fq_name_parts.extend(sub_dirs.split('/'))
+                fq_name_parts.append(os.path.basename(file_path)[:-3])
+
+                plugins.append('.'.join(fq_name_parts))
+        return plugins
+
+    def _run_ansible_doc(self, plugin_type, plugins):
+        collections_path = '/'.join(self.path.split('/')[:-3])
         cmd = [
-            'env', f'ANSIBLE_COLLECTIONS_PATHS={self.path}',
+            'env', f'ANSIBLE_COLLECTIONS_PATHS={collections_path}',
             'ansible-doc',
-            self.fq_name,
-            '--type', self.content_type,
+            '--type', plugin_type,
             '--json',
-        ]
+        ] + plugins
         self.log.debug('CMD: {}'.format(' '.join(cmd)))
-        proc = Popen(cmd, cwd=self.path, stdout=PIPE, stderr=PIPE)
+        proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode:
-            self.log.error(f'Error running ansible-doc: returncode={proc.returncode} {stderr}')
-            return None
-        return stdout
+            self.log.error('Error running ansible-doc: cmd="{cmd}" returncode="{rc}" {err}'.format(
+                cmd=' '.join(cmd), rc=proc.returncode, err=stderr
+            ))
+            return {}
+        return json.loads(stdout)
+
+    def _process_doc_strings(self, doc_strings):
+        processed_doc_strings = {}
+        for plugin_key, value in doc_strings.items():
+            processed_doc_strings[plugin_key] = self._transform_doc_strings(value)
+        return processed_doc_strings
 
     @staticmethod
     def _transform_doc_strings(data):
@@ -223,10 +245,10 @@ class DocStringLoader():
 class RoleLoader(ContentLoader):
     def load(self):
         self._log_loading()
+        description = self._get_metadata_description()
+        readme = self._get_readme()
         for line in self._lint_role(self.rel_path):
             self.log.warning(line)
-        readme = self._get_readme()
-        description = self._get_metadata_description()
 
         return schema.Content(
             name=self.path_name,
@@ -246,7 +268,7 @@ class RoleLoader(ContentLoader):
         return '.'.join(list(dirname_parts) + [name])
 
     def _lint_role(self, path):
-        self.log.info('Linting role via ansible-lint')
+        self.log.info(f'Linting role {self.path_name} via ansible-lint...')
         cmd = [
             'ansible-lint', path,
             '-p',
@@ -274,7 +296,6 @@ class RoleLoader(ContentLoader):
             yield 'Exception running ansible-lint, could not complete linting'
 
     def _get_readme(self):
-        self.log.info('Getting role readme')
         readme = markup_utils.get_readme_doc_file(
             os.path.join(self.root, self.rel_path))
         if not readme:
@@ -282,12 +303,11 @@ class RoleLoader(ContentLoader):
         return readme
 
     def _get_metadata_description(self):
-        self.log.info('Getting role description')
         description = None
         meta_path = self._find_metadata_file_path(self.rel_path)
 
         if not meta_path:
-            self.log.warning('No role metadata found')
+            self.log.warning('Could not get role description, no role metadata found')
             return description
 
         with open(meta_path) as fp:

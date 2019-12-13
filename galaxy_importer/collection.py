@@ -84,6 +84,13 @@ class CollectionLoader(object):
         self._rename_extract_path()
         self._check_filename_matches_manifest()
         self._check_metadata_filepaths()
+
+        self.doc_strings = loaders.DocStringLoader(
+            path=self.path,
+            fq_collection_name='{}.{}'.format(self.metadata.namespace, self.metadata.name),
+            logger=self.log,
+        ).load()
+
         self.content_objs = list(self._load_contents())
 
         self.contents = self._build_contents_blob()
@@ -136,8 +143,9 @@ class CollectionLoader(object):
         found_contents = ContentFinder().find_contents(self.path, self.log)
         for content_type, rel_path in found_contents:
             loader_cls = loaders.get_loader_cls(content_type)
-            loader = loader_cls(content_type, rel_path, self.path, self.log)
+            loader = loader_cls(content_type, rel_path, self.path, self.doc_strings, self.log)
             content_obj = loader.load()
+
             yield content_obj
 
     def _build_contents_blob(self):

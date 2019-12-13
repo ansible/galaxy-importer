@@ -16,6 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import attr
+import json
 import os
 import pytest
 import re
@@ -30,32 +31,40 @@ from galaxy_importer import schema
 
 
 ANSIBLE_DOC_OUTPUT = """
-    {"my_sample_module": {
-        "doc": {
-            "description": ["Sample module for testing."],
-            "short_description": "Sample module for testing",
-            "version_added": "2.8",
-            "options": {
-                "exclude": {
-                    "description": ["This is the message to send..."],
-                    "required": "true"
+    {"module": {
+        "my_ns.my_collection.my_module": {
+            "doc": {
+                "description": ["Sample module for testing."],
+                "short_description": "Sample module for testing",
+                "version_added": "2.8",
+                "options": {
+                    "exclude": {
+                        "description": ["This is the message to send..."],
+                        "required": "true"
+                    },
+                    "use_new": {
+                        "description": ["Control is passed..."],
+                        "version_added": "2.7",
+                        "default": "auto"
+                    }
+                }
+            },
+            "examples": null,
+            "metadata": null,
+            "return": {
+                "message": {
+                    "description": "The output message the sample module generates"
                 },
-                "use_new": {
-                    "description": ["Control is passed..."],
-                    "version_added": "2.7",
-                    "default": "auto"
+                "original_message": {
+                    "description": "The original name param that was passed in",
+                    "type": "str"
                 }
             }
         },
-        "examples": null,
-        "metadata": null,
-        "return": {
-            "message": {
-                "description": "The output message the sample module generates"
-            },
-            "original_message": {
-                "description": "The original name param that was passed in",
-                "type": "str"
+        "my_ns.my_collection.subdir1.subdir2.my_module_2": {
+            "doc": {
+                "short_description": "Module with subdirs",
+                "version_added": "2.9"
             }
         }
     }}
@@ -66,8 +75,18 @@ ANSIBLE_DOC_OUTPUT = """
 def loader_module():
     return loaders.PluginLoader(
         content_type=constants.ContentType.MODULE,
-        rel_path='plugins/modules/my_sample_module.py',
-        root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection')
+        rel_path='plugins/modules/my_module.py',
+        root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection',
+        doc_strings=json.loads(ANSIBLE_DOC_OUTPUT))
+
+
+@pytest.fixture
+def loader_doc_fragment():
+    return loaders.PluginLoader(
+        content_type=constants.ContentType.DOC_FRAGMENTS_PLUGIN,
+        rel_path='plugins/doc_fragments/my_doc_fragment.py',
+        root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection',
+        doc_strings=json.loads(ANSIBLE_DOC_OUTPUT))
 
 
 @pytest.fixture
@@ -82,8 +101,9 @@ def loader_role():
 def loader_module_subdirs():
     return loaders.PluginLoader(
         content_type=constants.ContentType.MODULE,
-        rel_path='plugins/modules/subdir1/subdir2/my_sample_module.py',
-        root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection')
+        rel_path='plugins/modules/subdir1/subdir2/my_module_2.py',
+        root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection',
+        doc_strings=json.loads(ANSIBLE_DOC_OUTPUT))
 
 
 @pytest.fixture
@@ -105,8 +125,8 @@ def test_get_loader_cls():
 
 
 def test_init_plugin_loader(loader_module):
-    assert loader_module.name == 'my_sample_module'
-    assert loader_module.path_name == 'my_sample_module'
+    assert loader_module.name == 'my_module'
+    assert loader_module.path_name == 'my_module'
 
 
 def test_init_role_loader(loader_role):
@@ -115,8 +135,8 @@ def test_init_role_loader(loader_role):
 
 
 def test_init_plugin_loader_subdirs(loader_module_subdirs):
-    assert loader_module_subdirs.name == 'my_sample_module'
-    assert loader_module_subdirs.path_name == 'subdir1.subdir2.my_sample_module'
+    assert loader_module_subdirs.name == 'my_module_2'
+    assert loader_module_subdirs.path_name == 'subdir1.subdir2.my_module_2'
 
 
 def test_init_role_loader_subdirs(loader_role_subdirs):
@@ -140,12 +160,6 @@ def test_bad_role_name():
             root='')
 
 
-def test_get_tmp_dir(loader_module):
-    root = '/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection'
-    res = loader_module._get_tmp_dir(root)
-    assert res == '/tmp_placeholder/tmp_placeholder'
-
-
 def test_get_fq_collection_name(loader_module):
     root = '/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection'
     assert loader_module._get_fq_collection_name(root) == 'my_ns.my_collection'
@@ -157,27 +171,47 @@ def test_get_fq_name(loader_module):
     assert res == 'my_ns.my_collection.subdir.my_module'
 
 
-@mock.patch.object(loaders.DocStringLoader, 'load')
-def test_plugin_loader_annotated_type(mocked_doc_strings_load, loader_module):
-    mocked_doc_strings_load.return_value = None
-    assert loader_module.name == 'my_sample_module'
+def test_plugin_loader_annotated_type(loader_module):
+    assert loader_module.name == 'my_module'
     res = loader_module.load()
-    mocked_doc_strings_load.assert_called_once()
     assert isinstance(res, schema.Content)
     assert isinstance(res.content_type, attr.fields(schema.Content).content_type.type)
 
 
-@mock.patch.object(loaders.DocStringLoader, '_run_ansible_doc')
-def test_load(mocked_run_ansible_doc, loader_module_subdirs):
-    mocked_run_ansible_doc.return_value = ANSIBLE_DOC_OUTPUT
-    res = loader_module_subdirs.load()
+def test_load(loader_module):
+    assert loader_module.name == 'my_module'
+    res = loader_module.load()
     assert isinstance(res, schema.Content)
-    assert res.name == 'subdir1.subdir2.my_sample_module'
+    assert res.name == 'my_module'
     assert res.content_type == constants.ContentType.MODULE
-    assert res.readme_file is None
-    assert res.readme_html is None
     assert res.description == 'Sample module for testing'
     assert res.doc_strings['doc']['version_added'] == '2.8'
+    assert res.readme_file is None
+    assert res.readme_html is None
+
+
+def test_load_subdirs(loader_module_subdirs):
+    assert loader_module_subdirs.name == 'my_module_2'
+    res = loader_module_subdirs.load()
+    assert isinstance(res, schema.Content)
+    assert res.name == 'subdir1.subdir2.my_module_2'
+    assert res.content_type == constants.ContentType.MODULE
+    assert res.description == 'Module with subdirs'
+    assert res.doc_strings['doc']['version_added'] == '2.9'
+    assert res.readme_file is None
+    assert res.readme_html is None
+
+
+def test_load_doc_fragment_no_doc_strings(loader_doc_fragment):
+    assert loader_doc_fragment.name == 'my_doc_fragment'
+    res = loader_doc_fragment.load()
+    assert isinstance(res, schema.Content)
+    assert res.name == 'my_doc_fragment'
+    assert res.content_type == constants.ContentType.DOC_FRAGMENTS_PLUGIN
+    assert res.description is None
+    assert res.doc_strings is None
+    assert res.readme_file is None
+    assert res.readme_html is None
 
 
 ANSIBLELINT_TASK_OK = """---
