@@ -376,3 +376,23 @@ def test_load(mocked_run_ansible_doc, doc_string_loader):
         }
     }
     shutil.rmtree(tmp_root)
+
+
+@mock.patch('galaxy_importer.loaders.Popen')
+def test_load_ansible_doc_error(mocked_popen, doc_string_loader):
+    mocked_popen.return_value.communicate.return_value = (
+        'output', 'error that causes exception')
+    mocked_popen.return_value.returncode = 1
+
+    tmp_root = tempfile.mkdtemp()
+    doc_string_loader.path = tmp_root
+    plugins = os.path.join(tmp_root, 'plugins')
+    os.mkdir(plugins)
+    modules = os.path.join(plugins, 'inventory')
+    os.mkdir(modules)
+    with open(os.path.join(modules, 'my_plugin.py'), 'w'):
+        pass
+
+    res = doc_string_loader.load()
+    shutil.rmtree(tmp_root)
+    assert res == {'inventory': {}}

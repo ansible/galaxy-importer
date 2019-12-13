@@ -192,10 +192,12 @@ class DocStringLoader():
         stdout, stderr = proc.communicate()
         if proc.returncode:
             self.log.error(f'Error running ansible-doc: returncode={proc.returncode} {stderr}')
-            return None
+            return {}
         return json.loads(stdout)
 
     def _process_doc_strings(self, doc_strings):
+        if not doc_strings:
+            return {}
         for plugin_key, value in doc_strings.items():
             doc_strings[plugin_key] = self._transform_doc_strings(value)
         return doc_strings
