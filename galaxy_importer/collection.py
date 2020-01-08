@@ -28,6 +28,7 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder
 from galaxy_importer import loaders
 from galaxy_importer import schema
+from galaxy_importer.ansible_test import runner
 from galaxy_importer.utils import markup as markup_utils
 
 
@@ -55,6 +56,8 @@ def _import_collection(file, filename, logger):
         with tarfile.open(fileobj=file, mode='r') as pkg_tar:
             pkg_tar.extractall(extract_dir)
         data = CollectionLoader(extract_dir, filename, logger=logger).load()
+
+    runner.AnsibleTestRunner(logger=logger).run()
 
     _run_post_load_plugins(
         artifact_file=file,
