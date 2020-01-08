@@ -23,6 +23,7 @@ import re
 import sys
 
 from galaxy_importer import collection
+from galaxy_importer import config
 
 FILENAME_REGEXP = re.compile(
     r"^(?P<namespace>\w+)-(?P<name>\w+)-"
@@ -31,10 +32,12 @@ FILENAME_REGEXP = re.compile(
 
 
 def main(args=None):
+    cfg = config.Config()
+    log_level = logging.DEBUG if cfg.log_debug_main else logging.INFO
     logging.basicConfig(
         stream=sys.stdout,
         format='%(levelname)s: %(message)s',
-        level=logging.INFO)
+        level=log_level)
     args = parse_args(args)
 
     data = call_importer(filepath=args.file)
