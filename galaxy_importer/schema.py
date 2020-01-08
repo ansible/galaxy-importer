@@ -180,7 +180,7 @@ class CollectionInfo(object):
                 self.value_error("Cannot have self dependency")
 
             try:
-                semantic_version.Spec(version_spec)
+                semantic_version.SimpleSpec(version_spec)
             except ValueError:
                 self.value_error(
                     "Dependency version spec range invalid: "
