@@ -4,7 +4,7 @@
 
 `pip install galaxy-importer`
 
-#### From source (with pipenv)
+#### From source
 
 Clone repo and go into project directory
 
@@ -19,3 +19,23 @@ Run parsing/validation standalone to view log output and importer result for a b
 `python -m galaxy_importer.main [collection_artifact_file]`
 
 View log output in terminal, and view the importer result in the written file `importer_result.json`
+
+
+### Configuration
+
+An optional ini configuration file is supported, the following locations are checked in this order:
+
+```
+/etc/galaxy-importer/galaxy-importer.cfg
+<code_source>/galaxy_importer/galaxy-importer.cfg
+```
+
+Example configuration file:
+
+```
+[galaxy-importer]
+LOG_DEBUG_MAIN = False
+RUN_ANSIBLE_TEST = False
+INFRA_PULP = False
+INFRA_OSD = False
+```
