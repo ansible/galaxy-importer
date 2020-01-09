@@ -12,7 +12,7 @@ test/annotate:
 
 .PHONY: test/annotate/clean
 test/annotate/clean:
-	rm galaxy_importer/*,cover; rm galaxy_importer/utils/*,cover
+	find galaxy_importer -type f -name '*,cover' -delete
 
 .PHONY: test/flake8
 test/flake8:

@@ -15,14 +15,15 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import attr
 import json
 import os
-import pytest
 import re
 import shutil
 import tempfile
 from unittest import mock
+
+import attr
+import pytest
 
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc

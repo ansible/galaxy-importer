@@ -18,11 +18,11 @@
 from collections import namedtuple
 import json
 import os
-import pytest
 import tempfile
 from unittest import mock
 
 import attr
+import pytest
 
 from galaxy_importer.collection import CollectionLoader
 from galaxy_importer.constants import ContentType
