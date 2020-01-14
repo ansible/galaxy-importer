@@ -21,7 +21,6 @@ import pytest
 from pytest_mock import mocker  # noqa F401
 
 from galaxy_importer import config
-from galaxy_importer.ansible_test import runner
 
 
 @pytest.fixture
@@ -66,49 +65,3 @@ def test_config_bad_ini_section(temp_config_file):
         assert cfg.run_ansible_test is False
         assert cfg.infra_pulp is False
         assert cfg.infra_osd is False
-
-
-def test_runner_no_config_file(mocker):  # noqa F811
-    config.Config()._load_config()
-    ansible_test_runner = runner.AnsibleTestRunner()
-    mocker.patch.object(ansible_test_runner, '_run_ansible_test_local')
-    ansible_test_runner.run()
-    assert not ansible_test_runner._run_ansible_test_local.called
-
-
-def test_runner_ansible_test_local(mocker, temp_config_file):  # noqa F811
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True')
-        f.flush()
-        config.Config()._load_config()
-
-        ansible_test_runner = runner.AnsibleTestRunner()
-        mocker.patch.object(ansible_test_runner, '_run_ansible_test_local')
-        ansible_test_runner.run()
-        assert ansible_test_runner._run_ansible_test_local.called
-
-
-def test_runner_pulp(mocker, temp_config_file):  # noqa F811
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
-                'INFRA_PULP = True')
-        f.flush()
-        config.Config()._load_config()
-
-        ansible_test_runner = runner.AnsibleTestRunner()
-        mocker.patch.object(ansible_test_runner, '_run_image_local')
-        ansible_test_runner.run()
-        assert ansible_test_runner._run_image_local.called
-
-
-def test_runner_pulp_and_osd(mocker, temp_config_file):  # noqa F811
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
-                'INFRA_PULP = True\nINFRA_OSD = True')
-        f.flush()
-        config.Config()._load_config()
-
-        ansible_test_runner = runner.AnsibleTestRunner()
-        mocker.patch.object(ansible_test_runner, '_run_image_openshift_job')
-        ansible_test_runner.run()
-        assert ansible_test_runner._run_image_openshift_job.called
