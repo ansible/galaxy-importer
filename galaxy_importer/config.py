@@ -20,38 +20,49 @@ import os
 
 
 FILENAME = 'galaxy-importer.cfg'
+FILE_LOCATIONS = [
+    f'/etc/galaxy-importer/{FILENAME}',
+    os.path.join(os.path.dirname(__file__), FILENAME),
+]
+IMPORTER_INI_SECTION = 'galaxy-importer'
 
 
 class Config(object):
     """Configuration for galaxy-importer."""
 
-    _shared_state = {'_is_loaded': False}
     DEFAULTS = {
-        'log_debug_main': False,
+        'log_level_main': 'INFO',
         'run_ansible_test': False,
         'infra_pulp': False,
         'infra_osd': False,
     }
+    IS_LOADED = False
+    CONFIG_DATA = {}
 
     def __init__(self):
-        """Set class attrs to shared state and load config if not loaded."""
-        self.__dict__ = self._shared_state
-        if not self._is_loaded:
-            self._is_loaded = True
-            self._load_config()
+        """Load config once and store inside class variable CONFIG_DATA.
+        Populate instance from class variable CONFIG_DATA."""
 
-    def _load_config(self):
-        """Set config to defaults and update with any file config."""
+        if not Config.IS_LOADED:
+            Config.IS_LOADED = True
 
-        self._shared_state.update(self.DEFAULTS)
+            config_file_data = ConfigFile().load()
+            Config.CONFIG_DATA.update(Config.DEFAULTS)
+            Config.CONFIG_DATA.update(config_file_data)
 
+        self.__dict__ = Config.CONFIG_DATA
+
+
+class ConfigFile(object):
+    """Load config from file and return dictionary."""
+
+    def load(self):
+        config_parser_data = self._load_file()
+        return self._to_dictionary(config_parser_data)
+
+    def _load_file(self):
         file_path = None
-        file_locs = [
-            f'/etc/galaxy-importer/{FILENAME}',
-            os.path.join(os.path.dirname(__file__), FILENAME),
-        ]
-
-        for f in file_locs:
+        for f in FILE_LOCATIONS:
             if os.path.isfile(f):
                 file_path = f
                 break
@@ -59,8 +70,17 @@ class Config(object):
         if file_path:
             config_parser = configparser.ConfigParser()
             config_parser.read(file_path)
-            if 'galaxy-importer' not in config_parser:
-                return
-            file_cfg = config_parser['galaxy-importer']
-            for k, v in vars(self).items():
-                setattr(self, k, file_cfg.getboolean(k, v))
+            if IMPORTER_INI_SECTION not in config_parser:
+                return {}
+            return config_parser[IMPORTER_INI_SECTION]
+        return {}
+
+    def _to_dictionary(self, config_parser_data):
+        """Turn from configparser object in to dictionary, with booleans."""
+        config_data = {}
+        for key in list(config_parser_data):
+            try:
+                config_data[key] = config_parser_data.getboolean(key)
+            except ValueError:
+                config_data[key] = config_parser_data.get(key)
+        return config_data

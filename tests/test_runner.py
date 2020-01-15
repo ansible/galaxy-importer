@@ -35,7 +35,7 @@ def temp_config_file():
 
 
 def test_get_runner_no_config_file():
-    config.Config()._load_config()
+    config.Config.IS_LOADED = False
     assert runners.get_runner() is None
 
 
@@ -43,7 +43,7 @@ def test_get_runner_ansible_test_local(temp_config_file):
     with open(temp_config_file, 'w') as f:
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True')
         f.flush()
-        config.Config()._load_config()
+        config.Config.IS_LOADED = False
         assert runners.get_runner() == runners.LocalAnsibleTestRunner
 
 
@@ -52,7 +52,7 @@ def test_get_runner_pulp(temp_config_file):
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
                 'INFRA_PULP = True')
         f.flush()
-        config.Config()._load_config()
+        config.Config.IS_LOADED = False
         assert runners.get_runner() == runners.LocalImageTestRunner
 
 
@@ -61,7 +61,7 @@ def test_get_runner_pulp_and_osd(temp_config_file):
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
                 'INFRA_PULP = True\nINFRA_OSD = True')
         f.flush()
-        config.Config()._load_config()
+        config.Config.IS_LOADED = False
         assert runners.get_runner() == runners.OpenshiftJobTestRunner
 
 
@@ -72,7 +72,7 @@ def test_ansible_test_runner_run(mocker, temp_config_file):  # noqa F811
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
                 'INFRA_PULP = True\nINFRA_OSD = True')
         f.flush()
-        config.Config()._load_config()
+        config.Config.IS_LOADED = False
 
         ansible_test_runner = runners.get_runner()
         ansible_test_runner().run()

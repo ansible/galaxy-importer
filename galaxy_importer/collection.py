@@ -58,7 +58,8 @@ def _import_collection(file, filename, logger):
         data = CollectionLoader(extract_dir, filename, logger=logger).load()
 
     ansible_test_runner = runners.get_runner()
-    ansible_test_runner(logger=logger).run()
+    if ansible_test_runner:
+        ansible_test_runner(logger=logger).run()
 
     _run_post_load_plugins(
         artifact_file=file,

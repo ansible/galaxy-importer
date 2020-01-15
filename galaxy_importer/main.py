@@ -33,11 +33,10 @@ FILENAME_REGEXP = re.compile(
 
 def main(args=None):
     cfg = config.Config()
-    log_level = logging.DEBUG if cfg.log_debug_main else logging.INFO
     logging.basicConfig(
         stream=sys.stdout,
         format='%(levelname)s: %(message)s',
-        level=log_level)
+        level=getattr(logging, cfg.log_level_main, 'INFO'))
     args = parse_args(args)
 
     data = call_importer(filepath=args.file)
