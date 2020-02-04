@@ -188,7 +188,7 @@ class DocStringLoader():
     def _run_ansible_doc(self, plugin_type, plugins):
         collections_path = '/'.join(self.path.split('/')[:-3])
         cmd = [
-            'env', f'ANSIBLE_COLLECTIONS_PATHS={collections_path}',
+            '/usr/bin/env', f'ANSIBLE_COLLECTIONS_PATHS={collections_path}',
             'ansible-doc',
             '--type', plugin_type,
             '--json',
