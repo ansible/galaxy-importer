@@ -1,4 +1,4 @@
-# (c) 2012-2019, Ansible by Red Hat
+# (c) 2012-2020, Ansible by Red Hat
 #
 # This file is part of Ansible Galaxy
 #
@@ -15,20 +15,26 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import pytest
+import logging
 
-from galaxy_importer import main
+from .local import LocalAnsibleTestRunner
+from .image import LocalImageTestRunner
+from .openshift_job import OpenshiftJobTestRunner
 
 
-def test_parser():
-    parser = main.parse_args(['path/to/my_file.tar.gz'])
-    assert parser.file == 'path/to/my_file.tar.gz'
-    assert not parser.print_result
+default_logger = logging.getLogger(__name__)
 
-    parser = main.parse_args(['my_file.tar.gz', '--print-result'])
-    assert parser.file == 'my_file.tar.gz'
-    assert parser.print_result
 
-    # SystemExit with missing required positional file argument
-    with pytest.raises(SystemExit):
-        main.parse_args(['--print-result'])
+def get_runner(cfg):
+    """Decide which runner class to run ansible-test based on config."""
+
+    if not cfg.run_ansible_test:
+        return None
+
+    if not cfg.infra_pulp:
+        return LocalAnsibleTestRunner
+
+    if cfg.infra_osd:
+        return OpenshiftJobTestRunner
+    else:
+        return LocalImageTestRunner

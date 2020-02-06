@@ -16,8 +16,9 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import json
-import pytest
 from unittest import mock
+
+import pytest
 
 from galaxy_importer import loaders
 
