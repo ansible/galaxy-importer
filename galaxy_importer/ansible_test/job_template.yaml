@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {job_name}
+  labels:
+    app: automation-hub
+spec:
+  activeDeadlineSeconds: 600
+  backoffLimit: 0
+  template:
+    spec:
+      containers:
+      - name: {job_name}
+        image: {image}
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
+      restartPolicy: Never
