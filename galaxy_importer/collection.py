@@ -24,6 +24,7 @@ import tempfile
 
 import attr
 
+from galaxy_importer import config
 from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder
 from galaxy_importer import loaders
@@ -40,16 +41,19 @@ CollectionFilename = \
     namedtuple("CollectionFilename", ["namespace", "name", "version"])
 
 
-def import_collection(file, filename=None, logger=None):
+def import_collection(file, filename=None, logger=None, cfg=None):
     """Process import on collection artifact file object.
 
     :raises exc.ImporterError: On errors that fail the import process.
     """
+    if not cfg:
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
     logger = logger or default_logger
-    return _import_collection(file, filename, logger)
+    return _import_collection(file, filename, logger, cfg)
 
 
-def _import_collection(file, filename, logger):
+def _import_collection(file, filename, logger, cfg):
     with tempfile.TemporaryDirectory() as tmp_dir:
         sub_path = 'ansible_collections/placeholder_namespace/placeholder_name'
         extract_dir = os.path.join(tmp_dir, sub_path)
@@ -57,7 +61,7 @@ def _import_collection(file, filename, logger):
             pkg_tar.extractall(extract_dir)
         data = CollectionLoader(extract_dir, filename, logger=logger).load()
 
-    ansible_test_runner = runners.get_runner()
+    ansible_test_runner = runners.get_runner(cfg=cfg)
     if ansible_test_runner:
         ansible_test_runner(logger=logger).run()
 

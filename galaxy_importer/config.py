@@ -36,33 +36,27 @@ class Config(object):
         'infra_pulp': False,
         'infra_osd': False,
     }
-    IS_LOADED = False
-    CONFIG_DATA = {}
 
-    def __init__(self):
-        """Load config once and store inside class variable CONFIG_DATA.
-        Populate instance from class variable CONFIG_DATA."""
-
-        if not Config.IS_LOADED:
-            Config.IS_LOADED = True
-
-            config_file_data = ConfigFile().load()
-            Config.CONFIG_DATA.update(Config.DEFAULTS)
-            Config.CONFIG_DATA.update(config_file_data)
-
-        self.__dict__ = Config.CONFIG_DATA
+    def __init__(self, config_data=None):
+        """Set config values to default, updated with any passed config_data."""
+        _data = {}
+        _data.update(self.DEFAULTS)
+        _data.update(config_data or {})
+        self.__dict__.update(_data)
 
 
 class ConfigFile(object):
     """Load config from file and return dictionary."""
 
-    def load(self):
-        config_parser_data = self._load_file()
-        return self._to_dictionary(config_parser_data)
+    @staticmethod
+    def load():
+        config_parser_data = ConfigFile._load_file(FILE_LOCATIONS)
+        return ConfigFile._to_dictionary(config_parser_data)
 
-    def _load_file(self):
+    @staticmethod
+    def _load_file(file_locations):
         file_path = None
-        for f in FILE_LOCATIONS:
+        for f in file_locations:
             if os.path.isfile(f):
                 file_path = f
                 break
@@ -75,7 +69,8 @@ class ConfigFile(object):
             return config_parser[IMPORTER_INI_SECTION]
         return {}
 
-    def _to_dictionary(self, config_parser_data):
+    @staticmethod
+    def _to_dictionary(config_parser_data):
         """Turn from configparser object in to dictionary, with booleans."""
         config_data = {}
         for key in list(config_parser_data):

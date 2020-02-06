@@ -17,7 +17,6 @@
 
 import logging
 
-from galaxy_importer import config
 from .local import LocalAnsibleTestRunner
 from .image import LocalImageTestRunner
 from .openshift_job import OpenshiftJobTestRunner
@@ -26,9 +25,8 @@ from .openshift_job import OpenshiftJobTestRunner
 default_logger = logging.getLogger(__name__)
 
 
-def get_runner():
+def get_runner(cfg):
     """Decide which runner class to run ansible-test based on config."""
-    cfg = config.Config()
 
     if not cfg.run_ansible_test:
         return None

@@ -32,3 +32,8 @@ def test_parser():
     # SystemExit with missing required positional file argument
     with pytest.raises(SystemExit):
         main.parse_args(['--print-result'])
+
+
+def test_main_no_args():
+    with pytest.raises(SystemExit):
+        main.main(args={})

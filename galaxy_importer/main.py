@@ -32,14 +32,15 @@ FILENAME_REGEXP = re.compile(
 
 
 def main(args=None):
-    cfg = config.Config()
+    config_data = config.ConfigFile.load()
+    cfg = config.Config(config_data=config_data)
     logging.basicConfig(
         stream=sys.stdout,
         format='%(levelname)s: %(message)s',
         level=getattr(logging, cfg.log_level_main, 'INFO'))
     args = parse_args(args)
 
-    data = call_importer(filepath=args.file)
+    data = call_importer(filepath=args.file, cfg=cfg)
     if not data:
         return
 
@@ -63,7 +64,7 @@ def parse_args(args):
     return parser.parse_args(args=args)
 
 
-def call_importer(filepath):
+def call_importer(filepath, cfg):
     """Returns result of galaxy_importer import process.
 
     :param file: Artifact file to import.
@@ -74,7 +75,7 @@ def call_importer(filepath):
 
     with open(filepath, 'rb') as f:
         try:
-            data = collection.import_collection(f, filename)
+            data = collection.import_collection(f, filename, cfg=cfg)
         except Exception:
             logging.error('Error during importer proccessing:', exc_info=True)
             return None

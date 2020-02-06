@@ -23,8 +23,11 @@ from unittest import mock
 
 import attr
 import pytest
+from pytest_mock import mocker  # noqa F401
 
+from galaxy_importer import collection
 from galaxy_importer.collection import CollectionLoader
+from galaxy_importer.config import ConfigFile
 from galaxy_importer.constants import ContentType
 from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
@@ -303,3 +306,11 @@ def test_missing_readme(tmp_collection_root):
         match=r"Could not find file README.md"
     ):
         CollectionLoader(tmp_collection_root, filename=None).load()
+
+
+def test_import_collection(mocker):  # noqa F811
+    mocker.patch.object(collection, '_import_collection')
+    mocker.patch.object(ConfigFile, 'load')
+    collection.import_collection(file=None, cfg=None)
+    assert ConfigFile.load.called
+    assert collection._import_collection.called

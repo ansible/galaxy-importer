@@ -1,4 +1,4 @@
-# (c) 2012-2019, Ansible by Red Hat
+# (c) 2012-2020, Ansible by Red Hat
 #
 # This file is part of Ansible Galaxy
 #
@@ -33,34 +33,38 @@ def temp_config_file():
         os.remove(config_file)
 
 
-def test_no_config_file():
-    config.Config.IS_LOADED = False
-    cfg = config.Config()
-    assert cfg.log_level_main == 'INFO'
-    assert cfg.run_ansible_test is False
-    assert cfg.infra_pulp is False
-    assert cfg.infra_osd is False
-
-
 def test_config_set_from_file(temp_config_file):
     with open(temp_config_file, 'w') as f:
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
                 'INFRA_PULP = True')
         f.flush()
-        config.Config.IS_LOADED = False
-        cfg = config.Config()
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
         assert cfg.log_level_main == 'INFO'
         assert cfg.run_ansible_test is True
         assert cfg.infra_pulp is True
         assert cfg.infra_osd is False
 
 
+def test_config_no_file():
+    config_data = config.ConfigFile.load()
+    assert not config_data
+
+
+def test_no_config_data():
+    cfg = config.Config(config_data={})
+    assert cfg.log_level_main == 'INFO'
+    assert cfg.run_ansible_test is False
+    assert cfg.infra_pulp is False
+    assert cfg.infra_osd is False
+
+
 def test_config_bad_ini_section(temp_config_file):
     with open(temp_config_file, 'w') as f:
         f.write('[bad-section]\nRUN_ANSIBLE_TEST = True')
         f.flush()
-        config.Config.IS_LOADED = False
-        cfg = config.Config()
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
         assert cfg.log_level_main == 'INFO'
         assert cfg.run_ansible_test is False
         assert cfg.infra_pulp is False
@@ -72,8 +76,8 @@ def test_config_with_non_boolean(temp_config_file):
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
                 'LOG_LEVEL_MAIN = DEBUG')
         f.flush()
-        config.Config.IS_LOADED = False
-        cfg = config.Config()
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
         assert cfg.log_level_main == 'DEBUG'
         assert cfg.run_ansible_test is True
         assert cfg.infra_pulp is False
