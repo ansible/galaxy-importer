@@ -9,6 +9,7 @@ spec:
   backoffLimit: 0
   template:
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: {job_name}
         image: {image}
