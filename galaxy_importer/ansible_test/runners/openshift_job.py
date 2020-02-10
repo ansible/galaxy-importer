@@ -19,7 +19,6 @@
 import os
 import requests
 import time
-from urllib3.exceptions import InsecureRequestWarning
 import uuid
 import yaml
 
@@ -39,10 +38,6 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         # TODO: build image with pulp-container when ready
         # image = container_build.build_image_with_artifact()
         image = 'quay.io/awcrosby/ans-test-with-archive'
-
-        # TODO: add certificate verification if needed within openshift
-        # use this?: kubernetes.io/service-account-token
-        requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
         filename = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'job_template.yaml')
         with open(filename, 'r') as f:
@@ -90,14 +85,14 @@ class Job(object):
         """Create the job."""
 
         self.log.info(f'Creating job {self.name}')
-        response = requests.post(
+        r = requests.post(
             self.jobs_url,
             headers=self.auth_header,
             json=yaml.safe_load(self.job_yaml),
-            verify=False,
         )
-        if response.status_code != requests.codes.created:
-            raise exceptions.AnsibleTestError('Could not create job')
+        if r.status_code != requests.codes.created:
+            raise exceptions.AnsibleTestError(
+                f'Could not create job: {r.status_code} {r.reason} {r.text}')
 
     def wait_on_pod_ready(self):
         """Wait until job's pod initializes, pulls image, and starts running."""
@@ -129,7 +124,7 @@ class Job(object):
     def get_pods(self):
         """Get pods associated with job."""
         params = {'labelSelector': f'job-name={self.name}'}
-        r = requests.get(self.pods_url, headers=self.auth_header, params=params, verify=False)
+        r = requests.get(self.pods_url, headers=self.auth_header, params=params)
         return r.json()['items']
 
     @staticmethod
@@ -145,15 +140,14 @@ class Job(object):
                 headers=self.auth_header,
                 params=dict(follow='true'),
                 stream=True,
-                verify=False,
             )
         return r.iter_lines(decode_unicode=True)
 
     def cleanup(self):
         """Deletes job and any pods associated to it."""
         pod_names = [self.get_pod_name(pod) for pod in self.get_pods()]
-        requests.delete(self.job_name_url, headers=self.auth_header, verify=False)
+        requests.delete(self.job_name_url, headers=self.auth_header)
         self.log.debug(f'Deleted job {self.name}')
         for pod_name in pod_names:
-            requests.delete(f'{self.pods_url}/{pod_name}', headers=self.auth_header, verify=False)
+            requests.delete(f'{self.pods_url}/{pod_name}', headers=self.auth_header)
             self.log.debug(f'Deleted pod {pod_name}')
