@@ -30,6 +30,7 @@ from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 cfg = config.Config()
 POD_CHECK_RETRIES = 120  # TODO: try to shorten once not pulling image from quay
 POD_CHECK_DELAY_SECONDS = 1
+OCP_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token'
 
 
 class OpenshiftJobTestRunner(BaseTestRunner):
@@ -46,7 +47,7 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         job = Job(
             ocp_domain=os.environ['OCP_DOMAIN'],
             namespace=os.environ['OCP_NAMESPACE'],
-            session_token=os.environ['OCP_SESSION_TOKEN'],
+            session_token=self.get_token(),
             image=image,
             job_template=job_template,
             logger=self.log,
@@ -62,6 +63,12 @@ class OpenshiftJobTestRunner(BaseTestRunner):
             self.log.info(line)
 
         job.cleanup()
+
+    @staticmethod
+    def get_token():
+        with open(OCP_TOKEN_PATH, 'r') as f:
+            token = f.read().rstrip()
+        return token
 
 
 class Job(object):
