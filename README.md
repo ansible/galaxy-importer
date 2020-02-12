@@ -34,7 +34,7 @@ Example configuration file:
 
 ```
 [galaxy-importer]
-LOG_DEBUG_MAIN = False
+LOG_LEVEL_MAIN = INFO
 RUN_ANSIBLE_TEST = False
 INFRA_PULP = False
 INFRA_OSD = False
