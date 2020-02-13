@@ -17,6 +17,7 @@
 
 
 import os
+import pkg_resources
 import requests
 import time
 import uuid
@@ -31,22 +32,24 @@ cfg = config.Config()
 POD_CHECK_RETRIES = 120  # TODO: try to shorten once not pulling image from quay
 POD_CHECK_DELAY_SECONDS = 1
 OCP_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token'
+TEMP_IMG_WITH_ARCHIVE = 'quay.io/awcrosby/ans-test-with-archive'
 
 
 class OpenshiftJobTestRunner(BaseTestRunner):
     """Run image as an openshift job."""
     def run(self):
-        # TODO: build image with pulp-container when ready
+        # TODO: change from temp image to build image with pulp-container
         # image = container_build.build_image_with_artifact()
-        image = 'quay.io/awcrosby/ans-test-with-archive'
+        image = TEMP_IMG_WITH_ARCHIVE
 
-        filename = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'job_template.yaml')
-        with open(filename, 'r') as f:
+        template_path = pkg_resources.resource_filename(
+            'galaxy_importer', 'ansible_test/job_template.yaml')
+        with open(template_path, 'r') as f:
             job_template = f.read()
 
         job = Job(
-            ocp_domain=os.environ['OCP_DOMAIN'],
-            namespace=os.environ['OCP_NAMESPACE'],
+            ocp_domain=os.environ['OCP_API_DOMAIN'],
+            namespace=os.environ['OCP_JOB_NAMESPACE'],
             session_token=self.get_token(),
             image=image,
             job_template=job_template,
