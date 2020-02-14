@@ -16,6 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 
+import logging
 import os
 import pkg_resources
 import requests
@@ -28,8 +29,10 @@ from galaxy_importer import exceptions
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 
 
+default_logger = logging.getLogger(__name__)
+
 cfg = config.Config()
-POD_CHECK_RETRIES = 120  # TODO: try to shorten once not pulling image from quay
+POD_CHECK_RETRIES = 200  # TODO: try to shorten once not pulling image from quay
 POD_CHECK_DELAY_SECONDS = 1
 OCP_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token'
 TEMP_IMG_WITH_ARCHIVE = 'quay.io/awcrosby/ans-test-with-archive'
@@ -42,17 +45,12 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         # image = container_build.build_image_with_artifact()
         image = TEMP_IMG_WITH_ARCHIVE
 
-        template_path = pkg_resources.resource_filename(
-            'galaxy_importer', 'ansible_test/job_template.yaml')
-        with open(template_path, 'r') as f:
-            job_template = f.read()
-
         job = Job(
             ocp_domain=os.environ['OCP_API_DOMAIN'],
             namespace=os.environ['OCP_JOB_NAMESPACE'],
-            session_token=self.get_token(),
+            session_token=OpenshiftJobTestRunner.get_token(),
             image=image,
-            job_template=job_template,
+            job_template=OpenshiftJobTestRunner.get_job_template(),
             logger=self.log,
         )
         job.create()
@@ -73,6 +71,13 @@ class OpenshiftJobTestRunner(BaseTestRunner):
             token = f.read().rstrip()
         return token
 
+    @staticmethod
+    def get_job_template():
+        path = pkg_resources.resource_filename('galaxy_importer', 'ansible_test/job_template.yaml')
+        with open(path, 'r') as f:
+            job_template = f.read()
+        return job_template
+
 
 class Job(object):
     """Interact with Openshift Job via REST API."""
@@ -89,7 +94,7 @@ class Job(object):
             job_name=self.name,
             image=image,
         )
-        self.log = logger
+        self.log = logger or default_logger
 
     def create(self):
         """Create the job."""
