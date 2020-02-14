@@ -21,6 +21,11 @@ class ImporterError(Exception):
     pass
 
 
+class AnsibleTestError(ImporterError):
+    """Exception when running ansible-test."""
+    pass
+
+
 class ManifestNotFound(ImporterError):
     pass
 
