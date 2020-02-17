@@ -61,9 +61,9 @@ def _import_collection(file, filename, logger, cfg):
             pkg_tar.extractall(extract_dir)
         data = CollectionLoader(extract_dir, filename, logger=logger).load()
 
-    ansible_test_runner = runners.get_runner(cfg=cfg)
-    if ansible_test_runner:
-        ansible_test_runner(logger=logger).run()
+        ansible_test_runner = runners.get_runner(cfg=cfg)
+        if ansible_test_runner:
+            ansible_test_runner(dir=tmp_dir, metadata=data.metadata, logger=logger).run()
 
     _run_post_load_plugins(
         artifact_file=file,

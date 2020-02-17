@@ -22,8 +22,14 @@ default_logger = logging.getLogger(__name__)
 
 
 class BaseTestRunner(object):
-    def __init__(self, logger=None):
+    """
+    :param dir: Dir where collection is extracted, used by local runner.
+    :param metadata: Collection metadata, used by local runner.
+    """
+    def __init__(self, dir='', metadata='', logger=None):
         self.log = logger or default_logger
+        self.dir = dir
+        self.metadata = metadata
 
     @abc.abstractmethod
     def run():
