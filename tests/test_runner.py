@@ -15,7 +15,10 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import logging
 import os
+import subprocess
+from types import SimpleNamespace
 
 import pytest
 from pytest_mock import mocker  # noqa F401
@@ -83,3 +86,39 @@ def test_ansible_test_runner_run(mocker, temp_config_file):  # noqa F811
         ansible_test_runner().run()
         assert not runners.LocalAnsibleTestRunner.called
         assert runners.OpenshiftJobTestRunner.called
+
+
+def test_local_run(mocker, caplog):  # noqa F811
+    mocker.patch.object(subprocess, 'Popen')
+    subprocess.Popen.return_value.stdout = ['stdout_result']
+    subprocess.Popen.return_value.wait.return_value = 0
+    caplog.set_level(logging.INFO)
+
+    metadata = SimpleNamespace(
+        namespace='test_ns', name='test_name', version='test_version')
+    runner = runners.local.LocalAnsibleTestRunner(metadata=metadata)
+    runner.run()
+
+    assert len(caplog.records) == 4
+    assert subprocess.Popen.called
+    assert 'stdout_result' in str(caplog.records[0])
+    assert 'Running ansible-test sanity on test_ns-test_name-test_version' in \
+        str(caplog.records[1])
+    assert 'stdout_result' in str(caplog.records[3])
+
+
+def test_local_run_rc_error(mocker, caplog):  # noqa F811
+    mocker.patch.object(subprocess, 'Popen')
+    subprocess.Popen.return_value.stdout = ['stdout_result']
+    subprocess.Popen.return_value.wait.return_value = 1
+    caplog.set_level(logging.INFO)
+
+    metadata = SimpleNamespace(
+        namespace='test_ns', name='test_name', version='test_version')
+    runner = runners.local.LocalAnsibleTestRunner(metadata=metadata)
+    runner.run()
+
+    assert subprocess.Popen.called
+    assert len(caplog.records) == 5
+    assert caplog.records[4].levelname == 'ERROR'
+    assert 'An exception occurred in ansible-test sanity' in str(caplog.records[4])
