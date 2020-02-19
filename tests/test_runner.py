@@ -21,7 +21,6 @@ import subprocess
 from types import SimpleNamespace
 
 import pytest
-from pytest_mock import mocker  # noqa F401
 
 from galaxy_importer import config
 from galaxy_importer.ansible_test import runners
@@ -72,7 +71,7 @@ def test_get_runner_pulp_and_osd(temp_config_file):
         assert runners.get_runner(cfg) == runners.OpenshiftJobTestRunner
 
 
-def test_ansible_test_runner_run(mocker, temp_config_file):  # noqa F811
+def test_ansible_test_runner_run(mocker, temp_config_file):
     mocker.patch.object(runners, 'LocalAnsibleTestRunner')
     mocker.patch.object(runners, 'OpenshiftJobTestRunner')
     with open(temp_config_file, 'w') as f:
@@ -88,7 +87,7 @@ def test_ansible_test_runner_run(mocker, temp_config_file):  # noqa F811
         assert runners.OpenshiftJobTestRunner.called
 
 
-def test_local_run(mocker, caplog):  # noqa F811
+def test_local_run(mocker, caplog):
     mocker.patch.object(subprocess, 'Popen')
     subprocess.Popen.return_value.stdout = ['stdout_result']
     subprocess.Popen.return_value.wait.return_value = 0
@@ -107,7 +106,7 @@ def test_local_run(mocker, caplog):  # noqa F811
     assert 'stdout_result' in str(caplog.records[3])
 
 
-def test_local_run_rc_error(mocker, caplog):  # noqa F811
+def test_local_run_rc_error(mocker, caplog):
     mocker.patch.object(subprocess, 'Popen')
     subprocess.Popen.return_value.stdout = ['stdout_result']
     subprocess.Popen.return_value.wait.return_value = 1

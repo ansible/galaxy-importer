@@ -18,7 +18,6 @@
 import os
 
 import pytest
-from pytest_mock import mocker  # noqa F401
 
 from galaxy_importer import config
 

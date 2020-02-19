@@ -18,7 +18,6 @@
 from types import SimpleNamespace
 
 import pytest
-from pytest_mock import mocker  # noqa F401
 import requests
 
 from galaxy_importer import exceptions as exc
@@ -31,7 +30,7 @@ def job():
         'my_domain', 'my_ns', 'session_token', 'image', 'job_template', logger=None)
 
 
-def test_runner_run(mocker, monkeypatch):  # noqa F811
+def test_runner_run(mocker, monkeypatch):
     mocker.patch.object(openshift_job.OpenshiftJobTestRunner, 'get_token')
     mocker.patch.object(openshift_job.OpenshiftJobTestRunner, 'get_job_template')
     mocker.patch.object(openshift_job.Job, 'create')
@@ -51,7 +50,7 @@ def test_runner_run(mocker, monkeypatch):  # noqa F811
     assert openshift_job.Job.cleanup.called
 
 
-def test_runner_get_token(mocker, tmp_path):  # noqa F811
+def test_runner_get_token(mocker, tmp_path):
     mocker.patch.object(openshift_job, 'OCP_TOKEN_PATH')
     p = tmp_path / 'session_token'
     p.write_text('my_session_token_1234')
@@ -59,7 +58,7 @@ def test_runner_get_token(mocker, tmp_path):  # noqa F811
     assert openshift_job.OpenshiftJobTestRunner.get_token() == 'my_session_token_1234'
 
 
-def test_runner_get_job_template(mocker, tmp_path):  # noqa F811
+def test_runner_get_job_template(mocker, tmp_path):
     job_template = openshift_job.OpenshiftJobTestRunner.get_job_template()
     assert job_template.startswith('apiVersion: batch/v1\nkind: Job')
 
@@ -69,7 +68,7 @@ def test_job_init(job):
     assert job.pods_url == 'my_domain/api/v1/namespaces/my_ns/pods'
 
 
-def test_job_create(mocker, job):  # noqa F811
+def test_job_create(mocker, job):
     mocker.patch.object(requests, 'post')
 
     requests.post.return_value = SimpleNamespace(status_code=201)
@@ -81,7 +80,7 @@ def test_job_create(mocker, job):  # noqa F811
         job.create()
 
 
-def test_job_wait_on_pod_ready(mocker, job):  # noqa F811
+def test_job_wait_on_pod_ready(mocker, job):
     mocker.patch.object(openshift_job.Job, 'get_pods')
     mocker.patch.object(openshift_job.Job, 'cleanup')
     mocker.patch.object(openshift_job, 'POD_CHECK_RETRIES')
@@ -102,7 +101,7 @@ def test_job_wait_on_pod_ready(mocker, job):  # noqa F811
     assert openshift_job.Job.cleanup.called
 
 
-def test_job_get_pods(mocker, job):  # noqa F811
+def test_job_get_pods(mocker, job):
     mocker.patch.object(requests, 'get')
     requests.get.json.return_value = {}
     job.get_pods()
@@ -114,7 +113,7 @@ def test_job_get_pod_name():
     assert openshift_job.Job.get_pod_name(pod) == 'my_pod_name'
 
 
-def test_job_get_logs(mocker, job):  # noqa F811
+def test_job_get_logs(mocker, job):
     mocker.patch.object(openshift_job.Job, 'get_pods')
     mocker.patch.object(requests, 'get')
     openshift_job.Job.get_pods.return_value = [{'metadata': {'name': 'my_pod_name'}}]
@@ -123,7 +122,7 @@ def test_job_get_logs(mocker, job):  # noqa F811
     assert requests.get.called
 
 
-def test_job_cleanup(mocker, job):  # noqa F811
+def test_job_cleanup(mocker, job):
     mocker.patch.object(openshift_job.Job, 'get_pods')
     mocker.patch.object(requests, 'delete')
     openshift_job.Job.get_pods.return_value = [{'metadata': {'name': 'my_pod_name'}}]
