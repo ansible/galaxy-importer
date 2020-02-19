@@ -60,12 +60,11 @@ def setup_logger(cfg):
 
 class CustomFormatter(logging.Formatter):
     """Formatter that does not display INFO loglevel."""
-    def format(self, record):
+    def formatMessage(self, record):
         if record.levelno == logging.INFO:
-            self._style._fmt = '%(message)s'
+            return '%(message)s' % record.__dict__
         else:
-            self._style._fmt = '%(levelname)s: %(message)s'
-        return super().format(record)
+            return '%(levelname)s: %(message)s' % record.__dict__
 
 
 def parse_args(args):
