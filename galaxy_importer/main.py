@@ -62,9 +62,9 @@ class CustomFormatter(logging.Formatter):
     """Formatter that does not display INFO loglevel."""
     def formatMessage(self, record):
         if record.levelno == logging.INFO:
-            return '%(message)s' % record.__dict__
+            return '%(message)s' % vars(record)
         else:
-            return '%(levelname)s: %(message)s' % record.__dict__
+            return '%(levelname)s: %(message)s' % vars(record)
 
 
 def parse_args(args):
