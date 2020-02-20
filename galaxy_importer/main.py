@@ -24,6 +24,7 @@ import sys
 
 from galaxy_importer import collection
 from galaxy_importer import config
+from galaxy_importer.exceptions import ImporterError
 
 FILENAME_REGEXP = re.compile(
     r"^(?P<namespace>\w+)-(?P<name>\w+)-"
@@ -34,10 +35,7 @@ FILENAME_REGEXP = re.compile(
 def main(args=None):
     config_data = config.ConfigFile.load()
     cfg = config.Config(config_data=config_data)
-    logging.basicConfig(
-        stream=sys.stdout,
-        format='%(levelname)s: %(message)s',
-        level=getattr(logging, cfg.log_level_main, 'INFO'))
+    setup_logger(cfg)
     args = parse_args(args)
 
     data = call_importer(filepath=args.file, cfg=cfg)
@@ -48,6 +46,25 @@ def main(args=None):
         print(json.dumps(data, indent=4))
 
     write_output_file(data)
+
+
+def setup_logger(cfg):
+    """Sets up logger with custom formatter."""
+    logger = logging.getLogger()
+    logger.setLevel(getattr(logging, cfg.log_level_main, 'INFO'))
+
+    ch = logging.StreamHandler(stream=sys.stdout)
+    ch.setFormatter(CustomFormatter())
+    logger.addHandler(ch)
+
+
+class CustomFormatter(logging.Formatter):
+    """Formatter that does not display INFO loglevel."""
+    def formatMessage(self, record):
+        if record.levelno == logging.INFO:
+            return '%(message)s' % vars(record)
+        else:
+            return '%(levelname)s: %(message)s' % vars(record)
 
 
 def parse_args(args):
@@ -76,8 +93,11 @@ def call_importer(filepath, cfg):
     with open(filepath, 'rb') as f:
         try:
             data = collection.import_collection(f, filename, cfg=cfg)
+        except ImporterError as e:
+            logging.error(f'The import failed for the following reason: {str(e)}')
+            return None
         except Exception:
-            logging.error('Error during importer proccessing:', exc_info=True)
+            logging.error('Unexpected error occurred:', exc_info=True)
             return None
 
     logging.info('Importer processing completed successfully')

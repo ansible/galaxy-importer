@@ -23,7 +23,6 @@ from unittest import mock
 
 import attr
 import pytest
-from pytest_mock import mocker  # noqa F401
 
 from galaxy_importer import collection
 from galaxy_importer.collection import CollectionLoader
@@ -308,7 +307,7 @@ def test_missing_readme(tmp_collection_root):
         CollectionLoader(tmp_collection_root, filename=None).load()
 
 
-def test_import_collection(mocker):  # noqa F811
+def test_import_collection(mocker):
     mocker.patch.object(collection, '_import_collection')
     mocker.patch.object(ConfigFile, 'load')
     collection.import_collection(file=None, cfg=None)
