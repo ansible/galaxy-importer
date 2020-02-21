@@ -34,7 +34,7 @@ default_logger = logging.getLogger(__name__)
 cfg = config.Config()
 POD_CHECK_RETRIES = 200  # TODO: try to shorten once not pulling image from quay
 POD_CHECK_DELAY_SECONDS = 1
-OCP_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token'
+OCP_SERVICEACCOUNT_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/'
 TEMP_IMG_WITH_ARCHIVE = 'quay.io/awcrosby/ans-test-with-archive'
 
 
@@ -49,6 +49,7 @@ class OpenshiftJobTestRunner(BaseTestRunner):
             ocp_domain=os.environ['OCP_API_DOMAIN'],
             namespace=os.environ['OCP_JOB_NAMESPACE'],
             session_token=OpenshiftJobTestRunner.get_token(),
+            ca_path=OpenshiftJobTestRunner.get_ca_path(),
             image=image,
             job_template=OpenshiftJobTestRunner.get_job_template(),
             logger=self.log,
@@ -67,9 +68,13 @@ class OpenshiftJobTestRunner(BaseTestRunner):
 
     @staticmethod
     def get_token():
-        with open(OCP_TOKEN_PATH, 'r') as f:
+        with open(OCP_SERVICEACCOUNT_PATH + 'token', 'r') as f:
             token = f.read().rstrip()
         return token
+
+    @staticmethod
+    def get_ca_path():
+        return OCP_SERVICEACCOUNT_PATH + 'ca.crt'
 
     @staticmethod
     def get_job_template():
@@ -82,9 +87,10 @@ class OpenshiftJobTestRunner(BaseTestRunner):
 class Job(object):
     """Interact with Openshift Job via REST API."""
 
-    def __init__(self, ocp_domain, namespace, session_token, image, job_template, logger):
+    def __init__(self, ocp_domain, namespace, session_token, ca_path, image, job_template, logger):
         self.name = 'ansible-test-' + str(uuid.uuid4())
         self.auth_header = {'Authorization': f'Bearer {session_token}'}
+        self.ca_path = ca_path
         self.jobs_url = f'{ocp_domain}/apis/batch/v1/namespaces/{namespace}/jobs'
         self.job_name_url = f'{self.jobs_url}/{self.name}'
         self.pods_url = f'{ocp_domain}/api/v1/namespaces/{namespace}/pods'
@@ -104,6 +110,7 @@ class Job(object):
             self.jobs_url,
             headers=self.auth_header,
             json=yaml.safe_load(self.job_yaml),
+            verify=self.ca_path,
         )
         if r.status_code != requests.codes.created:
             raise exceptions.AnsibleTestError(
@@ -139,7 +146,8 @@ class Job(object):
     def get_pods(self):
         """Get pods associated with job."""
         params = {'labelSelector': f'job-name={self.name}'}
-        r = requests.get(self.pods_url, headers=self.auth_header, params=params)
+        r = requests.get(
+            self.pods_url, headers=self.auth_header, params=params, verify=self.ca_path)
         return r.json()['items']
 
     @staticmethod
@@ -154,6 +162,7 @@ class Job(object):
                 url=f'{self.pods_url}/{pod_name}/log',
                 headers=self.auth_header,
                 params=dict(follow='true'),
+                verify=self.ca_path,
                 stream=True,
             )
         return r.iter_lines(decode_unicode=True)
@@ -161,8 +170,9 @@ class Job(object):
     def cleanup(self):
         """Deletes job and any pods associated to it."""
         pod_names = [self.get_pod_name(pod) for pod in self.get_pods()]
-        requests.delete(self.job_name_url, headers=self.auth_header)
+        requests.delete(self.job_name_url, headers=self.auth_header, verify=self.ca_path)
         self.log.debug(f'Deleted job {self.name}')
         for pod_name in pod_names:
-            requests.delete(f'{self.pods_url}/{pod_name}', headers=self.auth_header)
+            requests.delete(
+                f'{self.pods_url}/{pod_name}', headers=self.auth_header, verify=self.ca_path)
             self.log.debug(f'Deleted pod {pod_name}')
