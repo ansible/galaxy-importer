@@ -27,7 +27,7 @@ from galaxy_importer.ansible_test.runners import openshift_job
 @pytest.fixture
 def job():
     return openshift_job.Job(
-        'my_domain', 'my_ns', 'session_token', 'image', 'job_template', logger=None)
+        'my_domain', 'my_ns', 'session_token', 'ca_path', 'image', 'job_template', logger=None)
 
 
 def test_runner_run(mocker, monkeypatch):
@@ -39,8 +39,8 @@ def test_runner_run(mocker, monkeypatch):
     mocker.patch.object(openshift_job.Job, 'cleanup')
 
     openshift_job.Job.get_logs.return_value = ['log_entry', b'bytes_log_entry']
-    monkeypatch.setenv('OCP_API_DOMAIN', 'my_host')
-    monkeypatch.setenv('OCP_JOB_NAMESPACE', 'my_project')
+    monkeypatch.setenv('IMPORTER_API_DOMAIN', 'my_host')
+    monkeypatch.setenv('IMPORTER_JOB_NAMESPACE', 'my_project')
     runner = openshift_job.OpenshiftJobTestRunner()
     runner.run()
 
@@ -51,10 +51,10 @@ def test_runner_run(mocker, monkeypatch):
 
 
 def test_runner_get_token(mocker, tmp_path):
-    mocker.patch.object(openshift_job, 'OCP_TOKEN_PATH')
-    p = tmp_path / 'session_token'
+    mocker.patch.object(openshift_job, 'OCP_SERVICEACCOUNT_PATH')
+    p = tmp_path / 'token'
     p.write_text('my_session_token_1234')
-    openshift_job.OCP_TOKEN_PATH = p
+    openshift_job.OCP_SERVICEACCOUNT_PATH = str(tmp_path) + '/'
     assert openshift_job.OpenshiftJobTestRunner.get_token() == 'my_session_token_1234'
 
 
