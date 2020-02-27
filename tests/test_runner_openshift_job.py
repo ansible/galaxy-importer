@@ -39,8 +39,8 @@ def test_runner_run(mocker, monkeypatch):
     mocker.patch.object(openshift_job.Job, 'cleanup')
 
     openshift_job.Job.get_logs.return_value = ['log_entry', b'bytes_log_entry']
-    monkeypatch.setenv('OCP_API_DOMAIN', 'my_host')
-    monkeypatch.setenv('OCP_JOB_NAMESPACE', 'my_project')
+    monkeypatch.setenv('IMPORTER_API_DOMAIN', 'my_host')
+    monkeypatch.setenv('IMPORTER_JOB_NAMESPACE', 'my_project')
     runner = openshift_job.OpenshiftJobTestRunner()
     runner.run()
 

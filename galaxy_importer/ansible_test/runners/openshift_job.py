@@ -46,8 +46,8 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         image = TEMP_IMG_WITH_ARCHIVE
 
         job = Job(
-            ocp_domain=os.environ['OCP_API_DOMAIN'],
-            namespace=os.environ['OCP_JOB_NAMESPACE'],
+            ocp_domain=os.environ['IMPORTER_API_DOMAIN'],
+            namespace=os.environ['IMPORTER_JOB_NAMESPACE'],
             session_token=OpenshiftJobTestRunner.get_token(),
             ca_path=OpenshiftJobTestRunner.get_ca_path(),
             image=image,
@@ -68,13 +68,13 @@ class OpenshiftJobTestRunner(BaseTestRunner):
 
     @staticmethod
     def get_token():
-        with open(OCP_SERVICEACCOUNT_PATH + 'token', 'r') as f:
+        with open(os.path.join(OCP_SERVICEACCOUNT_PATH, 'token'), 'r') as f:
             token = f.read().rstrip()
         return token
 
     @staticmethod
     def get_ca_path():
-        return OCP_SERVICEACCOUNT_PATH + 'ca.crt'
+        return os.path.join(OCP_SERVICEACCOUNT_PATH, 'ca.crt')
 
     @staticmethod
     def get_job_template():
