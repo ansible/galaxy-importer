@@ -1,0 +1,22 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {build_name}
+  labels:
+    app: automation-hub
+spec:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {image_name}
+  source:
+    dockerfile: "FROM docker-registry.default.svc:5000/buildfactory/automation-hub-ansible-test:latest\nRUN wget '{download_url}' -O /archive/archive.tar.gz"
+  strategy:
+    type: Docker
+    dockerStrategy: {{}}
+  triggers:
+  - type: ConfigChange

@@ -32,25 +32,33 @@ from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 default_logger = logging.getLogger(__name__)
 
 cfg = config.Config()
-POD_CHECK_RETRIES = 200  # TODO: try to shorten once not pulling image from quay
-POD_CHECK_DELAY_SECONDS = 1
+API_CHECK_RETRIES = 200  # TODO: try to shorten once not pulling image from quay
+API_CHECK_DELAY_SECONDS = 1
 OCP_SERVICEACCOUNT_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/'
-TEMP_IMG_WITH_ARCHIVE = 'quay.io/awcrosby/ans-test-with-archive'
+IMAGE_BASE_NAME = 'ansible-test'
 
 
 class OpenshiftJobTestRunner(BaseTestRunner):
     """Run image as an openshift job."""
     def run(self):
-        # TODO: change from temp image to build image with pulp-container
-        # image = container_build.build_image_with_artifact()
-        image = TEMP_IMG_WITH_ARCHIVE
+        openshift_build = Build(
+            ocp_domain=os.environ['IMPORTER_API_DOMAIN'],
+            namespace=os.environ['IMPORTER_JOB_NAMESPACE'],
+            session_token=OpenshiftJobTestRunner.get_token(),
+            ca_path=OpenshiftJobTestRunner.get_ca_path(),
+            build_template=OpenshiftJobTestRunner.get_build_template(),
+            logger=self.log,
+        )
+
+        image_link = openshift_build.start_and_get_image_link()
+        self.log.debug(f'image_link={image_link}')
 
         job = Job(
             ocp_domain=os.environ['IMPORTER_API_DOMAIN'],
             namespace=os.environ['IMPORTER_JOB_NAMESPACE'],
             session_token=OpenshiftJobTestRunner.get_token(),
             ca_path=OpenshiftJobTestRunner.get_ca_path(),
-            image=image,
+            image=image_link,
             job_template=OpenshiftJobTestRunner.get_job_template(),
             logger=self.log,
         )
@@ -65,6 +73,7 @@ class OpenshiftJobTestRunner(BaseTestRunner):
             self.log.info(line)
 
         job.cleanup()
+        openshift_build.cleanup()
 
     @staticmethod
     def get_token():
@@ -82,6 +91,118 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         with open(path, 'r') as f:
             job_template = f.read()
         return job_template
+
+    @staticmethod
+    def get_build_template():
+        path = pkg_resources.resource_filename(
+            'galaxy_importer', 'ansible_test/build_template.yaml')
+        with open(path, 'r') as f:
+            build_template = f.read()
+        return build_template
+
+
+class Build(object):
+    """Interact with Openshift builds via REST API."""
+    def __init__(self, ocp_domain, namespace, session_token, ca_path, build_template, logger):
+        self.name = 'build-' + str(uuid.uuid4())
+        self.auth_header = {'Authorization': f'Bearer {session_token}'}
+        self.ca_path = ca_path
+        self.api_build_prefix = f'{ocp_domain}/apis/build.openshift.io/v1/namespaces/{namespace}'
+        self.buildconfig_url = f'{self.api_build_prefix}/buildconfigs'
+        self.build_url = f'{self.api_build_prefix}/builds'
+        self.istag_url = \
+            f'{ocp_domain}/apis/image.openshift.io/v1/namespaces/{namespace}/imagestreamtags'
+        self.image_name = f'{IMAGE_BASE_NAME}:{self.name}'
+        self.build_yaml = build_template.format(image_name=self.image_name, build_name=self.name)
+        self.log = logger or default_logger
+
+    def start_and_get_image_link(self):
+        self._create_buildconfig()
+
+        self._wait_until_build_created()
+        self._wait_until_build_complete()
+        self._wait_until_image_available()
+
+        imagestream_tag = self._get_image()
+        return imagestream_tag['image']['dockerImageReference']
+
+    def _create_buildconfig(self):
+        self.log.info(f'Creating buildconfig {self.name}')
+        r = requests.post(
+            self.buildconfig_url,
+            headers=self.auth_header,
+            json=yaml.safe_load(self.build_yaml),
+            verify=self.ca_path,
+        )
+        if r.status_code != requests.codes.created:
+            raise exceptions.AnsibleTestError(
+                f'Could not create buildconfig: {r.status_code} {r.reason} {r.text}')
+
+    def _get_build(self):
+        """Get build associated with buildconfig."""
+        params = {'labelSelector': f'buildconfig={self.name}'}
+        r = requests.get(
+            self.build_url, headers=self.auth_header, params=params, verify=self.ca_path)
+        if r.status_code != requests.codes.ok:
+            raise exceptions.AnsibleTestError(f'Could not access builds')
+        return r.json()
+
+    def _get_image(self):
+        """Get imagestream tag associated with buildconfig."""
+        r = requests.get(
+            '{}/{}'.format(self.istag_url, self.image_name),
+            headers=self.auth_header,
+            verify=self.ca_path)
+        if r.status_code != requests.codes.ok:
+            return None
+        return r.json()
+
+    def _wait_until_build_created(self):
+        self.log.info('Creating build...')
+        for i in range(API_CHECK_RETRIES):
+            build = self._get_build()
+            if len(build['items']) > 0:
+                return
+            time.sleep(API_CHECK_DELAY_SECONDS)
+
+        raise exceptions.AnsibleTestError('Could not create build')
+
+    def _wait_until_build_complete(self):
+        self.log.info('Waiting until build is complete...')
+        for i in range(API_CHECK_RETRIES):
+            build = self._get_build()
+            build_phase = build['items'][0]['status']['phase']
+            if build_phase == 'Complete':
+                return
+            time.sleep(API_CHECK_DELAY_SECONDS)
+
+        raise exceptions.AnsibleTestError('Unable to build image within timeout')
+
+    def _wait_until_image_available(self):
+        self.log.info('Waiting image is available...')
+        for i in range(API_CHECK_RETRIES):
+            if self._get_image():
+                return
+            time.sleep(API_CHECK_DELAY_SECONDS)
+        raise exceptions.AnsibleTestError('Image was not available')
+
+    def _delete_buildconfig(self):
+        r = requests.delete(
+            '{}/{}'.format(self.buildconfig_url, self.name),
+            headers=self.auth_header,
+            verify=self.ca_path)
+        self.log.debug(f'delete bc: {r.status_code} {r.reason} {r.text}')
+
+    def _delete_imagestreamtag(self):
+        r = requests.delete(
+            '{}/{}'.format(self.istag_url, self.image_name),
+            headers=self.auth_header,
+            verify=self.ca_path)
+        self.log.debug(f'delete istag: {r.status_code} {r.reason} {r.text}')
+
+    def cleanup(self):
+        self._delete_buildconfig()
+        self._delete_imagestreamtag()
 
 
 class Job(object):
@@ -120,10 +241,10 @@ class Job(object):
         """Wait until job's pod initializes, pulls image, and starts running."""
 
         self.log.info('Creating pod...')
-        for i in range(POD_CHECK_RETRIES):
+        for i in range(API_CHECK_RETRIES):
             pods = self.get_pods()
             if len(pods) < 1:
-                time.sleep(POD_CHECK_DELAY_SECONDS)
+                time.sleep(API_CHECK_DELAY_SECONDS)
                 continue
             break
 
@@ -132,12 +253,12 @@ class Job(object):
             raise exceptions.AnsibleTestError('Could not create pod assocated with job')
 
         self.log.info('Scheduling pod and waiting until it is running...')
-        for i in range(POD_CHECK_RETRIES):
+        for i in range(API_CHECK_RETRIES):
             pods = self.get_pods()
             pod_phase = pods[0]['status']['phase']
             if pod_phase != 'Pending':
                 return
-            time.sleep(POD_CHECK_DELAY_SECONDS)
+            time.sleep(API_CHECK_DELAY_SECONDS)
 
         self.log.debug(pods[0]['status'])
         self.cleanup()
