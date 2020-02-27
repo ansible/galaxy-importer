@@ -143,7 +143,7 @@ def _render_from_markdown(doc_file):
     unsafe_html = markdown.markdown(doc_file.text, extensions=['extra'])
     return bleach.clean(
         unsafe_html,
-        tags=markdown_tags + ['pre'],
+        tags=markdown_tags + ['pre', 'table', 'thead', 'th', 'tr', 'td'],
         attributes=markdown_attrs,
         styles=[],
         strip=True
