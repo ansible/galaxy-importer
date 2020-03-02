@@ -46,6 +46,7 @@ class OpenshiftJobTestRunner(BaseTestRunner):
             namespace=os.environ['IMPORTER_JOB_NAMESPACE'],
             session_token=OpenshiftJobTestRunner.get_token(),
             ca_path=OpenshiftJobTestRunner.get_ca_path(),
+            archive_url=self._get_pulp_archive_url(self.file),
             build_template=OpenshiftJobTestRunner.get_build_template(),
             logger=self.log,
         )
@@ -100,10 +101,16 @@ class OpenshiftJobTestRunner(BaseTestRunner):
             build_template = f.read()
         return build_template
 
+    @staticmethod
+    def _get_pulp_archive_url(pulp_artifact_file):
+        parameters = {'ResponseContentDisposition': 'attachment;filename=archive.tar.gz'}
+        return pulp_artifact_file.storage.url(pulp_artifact_file.name, parameters=parameters)
+
 
 class Build(object):
     """Interact with Openshift builds via REST API."""
-    def __init__(self, ocp_domain, namespace, session_token, ca_path, build_template, logger):
+    def __init__(self, ocp_domain, namespace, session_token,
+                 ca_path, build_template, archive_url, logger):
         self.name = 'build-' + str(uuid.uuid4())
         self.auth_header = {'Authorization': f'Bearer {session_token}'}
         self.ca_path = ca_path
@@ -113,7 +120,11 @@ class Build(object):
         self.istag_url = \
             f'{ocp_domain}/apis/image.openshift.io/v1/namespaces/{namespace}/imagestreamtags'
         self.image_name = f'{IMAGE_BASE_NAME}:{self.name}'
-        self.build_yaml = build_template.format(image_name=self.image_name, build_name=self.name)
+        self.build_yaml = build_template.format(
+            image_name=self.image_name,
+            build_name=self.name,
+            download_url=archive_url,
+        )
         self.log = logger or default_logger
 
     def start_and_get_image_link(self):
