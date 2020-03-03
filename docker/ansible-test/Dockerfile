@@ -23,6 +23,9 @@ RUN apt-get update -y \
     && chmod +x /entrypoint
 
 ENV HOME /
+ENV LOGNAME=user1
+ENV USER=user1
+
 USER 1000
 
 ENTRYPOINT ["/entrypoint"]
