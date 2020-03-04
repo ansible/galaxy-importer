@@ -44,10 +44,10 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         openshift_build = Build(
             ocp_domain=os.environ['IMPORTER_API_DOMAIN'],
             namespace=os.environ['IMPORTER_JOB_NAMESPACE'],
-            session_token=OpenshiftJobTestRunner.get_token(),
-            ca_path=OpenshiftJobTestRunner.get_ca_path(),
+            session_token=OpenshiftJobTestRunner._get_token(),
+            ca_path=OpenshiftJobTestRunner._get_ca_path(),
             archive_url=self._get_pulp_archive_url(self.file),
-            build_template=OpenshiftJobTestRunner.get_build_template(),
+            build_template=OpenshiftJobTestRunner._get_build_template(),
             logger=self.log,
         )
 
@@ -57,10 +57,10 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         job = Job(
             ocp_domain=os.environ['IMPORTER_API_DOMAIN'],
             namespace=os.environ['IMPORTER_JOB_NAMESPACE'],
-            session_token=OpenshiftJobTestRunner.get_token(),
-            ca_path=OpenshiftJobTestRunner.get_ca_path(),
+            session_token=OpenshiftJobTestRunner._get_token(),
+            ca_path=OpenshiftJobTestRunner._get_ca_path(),
             image=image_link,
-            job_template=OpenshiftJobTestRunner.get_job_template(),
+            job_template=OpenshiftJobTestRunner._get_job_template(),
             logger=self.log,
         )
         job.create()
@@ -77,24 +77,24 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         openshift_build.cleanup()
 
     @staticmethod
-    def get_token():
+    def _get_token():
         with open(os.path.join(OCP_SERVICEACCOUNT_PATH, 'token'), 'r') as f:
             token = f.read().rstrip()
         return token
 
     @staticmethod
-    def get_ca_path():
+    def _get_ca_path():
         return os.path.join(OCP_SERVICEACCOUNT_PATH, 'ca.crt')
 
     @staticmethod
-    def get_job_template():
+    def _get_job_template():
         path = pkg_resources.resource_filename('galaxy_importer', 'ansible_test/job_template.yaml')
         with open(path, 'r') as f:
             job_template = f.read()
         return job_template
 
     @staticmethod
-    def get_build_template():
+    def _get_build_template():
         path = pkg_resources.resource_filename(
             'galaxy_importer', 'ansible_test/build_template.yaml')
         with open(path, 'r') as f:
