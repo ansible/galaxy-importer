@@ -14,9 +14,12 @@ spec:
       kind: ImageStreamTag
       name: {image_name}
   source:
-    dockerfile: "FROM docker-registry.default.svc:5000/buildfactory/automation-hub-ansible-test:latest\nRUN wget '{download_url}' -O /archive/archive.tar.gz"
+    dockerfile: |
+      FROM awcrosby/galaxy-ansible-test:latest
+      RUN wget '{download_url}' -O /archive/archive.tar.gz
   strategy:
     type: Docker
     dockerStrategy: {{}}
   triggers:
   - type: ConfigChange
+  imagePullPolicy: IfNotPresent
