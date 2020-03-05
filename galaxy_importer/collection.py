@@ -60,6 +60,7 @@ def _import_collection(file, filename, logger, cfg):
         with tarfile.open(fileobj=file, mode='r') as pkg_tar:
             pkg_tar.extractall(extract_dir)
         data = CollectionLoader(extract_dir, filename, logger=logger).load()
+        logger.info('Collection validation and loading complete')
 
         ansible_test_runner = runners.get_runner(cfg=cfg)
         if ansible_test_runner:

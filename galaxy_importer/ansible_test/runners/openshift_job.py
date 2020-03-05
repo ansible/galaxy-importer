@@ -41,6 +41,7 @@ IMAGE_BASE_NAME = 'ansible-test'
 class OpenshiftJobTestRunner(BaseTestRunner):
     """Run image as an openshift job."""
     def run(self):
+        self.log.info('Preparing build and job pod to run ansible-test sanity')
         openshift_build = Build(
             ocp_domain=os.environ['IMPORTER_API_DOMAIN'],
             namespace=os.environ['IMPORTER_JOB_NAMESPACE'],
@@ -190,7 +191,7 @@ class Build(object):
         raise exceptions.AnsibleTestError('Unable to build image within timeout')
 
     def _wait_until_image_available(self):
-        self.log.info('Waiting image is available...')
+        self.log.info('Waiting until image is available...')
         for i in range(API_CHECK_RETRIES):
             if self._get_image():
                 return
