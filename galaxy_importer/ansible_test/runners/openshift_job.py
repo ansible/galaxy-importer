@@ -32,7 +32,7 @@ from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 default_logger = logging.getLogger(__name__)
 
 cfg = config.Config()
-API_CHECK_RETRIES = 200  # TODO: try to shorten once not pulling image from quay
+API_CHECK_RETRIES = 300
 API_CHECK_DELAY_SECONDS = 1
 OCP_SERVICEACCOUNT_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/'
 IMAGE_BASE_NAME = 'ansible-test'
