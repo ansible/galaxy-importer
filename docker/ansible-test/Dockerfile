@@ -1,4 +1,4 @@
-FROM quay.io/ansible/default-test-container
+FROM quay.io/ansible/default-test-container:1.12
 
 RUN useradd user1 \
         --uid 1000 \

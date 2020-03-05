@@ -26,7 +26,10 @@ mv placeholder_namespace/placeholder_name placeholder_namespace/"$NAME"
 mv placeholder_namespace/ "$NAMESPACE"
 cd /ansible_collections/"$NAMESPACE"/"$NAME"
 
-echo "Using $(ansible --version | head -n 1)"
+# Set env var so ansible --version does not error with getpass.getuser()
+export USER=user1
+
+echo "Using $(ansible --version | head -n 1), $(python --version)"
 
 echo "Running ansible-test sanity on $NAMESPACE-$NAME-$VERSION ..."
 # NOTE: skipping some sanity tests
