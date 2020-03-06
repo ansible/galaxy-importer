@@ -1,26 +1,40 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 # Extract collection to path needed for ansible-test sanity
 mkdir -p /ansible_collections/placeholder_namespace/placeholder_name
-cd /ansible_collections/placeholder_namespace/placeholder_name
+pushd ansible_collections/ > /dev/null
+pushd placeholder_namespace/placeholder_name/ > /dev/null
 
-echo "Copying and extracting archive..."
-cp /archive/*.tar.gz .
-tar -xzf *.tar.gz
+echo "Copying and extracting collection archive..."
+cp /archive/archive.tar.gz .
+tar -xzf archive.tar.gz
+
+# Get variables from collection metadata
+read NAMESPACE NAME VERSION < <(python3 <<EOF
+import json
+with open('MANIFEST.json') as fp:
+    metadata = json.load(fp)['collection_info']
+values = metadata['namespace'], metadata['name'], metadata['version']
+print(*values)
+EOF
+)
 
 # Rename placeholders in path
-NAMESPACE=$(python3 -c "import json; f = open('MANIFEST.json'); namespace = json.load(f)['collection_info']['namespace']; print(namespace); f.close")
-NAME=$(python3 -c "import json; f = open('MANIFEST.json'); name = json.load(f)['collection_info']['name']; print(name); f.close")
-cd ../../
-mv placeholder_namespace/placeholder_name placeholder_namespace/$NAME
-mv placeholder_namespace/ $NAMESPACE
-cd /ansible_collections/$NAMESPACE/$NAME
+popd > /dev/null
+mv placeholder_namespace/placeholder_name placeholder_namespace/"$NAME"
+mv placeholder_namespace/ "$NAMESPACE"
+cd /ansible_collections/"$NAMESPACE"/"$NAME"
 
-echo "Running ansible-test sanity..."
+# Set env var so ansible --version does not error with getpass.getuser()
+export USER=user1
+
+echo "Using $(ansible --version | head -n 1), $(python --version)"
+
+echo "Running ansible-test sanity on $NAMESPACE-$NAME-$VERSION ..."
 # NOTE: skipping some sanity tests
 # "import" and "validate-modules" require sandboxing
 # "pslint" throws ScriptRequiresMissingModules when container is not run as root
-ansible-test sanity --skip-test import --skip-test validate-modules --skip-test pslint --color yes --failure-ok
+ansible-test sanity --skip-test import --skip-test validate-modules --skip-test pslint --failure-ok
 
 exec "$@"
