@@ -26,10 +26,11 @@ class BaseTestRunner(object):
     :param dir: Dir where collection is extracted, used by local runner.
     :param metadata: Collection metadata, used by local runner.
     """
-    def __init__(self, dir='', metadata='', logger=None):
+    def __init__(self, dir='', metadata='', file=None, logger=None):
         self.log = logger or default_logger
         self.dir = dir
         self.metadata = metadata
+        self.file = file
 
     @abc.abstractmethod
     def run():
