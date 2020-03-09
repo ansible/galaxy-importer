@@ -15,11 +15,14 @@ spec:
       name: {image_name}
   source:
     dockerfile: |
-      FROM awcrosby/galaxy-ansible-test:latest
+      FROM ansible/default-test-container:latest
       RUN wget '{download_url}' -O /archive/archive.tar.gz
   strategy:
     type: Docker
-    dockerStrategy: {{}}
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: ansible-test:stable
   triggers:
   - type: ConfigChange
   imagePullPolicy: IfNotPresent

@@ -112,7 +112,7 @@ class Build(object):
     """Interact with Openshift builds via REST API."""
     def __init__(self, ocp_domain, namespace, session_token,
                  ca_path, build_template, archive_url, logger):
-        self.name = 'build-' + str(uuid.uuid4())
+        self.name = 'import-' + str(uuid.uuid4())
         self.auth_header = {'Authorization': f'Bearer {session_token}'}
         self.ca_path = ca_path
         self.api_build_prefix = f'{ocp_domain}/apis/build.openshift.io/v1/namespaces/{namespace}'
@@ -136,7 +136,7 @@ class Build(object):
         self._wait_until_image_available()
 
         imagestream_tag = self._get_image()
-        return imagestream_tag['image']['dockerImageReference']
+        return imagestream_tag['metadata']['name']
 
     def _create_buildconfig(self):
         self.log.info(f'Creating buildconfig {self.name}')
