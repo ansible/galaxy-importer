@@ -89,6 +89,30 @@ objects:
     lookupPolicy:
       local: true
 
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: ansible-test
+    labels:
+      app: automation-hub
+  spec:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ansible-test:latest
+    source:
+      type: Git
+      git:
+        uri: https://github.com/ansible/galaxy-importer.git
+      contextDir: docker/ansible-test
+    strategy:
+      type: Docker
+      dockerStrategy: {}
+
 
 parameters:
 - name: SERVICEACCOUNT_NAMESPACE
