@@ -85,6 +85,9 @@ objects:
     namespace: automation-hub-jobs
     labels:
       app: automation-hub
+  spec:
+    lookupPolicy:
+      local: true
 
 
 parameters:
