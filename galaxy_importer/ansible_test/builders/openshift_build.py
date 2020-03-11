@@ -15,26 +15,7 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import logging
 
-from .local_ansible_test import LocalAnsibleTestRunner
-from .local_image import LocalImageTestRunner
-from .openshift_job import OpenshiftJobTestRunner
-
-
-default_logger = logging.getLogger(__name__)
-
-
-def get_runner(cfg):
-    """Decide which runner class to run ansible-test based on config."""
-
-    if not cfg.run_ansible_test:
-        return None
-
-    if not cfg.infra_pulp:
-        return LocalAnsibleTestRunner
-
-    if cfg.infra_osd:
-        return OpenshiftJobTestRunner
-    else:
-        return LocalImageTestRunner
+"""
+TODO(awcrosby): refactor ../runners/openshift_job.py to move build logic here.
+"""

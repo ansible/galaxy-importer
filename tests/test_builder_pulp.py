@@ -15,8 +15,8 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-from galaxy_importer.ansible_test import container_build
+from galaxy_importer.ansible_test.builders import pulp_build
 
 
 def test_build_image_with_artifact():
-    assert container_build.build_image_with_artifact() == ''
+    assert pulp_build.build_image_with_artifact() == ''
