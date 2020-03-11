@@ -95,7 +95,7 @@ def test_local_run(mocker, caplog):
 
     metadata = SimpleNamespace(
         namespace='test_ns', name='test_name', version='test_version')
-    runner = runners.local.LocalAnsibleTestRunner(metadata=metadata)
+    runner = runners.local_ansible_test.LocalAnsibleTestRunner(metadata=metadata)
     runner.run()
 
     assert len(caplog.records) == 4
@@ -114,7 +114,7 @@ def test_local_run_rc_error(mocker, caplog):
 
     metadata = SimpleNamespace(
         namespace='test_ns', name='test_name', version='test_version')
-    runner = runners.local.LocalAnsibleTestRunner(metadata=metadata)
+    runner = runners.local_ansible_test.LocalAnsibleTestRunner(metadata=metadata)
     runner.run()
 
     assert subprocess.Popen.called
