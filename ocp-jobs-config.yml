@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: ocp-jobs-config
+
+objects:
+
+- apiVersion: v1
+  kind: Role
+  metadata:
+    name: manage-jobs
+    namespace: automation-hub-jobs
+  rules:
+  - apiGroups:
+    - ""
+    attributeRestrictions: null
+    resources:
+    - pods
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+  - apiGroups:
+    - batch
+    attributeRestrictions: null
+    resources:
+    - jobs
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+  - apiGroups:
+    - ""
+    attributeRestrictions: null
+    resources:
+    - pods/log
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - build.openshift.io
+    attributeRestrictions: null
+    resources:
+    - buildconfigs
+    - builds
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+  - apiGroups:
+    - image.openshift.io
+    attributeRestrictions: null
+    resources:
+    - imagestreamtags
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+
+- apiVersion: v1
+  groupNames: null
+  kind: RoleBinding
+  metadata:
+    name: manage-jobs-${SERVICEACCOUNT_NAMESPACE}
+    namespace: automation-hub-jobs
+  roleRef:
+    name: manage-jobs
+    namespace: automation-hub-jobs
+  subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: ${SERVICEACCOUNT_NAMESPACE}
+  userNames:
+  - system:serviceaccount:${SERVICEACCOUNT_NAMESPACE}:default
+
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: ansible-test
+    namespace: automation-hub-jobs
+    labels:
+      app: automation-hub
+  spec:
+    lookupPolicy:
+      local: true
+
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: ansible-test
+    labels:
+      app: automation-hub
+  spec:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ansible-test:latest
+    source:
+      type: Git
+      git:
+        uri: https://github.com/ansible/galaxy-importer.git
+      contextDir: docker/ansible-test
+    strategy:
+      type: Docker
+      dockerStrategy: {}
+
+
+parameters:
+- name: SERVICEACCOUNT_NAMESPACE
+  description: Name of project with serviceaccount to assign rolebindings
+  value: automation-hub-ci
