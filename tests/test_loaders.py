@@ -293,14 +293,16 @@ def test_ansible_lint_exception(mocked_popen, loader_role):
 
 
 def test_find_metadata_file_path(temp_root, loader_role):
-    res = loader_role._find_metadata_file_path(temp_root)
+    root, rel_path = os.path.split(temp_root)
+
+    res = loader_role._find_metadata_file_path(root, rel_path)
     assert res is None
 
     meta_dir = os.path.join(temp_root, 'meta')
     os.mkdir(meta_dir)
     with open(os.path.join(meta_dir, 'main.yml'), 'w'):
         pass
-    res = loader_role._find_metadata_file_path(temp_root)
+    res = loader_role._find_metadata_file_path(root, rel_path)
     assert res == os.path.join(temp_root, 'meta', 'main.yml')
 
 
