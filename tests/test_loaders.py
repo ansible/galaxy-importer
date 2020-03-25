@@ -20,6 +20,7 @@ import os
 import re
 import shutil
 import tempfile
+from types import SimpleNamespace
 from unittest import mock
 
 import attr
@@ -78,6 +79,7 @@ def loader_module():
         content_type=constants.ContentType.MODULE,
         rel_path='plugins/modules/my_module.py',
         root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection',
+        cfg=SimpleNamespace(run_flake8=True),
         doc_strings=json.loads(ANSIBLE_DOC_OUTPUT))
 
 
@@ -87,6 +89,7 @@ def loader_doc_fragment():
         content_type=constants.ContentType.DOC_FRAGMENTS_PLUGIN,
         rel_path='plugins/doc_fragments/my_doc_fragment.py',
         root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection',
+        cfg=SimpleNamespace(run_flake8=False),
         doc_strings=json.loads(ANSIBLE_DOC_OUTPUT))
 
 
@@ -104,6 +107,7 @@ def loader_module_subdirs():
         content_type=constants.ContentType.MODULE,
         rel_path='plugins/modules/subdir1/subdir2/my_module_2.py',
         root='/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection',
+        cfg=SimpleNamespace(run_flake8=False),
         doc_strings=json.loads(ANSIBLE_DOC_OUTPUT))
 
 
@@ -172,14 +176,18 @@ def test_get_fq_name(loader_module):
     assert res == 'my_ns.my_collection.subdir.my_module'
 
 
-def test_plugin_loader_annotated_type(loader_module):
+@mock.patch('galaxy_importer.loaders.Popen')
+def test_plugin_loader_annotated_type(mocked_popen, loader_module):
+    mocked_popen.return_value.stdout = ['my flake8 warning']
     assert loader_module.name == 'my_module'
     res = loader_module.load()
     assert isinstance(res, schema.Content)
     assert isinstance(res.content_type, attr.fields(schema.Content).content_type.type)
 
 
-def test_load(loader_module):
+@mock.patch('galaxy_importer.loaders.Popen')
+def test_load(mocked_popen, loader_module):
+    mocked_popen.return_value.stdout = ''
     assert loader_module.name == 'my_module'
     res = loader_module.load()
     assert isinstance(res, schema.Content)
@@ -213,6 +221,13 @@ def test_load_doc_fragment_no_doc_strings(loader_doc_fragment):
     assert res.doc_strings is None
     assert res.readme_file is None
     assert res.readme_html is None
+
+
+@mock.patch('galaxy_importer.loaders.Popen')
+def test_flake8_output(mocked_popen, loader_module):
+    mocked_popen.return_value.stdout = ['my flake8 warning']
+    res = list(loader_module._run_flake8('.'))
+    assert res[0] == 'my flake8 warning'
 
 
 ANSIBLELINT_TASK_OK = """---

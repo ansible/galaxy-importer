@@ -40,11 +40,14 @@ ANSIBLE_DOC_PLUGIN_MAP = {'module': 'modules'}
 ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
 ANSIBLE_LINT_EXCEPTION_RETURN_CODE = 1
 ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
+FLAKE8_MAX_LINE_LENGTH = 160
+FLAKE8_IGNORE_ERRORS = 'E402'
+FLAKE8_SELECT_ERRORS = 'E,F,W'
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
 
-    def __init__(self, content_type, rel_path, root, doc_strings=None, logger=None):
+    def __init__(self, content_type, rel_path, root, doc_strings=None, cfg=None, logger=None):
         """
         :param content_type: Content type.
         :param rel_path: Path to content file or dir, relative to root path.
@@ -71,6 +74,7 @@ class ContentLoader(metaclass=abc.ABCMeta):
         self.path_name = self._make_path_name(self.rel_path, self.name)
 
         self.doc_strings = doc_strings or {}
+        self.cfg = cfg
         self.log = logger or default_logger
 
     @abc.abstractmethod
@@ -114,6 +118,10 @@ class PluginLoader(ContentLoader):
         self._log_loading()
         doc_strings = self._get_plugin_doc_strings()
 
+        if self.cfg.run_flake8:
+            for line in self._run_flake8(self.rel_path):
+                self.log.warning(line)
+
         return schema.Content(
             name=self.path_name,
             content_type=self.content_type,
@@ -127,6 +135,27 @@ class PluginLoader(ContentLoader):
             return self.doc_strings[self.content_type.value][fq_name]
         except KeyError:
             return None
+
+    def _run_flake8(self, path):
+        self.log.info(f'Linting {self.content_type.value} {self.path_name} via flake8...')
+        cmd = [
+            'flake8', '--exit-zero', '--isolated',
+            '--extend-ignore', FLAKE8_IGNORE_ERRORS,
+            '--select', FLAKE8_SELECT_ERRORS,
+            '--max-line-length', str(FLAKE8_MAX_LINE_LENGTH),
+            '--', self.rel_path,
+        ]
+
+        self.log.debug('CMD: ' + ' '.join(cmd))
+        proc = Popen(
+            cmd,
+            cwd=self.root,
+            encoding='utf-8',
+            stdout=PIPE,
+        )
+
+        for line in proc.stdout:
+            yield line.strip()
 
     @staticmethod
     def _make_name(rel_path):

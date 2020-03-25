@@ -59,7 +59,7 @@ def _import_collection(file, filename, logger, cfg):
         extract_dir = os.path.join(tmp_dir, sub_path)
         with tarfile.open(fileobj=file, mode='r') as pkg_tar:
             pkg_tar.extractall(extract_dir)
-        data = CollectionLoader(extract_dir, filename, logger=logger).load()
+        data = CollectionLoader(extract_dir, filename, cfg=cfg, logger=logger).load()
         logger.info('Collection validation and loading complete')
 
         ansible_test_runner = runners.get_runner(cfg=cfg)
@@ -80,10 +80,11 @@ def _import_collection(file, filename, logger, cfg):
 class CollectionLoader(object):
     """Loads collection and content info."""
 
-    def __init__(self, path, filename, logger=None):
+    def __init__(self, path, filename, cfg=None, logger=None):
         self.log = logger or default_logger
         self.path = path
         self.filename = filename
+        self.cfg = cfg
 
         self.content_objs = None
         self.metadata = None
@@ -154,7 +155,8 @@ class CollectionLoader(object):
         found_contents = ContentFinder().find_contents(self.path, self.log)
         for content_type, rel_path in found_contents:
             loader_cls = loaders.get_loader_cls(content_type)
-            loader = loader_cls(content_type, rel_path, self.path, self.doc_strings, self.log)
+            loader = loader_cls(
+                content_type, rel_path, self.path, self.doc_strings, self.cfg, self.log)
             content_obj = loader.load()
 
             yield content_obj
