@@ -32,6 +32,7 @@ class Config(object):
 
     DEFAULTS = {
         'log_level_main': 'INFO',
+        'run_flake8': False,
         'run_ansible_test': False,
         'infra_pulp': False,
         'infra_osd': False,
