@@ -304,7 +304,7 @@ class RoleLoader(ContentLoader):
 
     def _get_metadata_description(self):
         description = None
-        meta_path = self._find_metadata_file_path(self.rel_path)
+        meta_path = self._find_metadata_file_path(self.root, self.rel_path)
 
         if not meta_path:
             self.log.warning('Could not get role description, no role metadata found')
@@ -322,10 +322,10 @@ class RoleLoader(ContentLoader):
         return description
 
     @staticmethod
-    def _find_metadata_file_path(rel_path):
+    def _find_metadata_file_path(root, rel_path):
         """Gets path to role metadata file."""
         for file in ROLE_META_FILES:
-            meta_path = os.path.join(rel_path, file)
+            meta_path = os.path.join(root, rel_path, file)
             if os.path.exists(meta_path):
                 return meta_path
         return None
