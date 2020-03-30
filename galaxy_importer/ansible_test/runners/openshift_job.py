@@ -281,7 +281,11 @@ class Job(object):
         params = {'labelSelector': f'job-name={self.name}'}
         r = requests.get(
             self.pods_url, headers=self.auth_header, params=params, verify=self.ca_path)
-        return r.json()['items']
+        try:
+            pods = r.json()['items']
+        except KeyError:
+            raise exceptions.AnsibleTestError('Could not access pod assocated with job')
+        return pods
 
     @staticmethod
     def get_pod_name(pod):
@@ -302,10 +306,18 @@ class Job(object):
 
     def cleanup(self):
         """Deletes job and any pods associated to it."""
-        pod_names = [self.get_pod_name(pod) for pod in self.get_pods()]
         requests.delete(self.job_name_url, headers=self.auth_header, verify=self.ca_path)
         self.log.debug(f'Deleted job {self.name}')
-        for pod_name in pod_names:
+
+        for pod in self.get_pods():
+            pod_name = self.get_pod_name(pod)
             requests.delete(
                 f'{self.pods_url}/{pod_name}', headers=self.auth_header, verify=self.ca_path)
             self.log.debug(f'Deleted pod {pod_name}')
+
+            status = pod['status']['phase']
+            if status == 'Succeeded':
+                return
+            reason = pod['status']['containerStatuses'][0]['state']['terminated']['reason']
+            raise exceptions.AnsibleTestError(
+                f'Pod terminated with status: "{status}" and reason: "{reason}"')
