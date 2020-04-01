@@ -283,7 +283,7 @@ class Job(object):
             self.pods_url, headers=self.auth_header, params=params, verify=self.ca_path)
         try:
             pods = r.json()['items']
-        except KeyError:
+        except (KeyError, ValueError):
             raise exceptions.AnsibleTestError('Could not access pod assocated with job')
         return pods
 
