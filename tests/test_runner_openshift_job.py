@@ -116,8 +116,16 @@ def test_job_wait_on_pod_ready(mocker, job):
 
 def test_job_get_pods(mocker, job):
     mocker.patch.object(requests, 'get')
-    requests.get.json.return_value = {}
+    requests.get.return_value.json.return_value = {'items': []}
     job.get_pods()
+    assert requests.get.called
+
+
+def test_job_get_pods_fail(mocker, job):
+    mocker.patch.object(requests, 'get')
+    requests.get.return_value.json.return_value = {}
+    with pytest.raises(exc.AnsibleTestError, match=r'Could not access pod assocated with job'):
+        job.get_pods()
     assert requests.get.called
 
 
@@ -138,8 +146,31 @@ def test_job_get_logs(mocker, job):
 def test_job_cleanup(mocker, job):
     mocker.patch.object(openshift_job.Job, 'get_pods')
     mocker.patch.object(requests, 'delete')
-    openshift_job.Job.get_pods.return_value = [{'metadata': {'name': 'my_pod_name'}}]
+    openshift_job.Job.get_pods.return_value = [{
+        'metadata': {'name': 'my_pod_name'},
+        'status': {'phase': 'Succeeded'},
+    }]
     job.cleanup()
+    assert requests.delete.called
+
+
+def test_job_cleanup_fail(mocker, job):
+    mocker.patch.object(openshift_job.Job, 'get_pods')
+    mocker.patch.object(requests, 'delete')
+    openshift_job.Job.get_pods.return_value = [{
+        'metadata': {'name': 'my_pod_name'},
+        'status': {
+            'phase': 'Failed',
+            'containerStatuses': [
+                {'state': {'terminated': {'reason': 'internal_error_123'}}}
+            ]
+        },
+    }]
+    with pytest.raises(
+        exc.AnsibleTestError,
+        match=r'Pod terminated with status: "Failed" and reason: "internal_error_123"'
+    ):
+        job.cleanup()
     assert requests.delete.called
 
 

@@ -14,8 +14,11 @@ spec:
       - name: {job_name}
         image: {image}
         resources:
-          limits:
+          requests:
             cpu: 500m
             memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 1Gi
       restartPolicy: Never
       imagePullPolicy: IfNotPresent
