@@ -40,3 +40,9 @@ RUN_ANSIBLE_TEST = False
 INFRA_PULP = False
 INFRA_OSD = False
 ```
+
+### Issues and Process
+
+Issues can be reported in the [galaxy_ng](https://github.com/ansible/galaxy_ng) repository
+
+Process details for `galaxy-importer`: [PROCESS.md](https://github.com/ansible/galaxy-importer/blob/master/PROCESS.md)
