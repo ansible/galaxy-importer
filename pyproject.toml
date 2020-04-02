@@ -1,0 +1,5 @@
+[tool.towncrier]
+    package = "galaxy_importer"
+    directory = "CHANGES/"
+    filename = "CHANGELOG.rst"
+    issue_format = "`#{issue} <https://github.com/ansible/galaxy-importer/pull/{issue}>`_"
