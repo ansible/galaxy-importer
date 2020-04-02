@@ -8,15 +8,16 @@ Notes about the process surrounding the `galaxy-importer` package, which is a de
 #### Issues and pull requests
 
 * Issues for enhancements or fixes are located on [galaxy_ng](https://github.com/ansible/galaxy_ng)
-* Pull Requests in `galaxy-importer` should include: 
-  * Changelog addition
-  * Label for release: `release/x.x.x`
+* Pull Requests in `galaxy-importer` should include a changelog file inside `CHANGES/` and a label for release: `release/x.x.x`
+* Changelog filename should be the number of the PR, and the extension of `.feature`, `.bugfix`, `.doc`, `.removal`, or `.misc` - see [towncrier](https://github.com/hawkowl/towncrier#news-fragments) for descriptions of each extension. Example: `CHANGES/56.feature`. File contents should be a one line description of the change.
 
 #### Release steps
 
 * Test `master` branch against `pulp-ansible` functional tests inside `galaxy_ng` development environment
-* Create changelog / release notes
-* Release to pypi
+* Run `$ towncrier` to update `CHANGELOG.rst`
+* Commit updated version `galaxy_importer/__init__.py` and updated `CHANGELOG.rst`
+* Tag the commit with same version number
+* Publish to PyPi
 
 #### Testing in other systems
 
