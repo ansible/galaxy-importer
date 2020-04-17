@@ -16,9 +16,10 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import enum
+import os
 import re
 
-
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 MAX_TAGS_COUNT = 20
 NAME_REGEXP = re.compile(r'^(?!.*__)[a-z]+[0-9a-z_]*$')
 CONTENT_NAME_REGEXP = re.compile(r'^(?!.*__)[a-z_]+[0-9a-z_]*$')
