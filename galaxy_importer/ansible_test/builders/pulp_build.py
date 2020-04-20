@@ -75,7 +75,7 @@ class Build(object):
             f.truncate()
             f.writelines(content)
 
-    def build_image(self):
+    def build(self):
         self.log.info('Creating ContainerRepository')
         self.container_repository_href = self._get_container_repository_href()
 
@@ -89,9 +89,14 @@ class Build(object):
             self.collection_file)
         self.log.info(f'Collection Artifact: {self.collection_artifact_href}')
 
-        return self._get_image_href()
+        self._build_image()
 
-    def _get_image_href(self):
+        self.log.info('Creating ContainerDistribution')
+        self.container_distribution_href = self._get_container_distribution_href()
+
+        return f'{self.api_url}{self.container_distribution_href}'
+
+    def _build_image(self):
         self.log.info(
             f'Building image with {self.pulp_artifact_file.name} embedded.')
         artifacts = json.dumps(
@@ -111,7 +116,6 @@ class Build(object):
             self.cleanup()
             raise exceptions.AnsibleTestError(
                 f'Could not build Image: {r.status_code} {r.reason} {r.text}')
-        self.log.info(f'status_code: {r.status_code}')
         return self._wait_for_image_build(r.json()['task'])
 
     def _wait_for_image_build(self, task_href):
@@ -119,7 +123,7 @@ class Build(object):
             r = requests.get(
                 url=f'{self.api_url}{task_href}',
                 auth=self.basic_auth)
-            self.log.info(f'request json: {r.json()}')
+            self.log.info('building image...')
             status = r.json()['state']
             if status == 'failed' or status == 'canceled':
                 self.cleanup()
@@ -127,10 +131,8 @@ class Build(object):
                     f'Could not create image: \
                         {r.status_code} {r.reason} {r.text}')
             elif status == 'completed':
-                self.log.info(f'completed: {r.json()}')
-                new_repo_version = f"{self.api_url}{r.json()['created_resources'][0]}"
-                self.log.info(r.json())
-                return new_repo_version
+                self.log.info('Image successfully built')
+                break
             time.sleep(API_CHECK_DELAY_SECONDS)
 
     def _get_artifact_href(self, f):
@@ -160,10 +162,45 @@ class Build(object):
                     {r.status_code} {r.reason} {r.text}')
         return r.json()['pulp_href']
 
+    def _get_container_distribution_href(self):
+        r = requests.post(
+            url=f'{self.api_url}/pulp/api/v3/distributions/container/container/',
+            auth=self.basic_auth,
+            json={
+                'name': f'ansible_test_dist_name_{str(uuid.uuid4())}',
+                'base_path': f'ansible-test_base_path_{str(uuid.uuid4())}',
+                'repository': self.container_repository_href
+            }
+        )
+        if r.status_code != 202:
+            raise exceptions.AnsibleTestError(
+                f'Could not create ContainerDistribution: \
+                    {r.status_code} {r.reason} {r.text}')
+        else:
+            return self._wait_for_dist_build(r.json()['task'])
+
+    def _wait_for_dist_build(self, task_href):
+        for i in range(API_CHECK_RETRIES):
+            r = requests.get(
+                url=f'{self.api_url}{task_href}',
+                auth=self.basic_auth)
+            self.log.info(f'building distribution...')
+            status = r.json()['state']
+            if status == 'failed' or status == 'canceled':
+                self.cleanup()
+                raise exceptions.AnsibleTestError(
+                    f'Could not create ContainerDistribution: \
+                        {r.status_code} {r.reason} {r.text}')
+            elif status == 'completed':
+                self.log.info(f'Distribution successfully built:\n {r.json()}')
+                return f"{r.json()['created_resources'][0]}"
+            time.sleep(API_CHECK_DELAY_SECONDS)
+
     def cleanup(self):
         """Clean up temporary data structures"""
         self.log.info('Removing temporary data structures')
         self._delete_container_repository(self.container_repository_href)
+        self._delete_container_distribution(self.container_distribution_href)
         self._delete_artifact(self.dockerfile_artifact_href)
         self._delete_artifact(self.collection_artifact_href)
         # os.remove(self.dockerfile)
@@ -171,18 +208,29 @@ class Build(object):
 
     def _delete_container_repository(self, repository_href):
         """Delete the supplied ContainerRepository."""
-        self.log.info('Deleting ContainerRepository')
+        self.log.debug('Deleting ContainerRepository')
         r = requests.delete(
             f'{self.api_url}{repository_href}',
             auth=self.basic_auth)
-        if r.status_code != 202:
+        if r.status_code != 202:  # returns task
             raise exceptions.AnsibleTestError(
                 f'Could not delete ContainerRepository: \
                     {r.status_code} {r.reason} {r.text}')
 
+    def _delete_container_distribution(self, distribution_href):
+        """Delete the supplied ContainerDistribution."""
+        self.log.debug('Deleting ContainerDistribution')
+        r = requests.delete(
+            f'{self.api_url}{distribution_href}',
+            auth=self.basic_auth)
+        if r.status_code != 202:  # returns task
+            raise exceptions.AnsibleTestError(
+                f'Could not delete ContainerDistribution: \
+                    {r.status_code} {r.reason} {r.text}')
+
     def _delete_artifact(self, artifact_href):
         """Delete the supplied Artifact"""
-        self.log.info(f'Deleting Dockerfile Artifact')
+        self.log.debug(f'Deleting Dockerfile Artifact')
         r = requests.delete(
             f'{self.api_url}{artifact_href}',
             auth=self.basic_auth)

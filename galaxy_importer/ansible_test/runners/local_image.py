@@ -16,6 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import logging
+import subprocess
 
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 from galaxy_importer.ansible_test.builders.pulp_build import Build
@@ -31,17 +32,40 @@ class LocalImageTestRunner(BaseTestRunner):
                 pulp_artifact_file=self.file,
                 logger=self.log,
         )
-        # pulp_container_build._delete_artifact('')
-        # pulp_container_build._delete_artifact('')
 
         # Build OCI ansible-test image and retrieve link to it
         self.log.info('Acquiring ansible-test image link')
-        image_href = pulp_container_build.build_image()
-        self.log.info(f'image_href: {image_href}')
+        distribution_href = pulp_container_build.build()
+        self.log.info(f'distribution_href: {distribution_href}')
 
         # Run ansible-test image via Podman
+        # self.pull_image(image_href)
 
         # Capture ansible-test output via logging
 
         # Cleanup ContainerRepository, Artifacts, Dockerfile and Image
         pulp_container_build.cleanup()
+
+    def pull_image(self, distribution_href):
+        distribution = distribution_href.lstrip('http://')
+        cmd = [
+            'podman', 'pull',
+            distribution,
+        ]
+        self.log.info(cmd)
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding='utf-8',
+        )
+        return_code = proc.wait()
+        if return_code != 0:
+            self.log.error(
+                'An exception occurred in {}, returncode={}, collection={}'
+                    .format(' '.join(cmd),
+                            return_code,
+                            self.pulp_artifact_file.name))
+
+    def run_image():
+        pass
