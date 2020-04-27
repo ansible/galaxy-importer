@@ -74,8 +74,8 @@ class OpenshiftJobTestRunner(BaseTestRunner):
                 continue
             self.log.info(line)
 
-        job.cleanup()
         openshift_build.cleanup()
+        job.cleanup()
 
     @staticmethod
     def _get_token():
@@ -262,7 +262,7 @@ class Job(object):
 
         if len(pods) < 1:
             self.cleanup()
-            raise exceptions.AnsibleTestError('Could not create pod assocated with job')
+            raise exceptions.AnsibleTestError('Could not create pod associated with job')
 
         self.log.info('Scheduling pod and waiting until it is running...')
         for i in range(API_CHECK_RETRIES):
@@ -274,7 +274,7 @@ class Job(object):
 
         self.log.debug(pods[0]['status'])
         self.cleanup()
-        raise exceptions.AnsibleTestError('Could not start pod assocated with job')
+        raise exceptions.AnsibleTestError('Could not start pod associated with job')
 
     def get_pods(self):
         """Get pods associated with job."""
@@ -316,8 +316,7 @@ class Job(object):
             self.log.debug(f'Deleted pod {pod_name}')
 
             status = pod['status']['phase']
-            if status == 'Succeeded':
-                return
-            reason = pod['status']['containerStatuses'][0]['state']['terminated']['reason']
-            raise exceptions.AnsibleTestError(
-                f'Pod terminated with status: "{status}" and reason: "{reason}"')
+            if status == 'Failed':
+                reason = pod['status']['containerStatuses'][0]['state']['terminated']['reason']
+                raise exceptions.AnsibleTestError(
+                    f'Pod terminated with status: "{status}" and reason: "{reason}"')
