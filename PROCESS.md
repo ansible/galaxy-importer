@@ -14,8 +14,8 @@ Notes about the process surrounding the `galaxy-importer` package, which is a de
 #### Release steps
 
 * Test `master` branch against `pulp-ansible` functional tests inside `galaxy_ng` development environment
-* Run `$ towncrier` to update `CHANGELOG.rst`
-* Commit updated version `galaxy_importer/__init__.py` and updated `CHANGELOG.rst`
+* Run `$ towncrier` to update `CHANGES.rst`
+* Commit updated version `galaxy_importer/__init__.py` and updated `CHANGES.rst`
 * Tag the commit with same version number
 * Publish to PyPi
 
