@@ -1,3 +1,18 @@
+galaxy-importer 0.2.1 (2020-05-04)
+==================================
+
+Bugfixes
+--------
+
+- Fix openshift container import fails on checking sanity container status (`#130 <https://github.com/ansible/galaxy_ng/issues/130>`_)
+
+
+Misc
+----
+
+- `#132 <https://github.com/ansible/galaxy_ng/issues/132>`_
+
+
 galaxy-importer 0.2.0 (2020-04-02)
 ==================================
 
