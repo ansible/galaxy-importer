@@ -36,8 +36,8 @@ API_CHECK_DELAY_SECONDS = 1
 
 class Build(object):
     """Use pulp-container to build ansible-test image with artifact inside."""
-    def __init__(self, pulp_artifact_file, logger):
-        self.api_url = 'http://localhost:8080'
+    def __init__(self, pulp_artifact_file, api_url, logger):
+        self.api_url = api_url
         self.basic_auth = ('admin', 'admin')
         self.pulp_artifact_file = pulp_artifact_file
         self.shared_dockerfile = os.path.join(
@@ -49,27 +49,30 @@ class Build(object):
         self.collection_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             'archive.tar.gz')
+        self.registry_base_path = 'galaxy-importer'
+        self.registry_name = 'archive-test'
         self.log = logger or default_logger
         self.setup_dockerfile()
 
     def setup_dockerfile(self):
-        # Make a copy of shared Dockerfile
-        # copyfile(
-        #     self.shared_dockerfile,
-        #     self.dockerfile)
+        # Make a copy of Dockerfile
+        copyfile(
+            self.shared_dockerfile,
+            self.dockerfile)
 
         # Update Dockerfile to download and copy Collection into the image.
         with open(self.dockerfile, 'r+') as f:
+            # archive_url = self._get_pulp_archive_url(self.pulp_artifact_file)
             content = f.readlines()
             for index, line in enumerate(content):
                 if 'apt-get install -y wget' in line:
                     content.insert(
                         index - 2,
                         "\nCOPY archive.tar.gz /archive/archive.tar.gz\n")
-                    # ^ local dev only
+                    # ^ local dev only this line
                     # content.insert(
                     #   index + 1,
-                    #   f'    && wget -O archive.tar.gz {self._get_pulp_archive_url(pulp_artifact_file)} \\\n')
+                    #   f'    && wget -O /archive/archive.tar.gz {archive_url} \\\n')
                     break
             f.seek(0)
             f.truncate()
@@ -89,15 +92,18 @@ class Build(object):
             self.collection_file)
         self.log.info(f'Collection Artifact: {self.collection_artifact_href}')
 
-        self._build_image()
-
         self.log.info('Creating ContainerDistribution')
         self.container_distribution_href = self._get_container_distribution_href()
+        self.log.info(f'dist href: = {self.container_distribution_href}')
 
-        return f'{self.api_url}{self.container_distribution_href}'
+        self._build_image()
+
+    def get_registry_href(self):
+        self.log.info('Retrieving Registry href')
+        return self._get_registry_href()
 
     def _build_image(self):
-        self.log.info(
+        self.log.debug(
             f'Building image with {self.pulp_artifact_file.name} embedded.')
         artifacts = json.dumps(
             {f'{self.collection_artifact_href}': 'archive.tar.gz'})
@@ -123,7 +129,7 @@ class Build(object):
             r = requests.get(
                 url=f'{self.api_url}{task_href}',
                 auth=self.basic_auth)
-            self.log.info('building image...')
+            self.log.info('Building image...')
             status = r.json()['state']
             if status == 'failed' or status == 'canceled':
                 self.cleanup()
@@ -132,6 +138,7 @@ class Build(object):
                         {r.status_code} {r.reason} {r.text}')
             elif status == 'completed':
                 self.log.info('Image successfully built')
+                self.log.info(f"Image: {r.json()['created_resources'][0]}")
                 break
             time.sleep(API_CHECK_DELAY_SECONDS)
 
@@ -150,11 +157,10 @@ class Build(object):
 
     def _get_container_repository_href(self):
         """Create a Pulp ContainerRepository and return the href to it."""
-        repo_name = f'ansible_test_repo_{str(uuid.uuid4())}'
         r = requests.post(
             url=f'{self.api_url}/pulp/api/v3/repositories/container/container/',
             auth=self.basic_auth,
-            json={'name': repo_name}
+            json={'name': f'ansible_test_repo_{str(uuid.uuid4())}'}
         )
         if r.status_code != 201:
             raise exceptions.AnsibleTestError(
@@ -163,28 +169,29 @@ class Build(object):
         return r.json()['pulp_href']
 
     def _get_container_distribution_href(self):
+        pulp_url = '/pulp/api/v3/distributions/container/container/'
         r = requests.post(
-            url=f'{self.api_url}/pulp/api/v3/distributions/container/container/',
+            url=f'{self.api_url}{pulp_url}',
             auth=self.basic_auth,
             json={
-                'name': f'ansible_test_dist_name_{str(uuid.uuid4())}',
-                'base_path': f'ansible-test_base_path_{str(uuid.uuid4())}',
+                'name': self.registry_name,
+                'base_path': self.registry_base_path,
                 'repository': self.container_repository_href
             }
         )
-        if r.status_code != 202:
+        if r.status_code == 202:
+            return self._wait_for_dist_build(r.json()['task'])
+        else:
             raise exceptions.AnsibleTestError(
                 f'Could not create ContainerDistribution: \
                     {r.status_code} {r.reason} {r.text}')
-        else:
-            return self._wait_for_dist_build(r.json()['task'])
 
     def _wait_for_dist_build(self, task_href):
         for i in range(API_CHECK_RETRIES):
             r = requests.get(
                 url=f'{self.api_url}{task_href}',
                 auth=self.basic_auth)
-            self.log.info(f'building distribution...')
+            self.log.debug(f'building distribution...')
             status = r.json()['state']
             if status == 'failed' or status == 'canceled':
                 self.cleanup()
@@ -192,9 +199,22 @@ class Build(object):
                     f'Could not create ContainerDistribution: \
                         {r.status_code} {r.reason} {r.text}')
             elif status == 'completed':
-                self.log.info(f'Distribution successfully built:\n {r.json()}')
-                return f"{r.json()['created_resources'][0]}"
+                self.log.debug(f'Distribution successfully built:\n {r.json()}')
+                return r.json()['created_resources'][0]
             time.sleep(API_CHECK_DELAY_SECONDS)
+
+    def _get_registry_href(self):
+        r = requests.get(
+            url=f'{self.api_url}{self.container_distribution_href}',
+            auth=self.basic_auth,
+        )
+        if r.status_code == 200:
+            self.log.debug(f'distribution: {r.json()}')
+            return r.json()['registry_path']
+        else:
+            raise exceptions.AnsibleTestError(
+                f'Could not retrieve Registry href: \
+                    {r.status_code} {r.reason} {r.text}')
 
     def cleanup(self):
         """Clean up temporary data structures"""
@@ -203,7 +223,7 @@ class Build(object):
         self._delete_container_distribution(self.container_distribution_href)
         self._delete_artifact(self.dockerfile_artifact_href)
         self._delete_artifact(self.collection_artifact_href)
-        # os.remove(self.dockerfile)
+        os.remove(self.dockerfile)
         # os.remove(self.collection_file)
 
     def _delete_container_repository(self, repository_href):
@@ -212,7 +232,7 @@ class Build(object):
         r = requests.delete(
             f'{self.api_url}{repository_href}',
             auth=self.basic_auth)
-        if r.status_code != 202:  # returns task
+        if r.status_code != 202:
             raise exceptions.AnsibleTestError(
                 f'Could not delete ContainerRepository: \
                     {r.status_code} {r.reason} {r.text}')
@@ -223,7 +243,7 @@ class Build(object):
         r = requests.delete(
             f'{self.api_url}{distribution_href}',
             auth=self.basic_auth)
-        if r.status_code != 202:  # returns task
+        if r.status_code != 202:
             raise exceptions.AnsibleTestError(
                 f'Could not delete ContainerDistribution: \
                     {r.status_code} {r.reason} {r.text}')

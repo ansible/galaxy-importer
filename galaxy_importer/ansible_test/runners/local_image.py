@@ -16,10 +16,13 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import logging
+import tarfile
+import os
 import subprocess
 
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 from galaxy_importer.ansible_test.builders.pulp_build import Build
+from galaxy_importer.ansible_test.builders.pulp import PulpServer
 
 default_logger = logging.getLogger(__name__)
 
@@ -28,30 +31,37 @@ class LocalImageTestRunner(BaseTestRunner):
     """Run image locally with docker or podman."""
     def run(self):
         self.log.info('Preparing pulp-container build environment')
+        pulp = PulpServer(logger=self.log)
+        pulp.start()
+
         pulp_container_build = Build(
-                pulp_artifact_file=self.file,
-                logger=self.log,
+            api_url=pulp.get_api_url(),
+            pulp_artifact_file=self.file,
+            logger=self.log,
         )
 
         # Build OCI ansible-test image and retrieve link to it
-        self.log.info('Acquiring ansible-test image link')
-        distribution_href = pulp_container_build.build()
-        self.log.info(f'distribution_href: {distribution_href}')
+        self.log.info('Building ansible-test image..')
+        pulp_container_build.build()
+
+        self.log.info('Retrieving Pulp Registry address..')
+        registry_href = pulp_container_build.get_registry_href()
+        self.log.info(f'registry_href: {registry_href}')
 
         # Run ansible-test image via Podman
-        # self.pull_image(image_href)
+        self.pull_image(registry_href)
 
-        # Capture ansible-test output via logging
+        # Capture ansible-test output
 
         # Cleanup ContainerRepository, Artifacts, Dockerfile and Image
         pulp_container_build.cleanup()
+        pulp.cleanup()
 
-    def pull_image(self, distribution_href):
-        distribution = distribution_href.lstrip('http://')
-        cmd = [
-            'podman', 'pull',
-            distribution,
-        ]
+    # TODO add registry to /etc/containers/registries.conf
+
+    def pull_image(self, registry_href):
+        registry = registry_href.lstrip('http://')
+        cmd = ['podman', 'pull', '--tls-verify=false', registry]
         self.log.info(cmd)
         proc = subprocess.Popen(
             cmd,
@@ -60,12 +70,13 @@ class LocalImageTestRunner(BaseTestRunner):
             encoding='utf-8',
         )
         return_code = proc.wait()
-        if return_code != 0:
+        if return_code == 0:
+            self.run_image()
+        else:
             self.log.error(
-                'An exception occurred in {}, returncode={}, collection={}'
+                'An exception occurred in {}, returncode={}'
                     .format(' '.join(cmd),
-                            return_code,
-                            self.pulp_artifact_file.name))
+                            return_code))
 
     def run_image():
         pass
