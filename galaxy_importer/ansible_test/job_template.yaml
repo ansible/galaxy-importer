@@ -15,10 +15,10 @@ spec:
         image: {image}
         resources:
           requests:
-            cpu: 500m
-            memory: 512Mi
+            cpu: {cpu_request}
+            memory: {memory_request}
           limits:
-            cpu: 1
-            memory: 1Gi
+            cpu: {cpu_limit}
+            memory: {memory_limit}
       restartPolicy: Never
       imagePullPolicy: IfNotPresent
