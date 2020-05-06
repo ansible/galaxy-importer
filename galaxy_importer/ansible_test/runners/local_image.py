@@ -16,8 +16,6 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import logging
-import tarfile
-import os
 import subprocess
 
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
@@ -62,7 +60,6 @@ class LocalImageTestRunner(BaseTestRunner):
     def pull_image(self, registry_href):
         registry = registry_href.lstrip('http://')
         cmd = ['podman', 'pull', '--tls-verify=false', registry]
-        self.log.info(cmd)
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -78,5 +75,25 @@ class LocalImageTestRunner(BaseTestRunner):
                     .format(' '.join(cmd),
                             return_code))
 
-    def run_image():
-        pass
+    def run_image(self):
+        cmd = [
+            'podman', 'run',
+            '-a=stdout',
+            '--name=ansible-test'
+        ]
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding='utf-8',
+        )
+
+        for line in proc.stdout:
+            self.log.info(line.strip())
+
+        return_code = proc.wait()
+        if return_code != 0:
+            self.log.error(
+                'An exception occurred in {}, returncode={}'
+                    .format(' '.join(cmd),
+                            return_code))
