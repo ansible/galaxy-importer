@@ -18,6 +18,7 @@
 import logging
 import os
 import pexpect
+import requests
 import socket
 import subprocess
 import time
@@ -124,8 +125,7 @@ class PulpServer(object):
                     .format(' '.join(cmd), return_code))
 
     def _update_admin_account(self):
-        # TODO Remove magic number, poll base Pulp url to determine readiness?
-        time.sleep(10)
+        self._server_ready()
         try:
             p = pexpect.spawn(
                 'podman exec -it pulp bash -c \'pulpcore-manager reset-admin-password\'')
@@ -142,6 +142,16 @@ class PulpServer(object):
                 pexpect.EOF])
         except pexpect.exceptions.ExceptionPexpect:
             self.cleanup()
+
+    def _server_ready(self):
+        for i in range(API_CHECK_RETRIES):
+            try:
+                r = requests.get(f'{self.content_url}/v2/')
+            except requests.exceptions.ConnectionError:
+                continue
+            if r.status_code == 200:
+                break
+            time.sleep(API_CHECK_DELAY_SECONDS)
 
     def _stop_pulp(self):
         # TODO Refactor shell=True to standard Popen call
