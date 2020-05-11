@@ -169,9 +169,9 @@ class PulpServer(object):
     def _remove_pulp_data(self):
         try:
             p = pexpect.spawn("buildah unshare", encoding='utf-8')
-            p.expect(['[*#\$] ', pexpect.EOF])
+            p.expect([r'[*#\$] ', pexpect.EOF])
             p.sendline('rm -rf /tmp/pulp\r\n')
-            p.expect(['[*#\$] ', pexpect.EOF])
+            p.expect([r'[*#\$] ', pexpect.EOF])
         except pexpect.exceptions.ExceptionPexpect:
             self.cleanup()
 

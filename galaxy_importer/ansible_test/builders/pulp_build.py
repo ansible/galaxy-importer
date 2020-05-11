@@ -19,6 +19,7 @@ import json
 import logging
 import os
 import requests
+import subprocess
 import time
 import uuid
 
@@ -199,7 +200,7 @@ class Build(object):
                     f'Could not create ContainerDistribution: \
                         {r.status_code} {r.reason} {r.text}')
             elif status == 'completed':
-                self.log.debug(f'Distribution successfully built:\n {r.json()}')
+                self.log.debug(f'Distribution:\n {r.json()}')
                 return r.json()['created_resources'][0]
             time.sleep(API_CHECK_DELAY_SECONDS)
 
@@ -210,11 +211,48 @@ class Build(object):
         )
         if r.status_code == 200:
             self.log.debug(f'distribution: {r.json()}')
+            self._add_registry_to_conf(r.json()['registry_path'])
             return r.json()['registry_path']
         else:
             raise exceptions.AnsibleTestError(
                 f'Could not retrieve Registry href: \
                     {r.status_code} {r.reason} {r.text}')
+
+    def _add_registry_to_conf(self, registry_href):
+        reg_file = f'/home/{os.getlogin()}/.config/containers/registries.conf'
+        if not os.path.exists(reg_file):
+            path = f'home/{os.getlogin()}/.config/containers'.split('/')
+            for index, item in enumerate(path):
+                current_path = Build._get_current_path(index, path)
+                if not os.path.exists(current_path):
+                    subprocess.run(['mkdir', f'{current_path}'])
+                else:
+                    continue
+            subprocess.run(['touch', f'{reg_file}'])
+
+        with open(reg_file, 'r+') as f:
+            if os.stat(reg_file).st_size == 0:
+                c = '[registries.insecure]\n'
+                c = c + f'registries = ["{registry_href}"]'
+            else:
+                c = f.readlines()
+                for index, line in enumerate(c):
+                    if 'registries = [' in line and registry_href not in line:
+                        c[index] = line.replace(
+                            'registries = [',
+                            f"registries = ['{registry_href}', ")
+            f.seek(0)
+            f.truncate()
+            f.writelines(c)
+
+    @staticmethod
+    def _get_current_path(index, path):
+        d = ''
+        i = 0
+        while i <= index:
+            d = d + f'/{path[i]}'
+            i = i + 1
+        return d
 
     def cleanup(self):
         """Clean up temporary data structures"""
