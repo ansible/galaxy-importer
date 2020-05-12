@@ -232,6 +232,10 @@ class Job(object):
         self.job_yaml = job_template.format(
             job_name=self.name,
             image=image,
+            memory_request=os.environ.get('IMPORTER_MEMORY_REQUEST', '256Mi'),
+            memory_limit=os.environ.get('IMPORTER_MEMORY_LIMIT', '1Gi'),
+            cpu_request=os.environ.get('IMPORTER_CPU_REQUEST', '500m'),
+            cpu_limit=os.environ.get('IMPORTER_CPU_LIMIT', '500m'),
         )
         self.log = logger or default_logger
 
