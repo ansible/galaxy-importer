@@ -156,7 +156,7 @@ class Build(object):
         r = requests.get(
             self.build_url, headers=self.auth_header, params=params, verify=self.ca_path)
         if r.status_code != requests.codes.ok:
-            raise exceptions.AnsibleTestError(f'Could not access builds')
+            raise exceptions.AnsibleTestError('Could not access builds')
         return r.json()
 
     def _get_image(self):
