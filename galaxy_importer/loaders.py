@@ -235,19 +235,27 @@ class DocStringLoader():
     def _process_doc_strings(self, doc_strings):
         processed_doc_strings = {}
         for plugin_key, value in doc_strings.items():
-            processed_doc_strings[plugin_key] = self._transform_doc_strings(value)
+            processed_doc_strings[plugin_key] = self._transform_doc_strings(value, self.log)
         return processed_doc_strings
 
     @staticmethod
-    def _transform_doc_strings(data):
+    def _transform_doc_strings(data, logger=default_logger):
         """Transform data meant for UI tables into format suitable for UI."""
 
         def dict_to_named_list(dict_of_dict):
             """Return new list of dicts for given dict of dicts."""
-            return [
-                {'name': key, **deepcopy(dict_of_dict[key])} for
-                key in dict_of_dict.keys()
-            ]
+            try:
+                return [
+                    {'name': key, **deepcopy(dict_of_dict[key])} for
+                    key in dict_of_dict.keys()
+                ]
+            except TypeError:
+                logger.warning(f'Expected this to be a dictionary of dictionaries: {dict_of_dict}')
+                return [
+                    {'name': key, **deepcopy(dict_of_dict[key])} for
+                    key in dict_of_dict.keys()
+                    if isinstance(key, dict)
+                ]
 
         def handle_nested_tables(obj, table_key):
             """Recurse over dict to replace nested tables with updated format."""
