@@ -1,3 +1,12 @@
+galaxy-importer 0.2.2 (2020-05-12)
+==================================
+
+Bugfixes
+--------
+
+- Parameterize openshift container sizing to fix scheduling issues (`#122 <https://github.com/ansible/galaxy_ng/issues/122>`_)
+
+
 galaxy-importer 0.2.1 (2020-05-04)
 ==================================
 
