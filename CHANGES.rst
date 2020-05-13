@@ -1,3 +1,12 @@
+galaxy-importer 0.2.3 (2020-05-13)
+==================================
+
+Bugfixes
+--------
+
+- Fix traceback and improve output on unexpected docstring format (`#159 <https://github.com/ansible/galaxy_ng/issues/159>`_)
+
+
 galaxy-importer 0.2.2 (2020-05-12)
 ==================================
 
