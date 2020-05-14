@@ -26,7 +26,7 @@ import uuid
 from galaxy_importer import config
 from galaxy_importer import constants
 from galaxy_importer import exceptions
-from shutil import copyfile
+from shutil import copy, copyfile, copyfileobj
 
 default_logger = logging.getLogger(__name__)
 config_data = config.ConfigFile.load()
@@ -47,13 +47,30 @@ class Build(object):
         self.dockerfile = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             'Dockerfile')
-        self.collection_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            'archive.tar.gz')
+        self.collection_file = self._get_collection_file()
         self.registry_base_path = 'galaxy-importer'
         self.registry_name = 'archive-test'
         self.log = logger or default_logger
         self.setup_dockerfile()
+
+    def _get_collection_file(self):
+        path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'archive.tar.bz')
+        try:
+            url = Build._get_pulp_archive_url(self.pulp_artifact_file)
+            with requests.get(url, stream=True) as r:
+                with open(path, 'wb') as f:
+                    copyfileobj(r.raw, f)
+        except AttributeError:
+            spath = os.path.join(
+                os.path.dirname(constants.ROOT_DIR.rstrip('galaxy_importer')),
+                f'{self.pulp_artifact_file.name}')
+            path = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                'archive.tar.gz')
+            copy(spath, path)
+        return path
 
     def setup_dockerfile(self):
         # Make a copy of Dockerfile
@@ -70,10 +87,6 @@ class Build(object):
                     content.insert(
                         index - 2,
                         "\nCOPY archive.tar.gz /archive/archive.tar.gz\n")
-                    # ^ local dev only this line
-                    # content.insert(
-                    #   index + 1,
-                    #   f'    && wget -O /archive/archive.tar.gz {archive_url} \\\n')
                     break
             f.seek(0)
             f.truncate()
