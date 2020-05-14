@@ -82,12 +82,6 @@ class PulpServer(object):
             c = c + "TOKEN_AUTH_DISABLED=True"
             f.writelines(c)
 
-        # registries_file = '/tmp/pulp/settings/registries.conf'
-        # with open(registries_file, 'w') as f:
-        #     c = c + "[registries.insecure]\n"
-        #     c = c + f"registries = ['{hostname}:8080']\n"
-        #     f.writelines(c)
-
     def _start_pulp(self):
         self.log.info('Starting Pulp server')
         cwd = '/tmp/pulp/'
@@ -186,5 +180,5 @@ class PulpServer(object):
             self.cleanup()
 
     def cleanup(self):
-        self.log.info('Removing Pulp All in One')
+        self.log.info('Removing Pulp Server')
         self._stop_pulp()
