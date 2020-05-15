@@ -32,6 +32,16 @@ def temp_config_file():
         os.remove(config_file)
 
 
+@pytest.fixture
+def temp_config_file_b():
+    try:
+        dir = os.path.dirname(os.path.dirname(__file__))
+        config_file = os.path.join(dir, 'galaxy_importer', 'galaxy-importer-b.cfg')
+        yield config_file
+    finally:
+        os.remove(config_file)
+
+
 def test_config_set_from_file(temp_config_file):
     with open(temp_config_file, 'w') as f:
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
@@ -43,6 +53,18 @@ def test_config_set_from_file(temp_config_file):
         assert cfg.run_ansible_test is True
         assert cfg.infra_pulp is True
         assert cfg.infra_osd is False
+
+
+def test_config_set_from_env(temp_config_file_b, monkeypatch):
+    with open(temp_config_file_b, 'w') as f:
+        f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
+                'INFRA_PULP = True')
+        f.flush()
+        monkeypatch.setenv('GALAXY_IMPORTER_CONFIG', temp_config_file_b)
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+        assert cfg.run_ansible_test is True
+        assert cfg.infra_pulp is True
 
 
 def test_config_no_file():

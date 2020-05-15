@@ -51,6 +51,9 @@ class ConfigFile(object):
 
     @staticmethod
     def load():
+        env_config = os.getenv('GALAXY_IMPORTER_CONFIG')
+        if env_config:
+            FILE_LOCATIONS.insert(0, env_config)
         config_parser_data = ConfigFile._load_file(FILE_LOCATIONS)
         return ConfigFile._to_dictionary(config_parser_data)
 
