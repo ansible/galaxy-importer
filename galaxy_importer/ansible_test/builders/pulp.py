@@ -120,22 +120,8 @@ class PulpServer(object):
 
     def _update_admin_account(self):
         self._server_ready()
-        try:
-            p = pexpect.spawn(
-                'podman exec -it pulp bash -c \'pulpcore-manager reset-admin-password\'')
-            p.expect([
-                '.*Please enter new password for user "admin": .*',
-                pexpect.EOF])
-            p.sendline('admin')
-            p.expect([
-                '.*Please enter new password for user "admin" again: .*',
-                pexpect.EOF])
-            p.sendline('admin')
-            p.expect([
-                '.*Successfully set password for "admin" user..*',
-                pexpect.EOF])
-        except pexpect.exceptions.ExceptionPexpect:
-            self.cleanup()
+        cmd = "podman exec -it pulp bash -c 'pulpcore-manager reset-admin-password --password=admin'"
+        subprocess.run(cmd, shell=True)
 
     def _server_ready(self):
         for i in range(API_CHECK_RETRIES):
