@@ -30,6 +30,12 @@ An optional ini configuration file is supported, the following locations are che
 <code_source>/galaxy_importer/galaxy-importer.cfg
 ```
 
+You can override the above paths by setting `GALAXY_IMPORTER_CONFIG` in the environment. For example:
+
+```
+$ export GALAXY_IMPORTER_CONFIG=~/galaxy-importer.cfg
+```
+
 Example configuration file:
 
 ```
