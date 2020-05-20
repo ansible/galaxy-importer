@@ -1,0 +1,1 @@
+Returns non-zero exit code on failure to enable use in shell scripts.

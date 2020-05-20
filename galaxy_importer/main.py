@@ -40,7 +40,7 @@ def main(args=None):
 
     data = call_importer(filepath=args.file, cfg=cfg)
     if not data:
-        return
+        return 1
 
     if args.print_result:
         print(json.dumps(data, indent=4))
