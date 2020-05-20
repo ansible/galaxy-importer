@@ -21,3 +21,12 @@ install:
 script:
   - make test/flake8
   - make test
+
+deploy:
+  provider: pypi
+  user: "__token__"
+  password:
+    secure: jOtcjFd0MbRV5dg4EALDovDdQo9KVW+G9JbR4GfaF1bn9RpZdc8yPRvPQNGRq1Pe/bJ978pEcOtBkIahQtVp7n1khBheUL8SOj2kTkTmNXPlcoEoxLFfZXo8C11I3X24sOt7rkqCt7qTb6qWrjwz7NMfTR4iWY71qGPmiwAH0ym02li1HvgtqqiTMUNyiJM5yW8ycbH5jtuMgpKoEpHs2ZBYwv8SbgAKz/udGyZkW1NERRn/KJID8Hbl6ctY/BY4bEcqWqd18x7cQU2qFXxgbuvjbV4noK+OCMT9XTOdza3LQRfUwZ3jjCwJUk4zT3gIFQd5aGfsfN712DQE0/aWogYtBE8+g7tho7XAWWUYnECvQTvESpJb8LKNKpiFQbHhRylB8RK3RS8detp7CRb9iAXmc0clkAWz4XTW16uDU5+2EGAAIObtm6uGpDL7ZFy9+vRNqHmmvwyny15EwdnVggc5rFW/2qmotPL/YwUtjhgF+dTMopj7RwTbBlBvWVqZTiWni34+xO1ZHsIHZwmIIC24fdIoPwcASvT5372G6L07dCgx252rxv/C8J38Uf1wA1WtshXdtoUAr4c/xJQIFEqJzY7DZAUr5HscCizVO+sppzLIHmj/iVA77LLqz8e1u4CgyvbgsM6YsZiz3sI75JIMafHDw+XilMgc7BGEZNY=
+  on:
+    tags: true
+    branch: test_publish
