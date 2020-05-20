@@ -1,3 +1,18 @@
+galaxy-importer 0.2.4 (2020-05-20)
+==================================
+
+Features
+--------
+
+- Override default configuration file paths with an environment variable (`#148 <https://github.com/ansible/galaxy_ng/issues/148>`_)
+
+
+Bugfixes
+--------
+
+- Returns non-zero exit code on failure to enable use in shell scripts. (`#66 <https://github.com/ansible/galaxy-importer/pull/66>`_)
+
+
 galaxy-importer 0.2.3 (2020-05-13)
 ==================================
 
