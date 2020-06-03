@@ -30,7 +30,7 @@ FILENAME_REGEXP = re.compile(
     r"^(?P<namespace>\w+)-(?P<name>\w+)-"
     r"(?P<version>[0-9a-zA-Z.+-]+)\.tar\.gz$"
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('galaxy_importer.main')
 
 
 def main(args=None):
@@ -51,11 +51,12 @@ def main(args=None):
 
 def setup_logger(cfg):
     """Sets up logger with custom formatter."""
-    logger.setLevel(getattr(logging, cfg.log_level_main, 'INFO'))
+    app_logger = logging.getLogger('galaxy_importer')
+    app_logger.setLevel(getattr(logging, cfg.log_level_main, 'INFO'))
 
     ch = logging.StreamHandler(stream=sys.stdout)
     ch.setFormatter(CustomFormatter())
-    logger.addHandler(ch)
+    app_logger.addHandler(ch)
 
 
 class CustomFormatter(logging.Formatter):
