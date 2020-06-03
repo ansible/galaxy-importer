@@ -179,6 +179,7 @@ class DocStringLoader():
     def load(self):
         self.log.info('Getting doc strings via ansible-doc')
         docs = {}
+
         for plugin_type in ANSIBLE_DOC_SUPPORTED_TYPES:
             plugin_dir_name = ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
 

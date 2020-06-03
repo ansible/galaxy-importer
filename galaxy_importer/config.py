@@ -37,6 +37,7 @@ class Config(object):
         'ansible_test_local_image': False,
         'local_image_docker': False,
         'run_ansible_lint': True,
+        'run_ansible_doc': True,
         'infra_osd': False,
         'check_required_tags': False,
     }
