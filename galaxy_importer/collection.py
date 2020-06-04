@@ -19,6 +19,7 @@ from collections import namedtuple
 import logging
 import os
 from pkg_resources import iter_entry_points
+import subprocess
 import tarfile
 import tempfile
 
@@ -41,7 +42,7 @@ CollectionFilename = \
     namedtuple("CollectionFilename", ["namespace", "name", "version"])
 
 
-def import_collection(file, filename=None, logger=None, cfg=None):
+def import_collection(file=None, filepath=None, filename=None, logger=None, cfg=None):
     """Process import on collection artifact file object.
 
     :raises exc.ImporterError: On errors that fail the import process.
@@ -50,15 +51,29 @@ def import_collection(file, filename=None, logger=None, cfg=None):
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
     logger = logger or default_logger
-    return _import_collection(file, filename, logger, cfg)
+    return _import_collection(file, filepath, filename, logger, cfg)
 
 
-def _import_collection(file, filename, logger, cfg):
+def _import_collection(file, filepath, filename, logger, cfg):
     with tempfile.TemporaryDirectory() as tmp_dir:
         sub_path = 'ansible_collections/placeholder_namespace/placeholder_name'
         extract_dir = os.path.join(tmp_dir, sub_path)
-        with tarfile.open(fileobj=file, mode='r') as pkg_tar:
-            pkg_tar.extractall(extract_dir)
+        os.makedirs(extract_dir)
+
+        if file:
+            # FIXME: remove once pulp_ansible passes filepath
+            with tarfile.open(fileobj=file, mode='r') as pkg_tar:
+                pkg_tar.extractall(extract_dir)
+        else:
+            try:
+                _extract_tar_shell(tarfile_path=filepath, extract_dir=extract_dir)
+            except subprocess.SubprocessError as e:
+                raise exc.ImporterError('Error in tar extract subprocess: '
+                                        f'{str(e)}, filepath={filepath}, stderr={e.stderr}')
+            except FileNotFoundError as e:
+                raise exc.ImporterError('File not found in tar extract subprocess: '
+                                        f'{str(e)}, filepath={filepath}')
+
         data = CollectionLoader(extract_dir, filename, cfg=cfg, logger=logger).load()
         logger.info('Collection validation and loading complete')
 
@@ -75,6 +90,18 @@ def _import_collection(file, filename, logger, cfg):
     )
 
     return attr.asdict(data)
+
+
+def _extract_tar_shell(tarfile_path, extract_dir):
+    cwd = os.path.dirname(os.path.abspath(tarfile_path))
+    file_name = os.path.basename(tarfile_path)
+    args = [
+        'tar',
+        f'--directory={extract_dir}',
+        '-xf',
+        file_name,
+    ]
+    subprocess.run(args, cwd=cwd, stderr=subprocess.PIPE, check=True)
 
 
 class CollectionLoader(object):
