@@ -30,7 +30,6 @@ FILENAME_REGEXP = re.compile(
     r"^(?P<namespace>\w+)-(?P<name>\w+)-"
     r"(?P<version>[0-9a-zA-Z.+-]+)\.tar\.gz$"
 )
-logger = logging.getLogger(__name__)
 
 
 def main(args=None):
@@ -51,6 +50,7 @@ def main(args=None):
 
 def setup_logger(cfg):
     """Sets up logger with custom formatter."""
+    logger = logging.getLogger()
     logger.setLevel(getattr(logging, cfg.log_level_main, 'INFO'))
 
     ch = logging.StreamHandler(stream=sys.stdout)
@@ -90,21 +90,17 @@ def call_importer(filepath, cfg):
     namespace, name, version = match.groups()
     filename = collection.CollectionFilename(namespace, name, version)
 
-    try:
-        data = collection.import_collection(
-            file=None,
-            filepath=filepath,
-            filename=filename,
-            logger=logger,
-            cfg=cfg)
-    except ImporterError as e:
-        logger.error(f'The import failed for the following reason: {str(e)}')
-        return None
-    except Exception:
-        logger.exception('Unexpected error occurred:')
-        return None
+    with open(filepath, 'rb') as f:
+        try:
+            data = collection.import_collection(f, filename, cfg=cfg)
+        except ImporterError as e:
+            logging.error(f'The import failed for the following reason: {str(e)}')
+            return None
+        except Exception:
+            logging.error('Unexpected error occurred:', exc_info=True)
+            return None
 
-    logger.info('Importer processing completed successfully')
+    logging.info('Importer processing completed successfully')
     return data
 
 

@@ -17,7 +17,6 @@
 
 from collections import namedtuple
 import json
-import logging
 import os
 import tempfile
 from unittest import mock
@@ -81,6 +80,7 @@ def tmp_collection_root():
         os.makedirs(collection_root)
         yield collection_root
     finally:
+        # TODO: check if this applies to dir not just file
         shutil.rmtree(tmp_dir)
 
 
@@ -313,33 +313,3 @@ def test_import_collection(mocker):
     collection.import_collection(file=None, cfg=None)
     assert ConfigFile.load.called
     assert collection._import_collection.called
-
-
-@pytest.fixture
-def mock__import_collection(mocker):
-    mocker.patch.object(collection, 'CollectionLoader')
-    mocked_runners = mocker.patch.object(collection, 'runners')
-    mocked_attr = mocker.patch.object(collection, 'attr')
-    mocked_runners.get_runner.return_value = False
-    mocked_attr.asdict.return_value = None
-
-
-def test__import_collection(mocker, mock__import_collection):
-    mocker.patch.object(collection, 'subprocess')
-    collection._import_collection(
-        file=None, filepath='', filename='', logger=logging, cfg=None)
-    assert collection.subprocess.run.called
-
-
-def test_extract_tar_shell_bad_filepath_name(mock__import_collection):
-    with pytest.raises(exc.ImporterError, match='Cannot open: No such file or directory'):
-        collection._import_collection(
-            file=None, filepath='file-does-not-exist.tar.gz',
-            filename='', logger=logging, cfg=None)
-
-
-def test_extract_tar_shell_bad_filepath_dir():
-    with pytest.raises(exc.ImporterError, match='Errno 2] No such file or directory'):
-        collection._import_collection(
-            file=None, filepath='dir-does-not-exist/file.tar.gz',
-            filename='', logger=logging, cfg=None)
