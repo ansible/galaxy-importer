@@ -1,3 +1,18 @@
+galaxy-importer 0.2.5 (2020-06-10)
+==================================
+
+Bugfixes
+--------
+
+- Parameterize ansible-test openshift job container timeout (`#230 <https://github.com/ansible/galaxy_ng/issues/230>`_)
+
+
+Misc
+----
+
+- `#67 <https://github.com/ansible/galaxy-importer/pull/67>`_
+
+
 galaxy-importer 0.2.4 (2020-05-20)
 ==================================
 
