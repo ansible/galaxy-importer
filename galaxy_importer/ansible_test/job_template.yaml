@@ -5,7 +5,7 @@ metadata:
   labels:
     app: automation-hub
 spec:
-  activeDeadlineSeconds: 600
+  activeDeadlineSeconds: {job_timeout}
   backoffLimit: 0
   template:
     spec:
