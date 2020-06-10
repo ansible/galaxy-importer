@@ -36,6 +36,12 @@ class PulpServer(object):
         self.log = logger or default_logger
 
     def start(self):
+        """Start Pulp server""" 
+        self.log.info("Starting Pulp server")
+        settings_file = '/tmp/pulp/settings/settings.py'
+        # TODO Reuse existing Pulp installation?
+        if os.path.isfile(settings_file):
+            self.cleanup()
         self._create_settings_dirs()
         self._add_settings()
         self._start_pulp()
@@ -47,7 +53,6 @@ class PulpServer(object):
         return self.content_url
 
     def _create_settings_dirs(self):
-        self.log.info('Creating Pulp settings directories')
         cwd = os.path.dirname(os.path.realpath(__file__))
         cmd = [
             'mkdir \
@@ -83,13 +88,12 @@ class PulpServer(object):
             f.writelines(c)
 
     def _start_pulp(self):
-        self.log.info('Starting Pulp server')
         cwd = '/tmp/pulp/'
         cmd = [
             'podman run --detach \
                 --publish 8080:80 \
                 --publish 8081:24816 \
-                --name pulp \
+                --name galaxy-importer-pulp \
                 --volume ./settings:/etc/pulp:Z \
                 --volume ./pulp_storage:/var/lib/pulp:Z \
                 --volume ./pgsql:/var/lib/pgsql:Z \
@@ -106,10 +110,6 @@ class PulpServer(object):
             shell=True
         )
 
-        for line in proc.stdout:
-            self.pulp_container_id = line.strip()
-
-        self.log.info(f'pulp container id: {self.pulp_container_id}')
         return_code = proc.wait()
         if return_code == 0:
             self._update_admin_account()
@@ -120,7 +120,7 @@ class PulpServer(object):
 
     def _update_admin_account(self):
         self._server_ready()
-        cmd = "podman exec -it pulp bash -c 'pulpcore-manager reset-admin-password --password=admin'"
+        cmd = "podman exec -it galaxy-importer-pulp bash -c 'pulpcore-manager reset-admin-password --password=admin'"
         subprocess.run(cmd, shell=True)
 
     def _server_ready(self):
@@ -136,8 +136,8 @@ class PulpServer(object):
     def _stop_pulp(self):
         # TODO Refactor shell=True to standard Popen call
         self.log.info('Stopping Pulp server')
-        cmd = f'podman stop {self.pulp_container_id}; \
-            podman rm {self.pulp_container_id}'
+        cmd = f'podman stop galaxy-importer-pulp; \
+            podman rm galaxy-importer-pulp'
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -148,9 +148,7 @@ class PulpServer(object):
 
         return_code = proc.wait()
         if return_code == 0:
-            self.log.info('Stopped Pulp server')
             self._remove_pulp_data()
-            self.log.info('Removed Pulp data')
         else:
             self.log.error(
                 'An exception occurred in {}, returncode={}'
@@ -158,7 +156,7 @@ class PulpServer(object):
 
     def _remove_pulp_data(self):
         try:
-            p = pexpect.spawn("buildah unshare", encoding='utf-8')
+            p = pexpect.spawn("podman unshare", encoding="utf-8")
             p.expect([r'[*#\$] ', pexpect.EOF])
             p.sendline('rm -rf /tmp/pulp\r\n')
             p.expect([r'[*#\$] ', pexpect.EOF])
@@ -166,5 +164,5 @@ class PulpServer(object):
             self.cleanup()
 
     def cleanup(self):
-        self.log.info('Removing Pulp Server')
+        self.log.info('Removing Pulp server')
         self._stop_pulp()

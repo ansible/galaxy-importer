@@ -18,6 +18,7 @@
 import logging
 import subprocess
 
+from galaxy_importer import exceptions
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 from galaxy_importer.ansible_test.builders.pulp_build import Build
 from galaxy_importer.ansible_test.builders.pulp import PulpServer
@@ -28,59 +29,48 @@ default_logger = logging.getLogger(__name__)
 class LocalImageTestRunner(BaseTestRunner):
     """Run image locally with docker or podman."""
     def run(self):
-        self.log.info('Preparing pulp-container build environment')
         pulp = PulpServer(logger=self.log)
         pulp.start()
 
         pulp_container_build = Build(
-            api_url=pulp.get_api_url(),
+            api_url='http://bmclaugh:8080',  # pulp.get_api_url(),
+            content_url='http://bmclaugh:8081',  # pulp.get_content_url(),
             pulp_artifact_file=self.file,
+            metadata=self.metadata,
             logger=self.log,
         )
 
         # Build OCI ansible-test image and retrieve link to it
-        self.log.info('Building ansible-test image..')
         pulp_container_build.build()
 
-        self.log.info('Retrieving Pulp Registry address..')
-        registry_href = pulp_container_build.get_registry_href()
-        self.log.info(f'registry_href: {registry_href}')
+        registry_path = pulp_container_build.get_registry_href()
 
-        # Run ansible-test image via Podman
-        self.pull_image(registry_href)
+        # Run ansible-test image via Podman and capture output
+        self.pull_image(registry_path)
 
-        # Capture ansible-test output
-
-        # Cleanup ContainerRepository, Artifacts, Dockerfile and Image
+        self.image_cleanup(registry_path)
         pulp_container_build.cleanup()
         pulp.cleanup()
 
-    # TODO add registry to /etc/containers/registries.conf
-
-    def pull_image(self, registry_href):
-        registry = registry_href.lstrip('http://')
-        cmd = ['podman', 'pull', '--tls-verify=false', registry]
+    def pull_image(self, registry_path):
+        cmd = ['podman', 'pull', '--tls-verify=false', registry_path]
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             encoding='utf-8',
         )
+
         return_code = proc.wait()
         if return_code == 0:
-            self.run_image()
-        else:
-            self.log.error(
-                'An exception occurred in {}, returncode={}'
-                    .format(' '.join(cmd),
-                            return_code))
+            self.run_image(registry_path)
+        elif return_code != 0:
+            raise exceptions.AnsibleTestError(
+                'An exception occurred in: {}, returncode={}'
+                .format(' '.join(cmd), return_code))
 
-    def run_image(self):
-        cmd = [
-            'podman', 'run',
-            '-a=stdout',
-            '--name=ansible-test'
-        ]
+    def run_image(self, registry_path):
+        cmd = ['podman', 'run', registry_path]
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -93,7 +83,15 @@ class LocalImageTestRunner(BaseTestRunner):
 
         return_code = proc.wait()
         if return_code != 0:
-            self.log.error(
+            raise exceptions.AnsibleTestError(
                 'An exception occurred in {}, returncode={}'
-                    .format(' '.join(cmd),
-                            return_code))
+                .format(' '.join(cmd), return_code))
+
+    def image_cleanup(self, registry_path):
+        cmd = ['podman', 'image', 'rm', registry_path]
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding='utf-8',
+        )
