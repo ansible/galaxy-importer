@@ -236,6 +236,7 @@ class Job(object):
             memory_limit=os.environ.get('IMPORTER_MEMORY_LIMIT', '1Gi'),
             cpu_request=os.environ.get('IMPORTER_CPU_REQUEST', '500m'),
             cpu_limit=os.environ.get('IMPORTER_CPU_LIMIT', '500m'),
+            job_timeout=os.environ.get('IMPORTER_JOB_TIMEOUT', '900'),
         )
         self.log = logger or default_logger
 
