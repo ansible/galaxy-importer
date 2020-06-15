@@ -32,6 +32,7 @@ class PulpServer(object):
     """Deploy Pulp All in One image"""
     def __init__(self, logger):
         self.api_url = f'http://{socket.gethostname()}:8080'
+        self.base_dir = f"/tmp/pulp/"
         self.content_url = f'http://{socket.gethostname()}:8081'
         self.log = logger or default_logger
 
@@ -53,29 +54,13 @@ class PulpServer(object):
         return self.content_url
 
     def _create_settings_dirs(self):
-        cwd = os.path.dirname(os.path.realpath(__file__))
-        cmd = [
-            'mkdir \
-                /tmp/pulp \
-                /tmp/pulp/settings \
-                /tmp/pulp/pulp_storage \
-                /tmp/pulp/pgsql \
-                /tmp/pulp/containers'
-        ]
-        proc = subprocess.Popen(
-            cmd,
-            cwd=cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            encoding='utf-8',
-            shell=True
-        )
-        return_code = proc.wait()
-        if return_code != 0:
-            self.log.error(
-                'An exception occurred in {}, returncode={}'
-                    .format(' '.join(cmd),
-                            return_code))
+        dirs = [
+            f"{self.base_dir}settings",
+            f"{self.base_dir}pulp_storage",
+            f"{self.base_dir}pgsql",
+            f"{self.base_dir}containers"]
+        for d in dirs:
+            os.makedirs(d)
 
     def _add_settings(self):
         hostname = socket.gethostname()
