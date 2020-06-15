@@ -33,8 +33,8 @@ class LocalImageTestRunner(BaseTestRunner):
         pulp.start()
 
         pulp_container_build = Build(
-            api_url='http://bmclaugh:8080',  # pulp.get_api_url(),
-            content_url='http://bmclaugh:8081',  # pulp.get_content_url(),
+            api_url=pulp.get_api_url(),
+            content_url=pulp.get_content_url(),
             pulp_artifact_file=self.file,
             metadata=self.metadata,
             logger=self.log,
