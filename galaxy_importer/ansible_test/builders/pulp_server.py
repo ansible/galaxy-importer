@@ -17,31 +17,32 @@
 
 import logging
 import os
-import pexpect
 import requests
 import socket
 import subprocess
 import time
 
+from galaxy_importer import exceptions
+
 default_logger = logging.getLogger(__name__)
 API_CHECK_RETRIES = 300
 API_CHECK_DELAY_SECONDS = 1
+API_PORT = 8080
 
 
 class PulpServer(object):
     """Deploy Pulp All in One image"""
     def __init__(self, logger):
-        self.api_url = f'http://{socket.gethostname()}:8080'
+        self.api_url = f'http://{socket.gethostname()}:{API_PORT}'
         self.base_dir = f"/tmp/pulp/"
-        self.content_url = f'http://{socket.gethostname()}:8081'
         self.log = logger or default_logger
+        self.settings_file = '/tmp/pulp/settings/settings.py'
 
     def start(self):
         """Start Pulp server""" 
         self.log.info("Starting Pulp server")
-        settings_file = '/tmp/pulp/settings/settings.py'
         # TODO Reuse existing Pulp installation?
-        if os.path.isfile(settings_file):
+        if os.path.isfile(self.settings_file):
             self.cleanup()
         self._create_settings_dirs()
         self._add_settings()
@@ -49,9 +50,6 @@ class PulpServer(object):
 
     def get_api_url(self):
         return self.api_url
-
-    def get_content_url(self):
-        return self.content_url
 
     def _create_settings_dirs(self):
         dirs = [
@@ -64,9 +62,8 @@ class PulpServer(object):
 
     def _add_settings(self):
         hostname = socket.gethostname()
-        settings_file = '/tmp/pulp/settings/settings.py'
-        with open(settings_file, 'w') as f:
-            c = f"CONTENT_ORIGIN='{hostname}:8081'\n"
+        with open(self.settings_file, 'w') as f:
+            c = f"CONTENT_ORIGIN='{hostname}:{API_PORT}'\n"
             c = c + f"ANSIBLE_API_HOSTNAME='{self.api_url}'\n"
             c = c + f"ANSIBLE_CONTENT_HOSTNAME='{self.api_url}/pulp/content'\n"
             c = c + "TOKEN_AUTH_DISABLED=True"
@@ -77,7 +74,6 @@ class PulpServer(object):
         cmd = [
             'podman run --detach \
                 --publish 8080:80 \
-                --publish 8081:24816 \
                 --name galaxy-importer-pulp \
                 --volume ./settings:/etc/pulp:Z \
                 --volume ./pulp_storage:/var/lib/pulp:Z \
@@ -104,14 +100,14 @@ class PulpServer(object):
                     .format(' '.join(cmd), return_code))
 
     def _update_admin_account(self):
-        self._server_ready()
+        self._wait_until_server_ready()
         cmd = "podman exec -it galaxy-importer-pulp bash -c 'pulpcore-manager reset-admin-password --password=admin'"
         subprocess.run(cmd, shell=True)
 
-    def _server_ready(self):
+    def _wait_until_server_ready(self):
         for i in range(API_CHECK_RETRIES):
             try:
-                r = requests.get(f'{self.content_url}/v2/')
+                r = requests.get(f'{self.api_url}/v2/')
             except requests.exceptions.ConnectionError:
                 continue
             if r.status_code == 200:
@@ -140,13 +136,12 @@ class PulpServer(object):
                     .format(' '.join(cmd), return_code))
 
     def _remove_pulp_data(self):
+        cmd = ['podman', 'unshare', 'rm', '-rf' '/tmp/pulp']
         try:
-            p = pexpect.spawn("podman unshare", encoding="utf-8")
-            p.expect([r'[*#\$] ', pexpect.EOF])
-            p.sendline('rm -rf /tmp/pulp\r\n')
-            p.expect([r'[*#\$] ', pexpect.EOF])
-        except pexpect.exceptions.ExceptionPexpect:
-            self.cleanup()
+            subprocess.run(cmd)
+        except subprocess.CalledProcessError as e:
+            raise exceptions.AnsibleTestError(
+                'An exception occurred in: {}, message={}'.format(' '.join(cmd), e.msg))
 
     def cleanup(self):
         self.log.info('Removing Pulp server')

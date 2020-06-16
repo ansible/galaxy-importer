@@ -37,9 +37,8 @@ API_CHECK_DELAY_SECONDS = 1
 
 class Build(object):
     """Use pulp-container to build ansible-test image with artifact inside."""
-    def __init__(self, pulp_artifact_file, api_url, content_url, metadata, logger):
+    def __init__(self, pulp_artifact_file, api_url, metadata, logger):
         self.api_url = api_url
-        self.content_url = content_url
         self.basic_auth = ('admin', 'admin')
         self.pulp_artifact_file = pulp_artifact_file
         self.metadata = metadata
@@ -58,7 +57,7 @@ class Build(object):
     def _get_collection_file(self):
         path = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            'archive.tar.bz')
+            'archive.tar.gz')
         try:
             url = Build._get_pulp_archive_url(self.pulp_artifact_file)
             with requests.get(url, stream=True) as r:
@@ -129,7 +128,7 @@ class Build(object):
                 self.log.info('Image successfully built')
                 return
             time.sleep(API_CHECK_DELAY_SECONDS)
-        if i >= API_CHECK_DELAY_SECONDS:
+        if i >= API_CHECK_RETRIES:
             self.cleanup()
             raise exceptions.AnsibleTestError('Timed out building image')
 
