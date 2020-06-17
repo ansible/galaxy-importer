@@ -31,7 +31,7 @@ def get_runner(cfg):
     if not cfg.run_ansible_test:
         return None
 
-    if not cfg.infra_pulp:
+    if not cfg.infra_local_image:
         return LocalAnsibleTestRunner
 
     if cfg.infra_osd:

@@ -1,4 +1,4 @@
-# (c) 2012-2019, Ansible by Red Hat
+# (c) 2012-2020, Ansible by Red Hat
 #
 # This file is part of Ansible Galaxy
 #
@@ -15,8 +15,7 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-from galaxy_importer.ansible_test.builders import pulp_build
 
-
-def test_build_image_with_artifact():
-    assert pulp_build.build_image_with_artifact() == ''
+def build_image_with_artifact():
+    """Use docker/podman to build ansible-test image with artifact inside."""
+    return ''

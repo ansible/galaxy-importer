@@ -51,20 +51,20 @@ def test_get_runner_ansible_test_local(temp_config_file):
         assert runners.get_runner(cfg) == runners.LocalAnsibleTestRunner
 
 
-def test_get_runner_pulp(temp_config_file):
+def test_get_runner_local_image(temp_config_file):
     with open(temp_config_file, 'w') as f:
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
-                'INFRA_PULP = True')
+                'INFRA_LOCAL_IMAGE = True')
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
         assert runners.get_runner(cfg) == runners.LocalImageTestRunner
 
 
-def test_get_runner_pulp_and_osd(temp_config_file):
+def test_get_runner_local_image_and_osd(temp_config_file):
     with open(temp_config_file, 'w') as f:
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
-                'INFRA_PULP = True\nINFRA_OSD = True')
+                'INFRA_LOCAL_IMAGE = True\nINFRA_OSD = True')
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
@@ -76,7 +76,7 @@ def test_ansible_test_runner_run(mocker, temp_config_file):
     mocker.patch.object(runners, 'OpenshiftJobTestRunner')
     with open(temp_config_file, 'w') as f:
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
-                'INFRA_PULP = True\nINFRA_OSD = True')
+                'INFRA_LOCAL_IMAGE = True\nINFRA_OSD = True')
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)

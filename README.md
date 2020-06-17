@@ -43,7 +43,7 @@ Example configuration file:
 LOG_LEVEL_MAIN = INFO
 RUN_FLAKE8 = False
 RUN_ANSIBLE_TEST = False
-INFRA_PULP = False
+INFRA_LOCAL_IMAGE = False
 INFRA_OSD = False
 ```
 
