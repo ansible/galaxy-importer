@@ -31,10 +31,10 @@ def get_runner(cfg):
     if not cfg.run_ansible_test:
         return None
 
-    if not cfg.infra_local_image:
-        return LocalAnsibleTestRunner
-
     if cfg.infra_osd:
         return OpenshiftJobTestRunner
-    else:
+
+    if cfg.ansible_test_local_image:
         return LocalImageTestRunner
+
+    return LocalAnsibleTestRunner

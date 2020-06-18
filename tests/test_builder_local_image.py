@@ -15,8 +15,92 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-from galaxy_importer.ansible_test.builders import local_image_build
+import os
+import pytest
+import tempfile
+
+from galaxy_importer import exceptions as exc
+from galaxy_importer.ansible_test.builders.local_image_build import Build
+from unittest import mock
 
 
-def test_build_image_with_artifact():
-    assert local_image_build.build_image_with_artifact() == ''
+@pytest.fixture
+def build():
+    return Build('/file/path/to/archive.tar.gz', 'name')
+
+
+@pytest.fixture
+def tmp_file():
+    try:
+        dir = os.path.dirname(os.path.dirname(__file__))
+        tmp_file = os.path.join(dir, 'galaxy_importer', 'namespace-name-0.0.1.tar.gz')
+        yield tmp_file
+    finally:
+        os.remove(tmp_file)
+
+
+def test_build_image(mocker, tmp_file):
+    with open(tmp_file, 'w') as f:
+        f.write('file contents go here')
+        f.flush()
+        build = Build(
+            filepath=tmp_file,
+            collection_name='namespace-name-version'
+        )
+        mocker.patch.object(Build, '_build_dockerfile')
+        mocker.patch.object(Build, '_copy_collection_file')
+        mocker.patch.object(Build, '_build_image_with_artifact')
+        _ = build.build_image()
+        assert build._build_dockerfile.called
+        assert build._copy_collection_file.called
+        assert build._build_image_with_artifact.called
+
+
+@mock.patch('galaxy_importer.ansible_test.builders.local_image_build.run')
+def test_cleanup(mocked_run, build):
+    build.cleanup()
+    assert mocked_run.called
+
+
+def test_build_dockerfile(mocker):
+    dir = tempfile.TemporaryDirectory()
+    Dockerfile_updated_correctly = False
+
+    Build._build_dockerfile(dir.name)
+
+    with open(f'{dir.name}/Dockerfile') as f:
+        if 'COPY archive.tar.gz /archive/archive.tar.gz' in f.read():
+            Dockerfile_updated_correctly = True
+
+    assert Dockerfile_updated_correctly
+    dir.cleanup()
+
+
+@mock.patch('galaxy_importer.ansible_test.builders.local_image_build.Popen')
+def test_build_image_with_artifact(mocked_popen, mocker):
+    dir = tempfile.TemporaryDirectory()
+    mocked_popen.return_value.stdout = ['sha256:1234', 'sha256:5678']
+    mocked_popen.return_value.wait.return_value = 0
+    result = Build._build_image_with_artifact(dir=dir.name)
+    assert mocked_popen.called
+    assert '5678' in result
+
+
+@mock.patch('galaxy_importer.ansible_test.builders.local_image_build.Popen')
+def test_build_image_with_artifact_exception(mocked_popen, mocker):
+    dir = tempfile.TemporaryDirectory()
+    mocked_popen.return_value.stdout = ['sha256:1234', 'sha256:5678']
+    mocked_popen.return_value.wait.return_value = 1
+
+    with pytest.raises(exc.AnsibleTestError):
+        Build._build_image_with_artifact(dir=dir.name)
+
+
+def test_copy_collection_file():
+    dir = tempfile.TemporaryDirectory()
+    f = tempfile.NamedTemporaryFile(delete=False)
+    filepath = f.name
+    Build._copy_collection_file(dir.name, filepath)
+    assert os.path.exists(os.path.join(dir.name, 'archive.tar.gz'))
+    dir.cleanup()
+    os.remove(f.name)

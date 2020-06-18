@@ -45,13 +45,15 @@ def temp_config_file_b():
 def test_config_set_from_file(temp_config_file):
     with open(temp_config_file, 'w') as f:
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
-                'INFRA_LOCAL_IMAGE = True')
+                'ANSIBLE_TEST_LOCAL_IMAGE = True\n'
+                'LOCAL_IMAGE_DOCKER = True')
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
         assert cfg.log_level_main == 'INFO'
         assert cfg.run_ansible_test is True
-        assert cfg.infra_local_image is True
+        assert cfg.ansible_test_local_image is True
+        assert cfg.local_image_docker is True
         assert cfg.infra_osd is False
 
 
@@ -76,7 +78,8 @@ def test_no_config_data():
     cfg = config.Config(config_data={})
     assert cfg.log_level_main == 'INFO'
     assert cfg.run_ansible_test is False
-    assert cfg.infra_local_image is False
+    assert cfg.ansible_test_local_image is False
+    assert cfg.local_image_docker is False
     assert cfg.infra_osd is False
 
 
@@ -88,7 +91,8 @@ def test_config_bad_ini_section(temp_config_file):
         cfg = config.Config(config_data=config_data)
         assert cfg.log_level_main == 'INFO'
         assert cfg.run_ansible_test is False
-        assert cfg.infra_local_image is False
+        assert cfg.ansible_test_local_image is False
+        assert cfg.local_image_docker is False
         assert cfg.infra_osd is False
 
 
@@ -101,5 +105,6 @@ def test_config_with_non_boolean(temp_config_file):
         cfg = config.Config(config_data=config_data)
         assert cfg.log_level_main == 'DEBUG'
         assert cfg.run_ansible_test is True
-        assert cfg.infra_local_image is False
+        assert cfg.ansible_test_local_image is False
+        assert cfg.local_image_docker is False
         assert cfg.infra_osd is False

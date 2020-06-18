@@ -18,7 +18,6 @@
 import enum
 import re
 
-
 MAX_TAGS_COUNT = 20
 NAME_REGEXP = re.compile(r'^(?!.*__)[a-z]+[0-9a-z_]*$')
 CONTENT_NAME_REGEXP = re.compile(r'^(?!.*__)[a-z_]+[0-9a-z_]*$')

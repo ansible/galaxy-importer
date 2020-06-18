@@ -25,10 +25,12 @@ class BaseTestRunner(object):
     """
     :param dir: Dir where collection is extracted, used by local runner.
     :param metadata: Collection metadata, used by local runner.
+    :param filepath: Path where archive file is located.
     """
-    def __init__(self, dir='', metadata='', file=None, logger=None):
+    def __init__(self, dir='', metadata='', file=None, filepath=None, logger=None):
         self.log = logger or default_logger
         self.dir = dir
+        self.filepath = filepath
         self.metadata = metadata
         self.file = file
 

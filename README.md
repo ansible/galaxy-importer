@@ -43,9 +43,13 @@ Example configuration file:
 LOG_LEVEL_MAIN = INFO
 RUN_FLAKE8 = False
 RUN_ANSIBLE_TEST = False
-INFRA_LOCAL_IMAGE = False
+ANSIBLE_TEST_LOCAL_IMAGE = False
 INFRA_OSD = False
 ```
+
+- `RUN_ANSIBLE_TEST` - Set to `True` to run `ansible-test` during collection import. Defaults to `False`.
+
+- `ANSIBLE_TEST_LOCAL_IMAGE` - Set to `True` to run `ansible-test` sandboxed within a container image. Requires installation of Docker to run the container. Defaults to `False`.
 
 ### Issues and Process
 

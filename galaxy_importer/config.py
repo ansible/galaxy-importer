@@ -34,7 +34,8 @@ class Config(object):
         'log_level_main': 'INFO',
         'run_flake8': False,
         'run_ansible_test': False,
-        'infra_local_image': False,
+        'ansible_test_local_image': False,
+        'local_image_docker': False,
         'infra_osd': False,
     }
 
