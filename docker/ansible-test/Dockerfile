@@ -7,7 +7,7 @@ RUN useradd user1 \
     && mkdir -m 0775 /archive \
     && mkdir -p -m 0775 /ansible_collections \
     && chown user1:root /ansible_collections \
-    && pip install ansible
+    && pip install ansible==2.9.10
 
 # Update dir and permissions for where ansible-test sanity writes files
 # NOTE: when container non-privledged, if sanity test writes to new dir, it will fail
