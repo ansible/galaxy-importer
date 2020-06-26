@@ -19,10 +19,11 @@ from collections import namedtuple
 import logging
 import os
 from pkg_resources import iter_entry_points
-import tarfile
+import subprocess
 import tempfile
 
 import attr
+import requests
 
 from galaxy_importer import config
 from galaxy_importer import exceptions as exc
@@ -57,8 +58,19 @@ def _import_collection(file, filename, logger, cfg):
     with tempfile.TemporaryDirectory() as tmp_dir:
         sub_path = 'ansible_collections/placeholder_namespace/placeholder_name'
         extract_dir = os.path.join(tmp_dir, sub_path)
-        with tarfile.open(fileobj=file, mode='r') as pkg_tar:
-            pkg_tar.extractall(extract_dir)
+        os.makedirs(extract_dir)
+
+        filepath = file.name
+        if hasattr(file, 'file'):
+            # handle a wrapped file object to get absolute filepath
+            filepath = str(file.file.file.name)
+
+        if not os.path.exists(filepath):
+            parameters = {'ResponseContentDisposition': 'attachment;filename=archive.tar.gz'}
+            storage_archive_url = file.storage.url(file.name, parameters=parameters)
+            filepath = _download_archive(storage_archive_url, tmp_dir)
+        _extract_archive(tarfile_path=filepath, extract_dir=extract_dir)
+
         data = CollectionLoader(extract_dir, filename, cfg=cfg, logger=logger).load()
         logger.info('Collection validation and loading complete')
 
@@ -75,6 +87,38 @@ def _import_collection(file, filename, logger, cfg):
     )
 
     return attr.asdict(data)
+
+
+def _download_archive(file_url, download_dir):
+    filepath = os.path.join(download_dir, 'archive.tar.gz')
+    r = requests.get(file_url)
+    with open(filepath, 'wb') as fh:
+        fh.write(r.content)
+        fh.seek(0)
+    return filepath
+
+
+def _extract_archive(tarfile_path, extract_dir):
+    try:
+        _extract_tar_shell(tarfile_path=tarfile_path, extract_dir=extract_dir)
+    except subprocess.SubprocessError as e:
+        raise exc.ImporterError('Error in tar extract subprocess: '
+                                f'{str(e)}, filepath={tarfile_path}, stderr={e.stderr}')
+    except FileNotFoundError as e:
+        raise exc.ImporterError('File not found in tar extract subprocess: '
+                                f'{str(e)}, filepath={tarfile_path}')
+
+
+def _extract_tar_shell(tarfile_path, extract_dir):
+    cwd = os.path.dirname(os.path.abspath(tarfile_path))
+    file_name = os.path.basename(tarfile_path)
+    args = [
+        'tar',
+        f'--directory={extract_dir}',
+        '-xf',
+        file_name,
+    ]
+    subprocess.run(args, cwd=cwd, stderr=subprocess.PIPE, check=True)
 
 
 class CollectionLoader(object):
