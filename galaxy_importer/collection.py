@@ -32,6 +32,7 @@ from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.ansible_test import runners
 from galaxy_importer.utils import markup as markup_utils
+from galaxy_importer import __version__
 
 
 default_logger = logging.getLogger(__name__)
@@ -47,6 +48,7 @@ def import_collection(file, filename=None, logger=None, cfg=None):
 
     :raises exc.ImporterError: On errors that fail the import process.
     """
+    logger.info(f'Importing with galaxy-importer {__version__}')
     if not cfg:
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
