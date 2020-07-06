@@ -130,7 +130,7 @@ def test_manifest_success(_build_docs_blob, tmp_collection_root):
         ('[\n   "John Doe"\n  ]', '"John Doe"', "to be a list of strings"),
         ('README.md', '', "'readme' is required"),
         ('"fedora"', '["fedora"]', "to be a list of strings"),
-        ('"deployment",', '"tag",'*30, "Expecting no more than 20 tags"),
+        ('"deployment",', '"tag",' * 30, "Expecting no more than 20 tags"),
         ('"A collection with various roles and plugins"', '[]', "be a string"),
         ('"MIT"', '{}', "to be a list of strings"),
         ('"MIT"', '"not-a-valid-license-id"', "list of valid SPDX license"),

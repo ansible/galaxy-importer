@@ -301,12 +301,12 @@ class Job(object):
         pod = self.get_pods()[0]
         pod_name = self.get_pod_name(pod)
         r = requests.get(
-                url=f'{self.pods_url}/{pod_name}/log',
-                headers=self.auth_header,
-                params=dict(follow='true'),
-                verify=self.ca_path,
-                stream=True,
-            )
+            url=f'{self.pods_url}/{pod_name}/log',
+            headers=self.auth_header,
+            params=dict(follow='true'),
+            verify=self.ca_path,
+            stream=True,
+        )
         return r.iter_lines(decode_unicode=True)
 
     def cleanup(self):
