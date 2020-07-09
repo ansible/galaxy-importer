@@ -63,44 +63,35 @@ def test_cleanup(mocked_run, build):
 
 
 def test_build_dockerfile(mocker):
-    dir = tempfile.TemporaryDirectory()
-    Dockerfile_updated_correctly = False
-
-    Build._build_dockerfile(dir.name)
-
-    with open(f'{dir.name}/Dockerfile') as f:
-        if 'COPY archive.tar.gz /archive/archive.tar.gz' in f.read():
-            Dockerfile_updated_correctly = True
-
-    assert Dockerfile_updated_correctly
-    dir.cleanup()
+    with tempfile.TemporaryDirectory() as dir:
+        Build._build_dockerfile(dir)
+        with open(f'{dir}/Dockerfile') as f:
+            assert 'COPY archive.tar.gz /archive/archive.tar.gz' in f.read()
 
 
 @mock.patch('galaxy_importer.ansible_test.builders.local_image_build.Popen')
 def test_build_image_with_artifact(mocked_popen, mocker):
-    dir = tempfile.TemporaryDirectory()
-    mocked_popen.return_value.stdout = ['sha256:1234', 'sha256:5678']
-    mocked_popen.return_value.wait.return_value = 0
-    result = Build._build_image_with_artifact(dir=dir.name)
-    assert mocked_popen.called
-    assert '5678' in result
+    with tempfile.TemporaryDirectory() as dir:
+        mocked_popen.return_value.stdout = ['sha256:1234', 'sha256:5678']
+        mocked_popen.return_value.wait.return_value = 0
+        result = Build._build_image_with_artifact(dir=dir)
+        assert mocked_popen.called
+        assert '5678' in result
 
 
 @mock.patch('galaxy_importer.ansible_test.builders.local_image_build.Popen')
 def test_build_image_with_artifact_exception(mocked_popen, mocker):
-    dir = tempfile.TemporaryDirectory()
-    mocked_popen.return_value.stdout = ['sha256:1234', 'sha256:5678']
-    mocked_popen.return_value.wait.return_value = 1
-
-    with pytest.raises(exc.AnsibleTestError):
-        Build._build_image_with_artifact(dir=dir.name)
+    with tempfile.TemporaryDirectory() as dir:
+        mocked_popen.return_value.stdout = ['sha256:1234', 'sha256:5678']
+        mocked_popen.return_value.wait.return_value = 1
+        with pytest.raises(exc.AnsibleTestError):
+            Build._build_image_with_artifact(dir=dir)
 
 
 def test_copy_collection_file():
-    dir = tempfile.TemporaryDirectory()
-    f = tempfile.NamedTemporaryFile(delete=False)
-    filepath = f.name
-    Build._copy_collection_file(dir.name, filepath)
-    assert os.path.exists(os.path.join(dir.name, 'archive.tar.gz'))
-    dir.cleanup()
-    os.remove(f.name)
+    with tempfile.TemporaryDirectory() as dir:
+        f = tempfile.NamedTemporaryFile(delete=False)
+        filepath = f.name
+        Build._copy_collection_file(dir, filepath)
+        assert os.path.exists(os.path.join(dir, 'archive.tar.gz'))
+        os.remove(f.name)
