@@ -1,3 +1,19 @@
+galaxy-importer 0.2.6 (2020-07-10)
+==================================
+
+Features
+--------
+
+- Add functionality to run ansible-test via a Docker local image (`#47 <https://github.com/ansible/galaxy_ng/issues/47>`_)
+- Update tar subprocess archive extraction (`#222 <https://github.com/ansible/galaxy_ng/issues/222>`_)
+
+
+Misc
+----
+
+- `#75 <https://github.com/ansible/galaxy-importer/pull/75>`_, `#241 <https://github.com/ansible/galaxy_ng/issues/241>`_, `#276 <https://github.com/ansible/galaxy_ng/issues/276>`_
+
+
 galaxy-importer 0.2.5 (2020-06-10)
 ==================================
 
