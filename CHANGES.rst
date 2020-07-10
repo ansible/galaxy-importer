@@ -1,3 +1,12 @@
+galaxy-importer 0.2.7 (2020-07-10)
+==================================
+
+Bugfixes
+--------
+
+- Fix install error when doing pip install from pypi and wheel (`#47 <https://github.com/ansible/galaxy_ng/issues/47>`_)
+
+
 galaxy-importer 0.2.6 (2020-07-10)
 ==================================
 
