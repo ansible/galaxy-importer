@@ -112,6 +112,7 @@ class CollectionInfo(object):
     @version.validator
     @readme.validator
     @authors.validator
+    @repository.validator
     def _check_required(self, attribute, value):
         """Check that value is present."""
         if not value:
@@ -203,6 +204,7 @@ class CollectionInfo(object):
     @homepage.validator
     @issues.validator
     @license_file.validator
+    @repository.validator
     def _check_non_null_str(self, attribute, value):
         """Check that if value is present, it must be a string."""
         if value is not None and not isinstance(value, str):

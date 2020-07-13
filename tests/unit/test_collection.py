@@ -65,7 +65,7 @@ MANIFEST_JSON = """
    "network_user.collection_inspect": "2.0.0",
    "dave.deploy": "*"
   },
-  "repository": null,
+  "repository": "http://example.com/repository",
   "documentation": null,
   "homepage": null,
   "issues": null
@@ -112,7 +112,7 @@ def test_manifest_success(_build_docs_blob, tmp_collection_root):
         'network_user.collection_inspect': '2.0.0',
         'dave.deploy': '*'
     }
-    assert data.metadata.repository is None
+    assert data.metadata.repository == 'http://example.com/repository'
     assert data.metadata.homepage is None
     assert data.metadata.issues is None
 
@@ -139,7 +139,8 @@ def test_manifest_success(_build_docs_blob, tmp_collection_root):
         ('"dave.deploy"', '"007.deploy"', "Invalid dependency format: '007'"),
         ('"dave.deploy"', '"my_namespace.my_collection"', "self dependency"),
         ('"*"', '"3.4.0.4"', "version spec range invalid"),
-        ('"repository": null', '"repository": []', "must be a string"),
+        ('"http://example.com/repository"', '["repo"]', "must be a string"),
+        ('"http://example.com/repository"', 'null', "'repository' is required"),
         ('"documentation": null', '"documentation": []', "must be a string"),
         ('"homepage": null', '"homepage": []', "must be a string"),
         ('"issues": null', '"issues": []', "must be a string"),
