@@ -21,6 +21,7 @@ install:
 script:
   - flake8
   - make test
+  - make test/integration
 
 deploy:
   provider: pypi

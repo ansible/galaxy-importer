@@ -17,3 +17,7 @@ test/annotate/clean:
 .PHONY: test/flake8
 test/flake8:
 	@flake8
+
+.PHONY: test/integration
+test/integration:
+	@sh tests/integration/*
