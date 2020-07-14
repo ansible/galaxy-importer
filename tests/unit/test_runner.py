@@ -29,7 +29,7 @@ from galaxy_importer.ansible_test import runners
 @pytest.fixture
 def temp_config_file():
     try:
-        dir = os.path.dirname(os.path.dirname(__file__))
+        dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         config_file = os.path.join(dir, 'galaxy_importer', 'galaxy-importer.cfg')
         yield config_file
     finally:

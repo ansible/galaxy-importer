@@ -32,7 +32,7 @@ def build():
 @pytest.fixture
 def tmp_file():
     try:
-        dir = os.path.dirname(os.path.dirname(__file__))
+        dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         tmp_file = os.path.join(dir, 'galaxy_importer', 'namespace-name-0.0.1.tar.gz')
         yield tmp_file
     finally:

@@ -25,7 +25,7 @@ from galaxy_importer import config
 @pytest.fixture
 def temp_config_file():
     try:
-        dir = os.path.dirname(os.path.dirname(__file__))
+        dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         config_file = os.path.join(dir, 'galaxy_importer', 'galaxy-importer.cfg')
         yield config_file
     finally:
@@ -35,7 +35,7 @@ def temp_config_file():
 @pytest.fixture
 def temp_config_file_b():
     try:
-        dir = os.path.dirname(os.path.dirname(__file__))
+        dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         config_file = os.path.join(dir, 'galaxy_importer', 'galaxy-importer-b.cfg')
         yield config_file
     finally:
