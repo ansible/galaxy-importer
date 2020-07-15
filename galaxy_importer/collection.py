@@ -74,7 +74,7 @@ def _import_collection(file, filename, logger, cfg):
         _extract_archive(tarfile_path=filepath, extract_dir=extract_dir)
 
         data = CollectionLoader(extract_dir, filename, cfg=cfg, logger=logger).load()
-        logger.info('Collection validation and loading complete')
+        logger.info('Collection loading complete')
 
         ansible_test_runner = runners.get_runner(cfg=cfg)
         if ansible_test_runner:

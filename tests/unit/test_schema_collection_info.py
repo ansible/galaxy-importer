@@ -29,7 +29,8 @@ def collection_info():
         'license': ['MIT'],
         'readme': 'README.md',
         'authors': ['Bob Smith <b.smith@acme.com>'],
-        'tags': ['testcases']
+        'tags': ['testcases'],
+        'repository': 'http://example.com/repository',
     }
     return metadata
 
@@ -44,11 +45,18 @@ def test_collection_info(collection_info):
     assert res.readme == 'README.md'
     assert res.authors == ['Bob Smith <b.smith@acme.com>']
     assert res.tags == ['testcases']
+    assert res.repository == 'http://example.com/repository'
 
 
 def test_readme_req(collection_info):
     collection_info['readme'] = ''
     with pytest.raises(ValueError, match=r"'readme' is required"):
+        CollectionInfo(**collection_info)
+
+
+def test_repo_req(collection_info):
+    collection_info['repository'] = ''
+    with pytest.raises(ValueError, match=r"'repository' is required"):
         CollectionInfo(**collection_info)
 
 
