@@ -21,10 +21,24 @@ import re
 import attr
 import semantic_version
 
+from galaxy_importer import config
 from galaxy_importer import constants
 from galaxy_importer.utils.spdx_licenses import is_valid_license_id
 
 SHA1_LEN = 40
+REQUIRED_TAG_LIST = [
+    'application',
+    'cloud',
+    'database',
+    'infrastructure',
+    'linux',
+    'monitoring',
+    'networking',
+    'security',
+    'storage',
+    'tools',
+    'windows',
+]
 
 
 def convert_none_to_empty_dict(val):
@@ -189,7 +203,7 @@ class CollectionInfo(object):
 
     @tags.validator
     def _check_tags(self, attribute, value):
-        """Check max tags and check against tag regular expression."""
+        """Check max tags and check against both tag regular expression and required tag list."""
         if value is not None and len(value) > constants.MAX_TAGS_COUNT:
             self.value_error(
                 f"Expecting no more than {constants.MAX_TAGS_COUNT} tags "
@@ -197,6 +211,12 @@ class CollectionInfo(object):
         for tag in value:
             if not re.match(constants.NAME_REGEXP, tag):
                 self.value_error(f"'tag' has invalid format: {tag}")
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+        if cfg.check_required_tags and (not any(tag in REQUIRED_TAG_LIST for tag in value)):
+            self.value_error(
+                f'At least one tag required from tag list: {", ".join(REQUIRED_TAG_LIST)}'
+            )
 
     @description.validator
     @repository.validator

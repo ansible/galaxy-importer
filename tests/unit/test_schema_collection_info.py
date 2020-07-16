@@ -15,9 +15,11 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import os
 import pytest
 
 from galaxy_importer.schema import CollectionInfo
+from galaxy_importer import config
 
 
 @pytest.fixture
@@ -29,7 +31,7 @@ def collection_info():
         'license': ['MIT'],
         'readme': 'README.md',
         'authors': ['Bob Smith <b.smith@acme.com>'],
-        'tags': ['testcases'],
+        'tags': ['application'],
         'repository': 'http://example.com/repository',
     }
     return metadata
@@ -44,7 +46,7 @@ def test_collection_info(collection_info):
     assert res.license == ['MIT']
     assert res.readme == 'README.md'
     assert res.authors == ['Bob Smith <b.smith@acme.com>']
-    assert res.tags == ['testcases']
+    assert res.tags == ['application']
     assert res.repository == 'http://example.com/repository'
 
 
@@ -102,13 +104,13 @@ def test_invalid_names(collection_info, invalid_name):
 @pytest.mark.parametrize(
     'valid_tags',
     [
-        ['good_tag', 'goodtag'],
-        ['deployment'],
-        ['fedora'],
-        ['fedora29'],
-        ['fedora_29'],
-        ['alloneword'],
-        ['deployment', 'fedora', 'a_007', 'alloneword']
+        ['application', 'good_tag', 'goodtag'],
+        ['application', 'deployment'],
+        ['application', 'fedora'],
+        ['application', 'fedora29'],
+        ['application', 'fedora_29'],
+        ['application', 'alloneword'],
+        ['application', 'deployment', 'fedora', 'a_007', 'alloneword']
     ]
 )
 def test_valid_tags(collection_info, valid_tags):
@@ -141,13 +143,38 @@ def test_invalid_tags(collection_info, invalid_tags):
 
 
 def test_max_tags(collection_info):
-    collection_info['tags'] = [str(f'tag_{i}') for i in range(90, 110)]
+    collection_info['tags'] = [str(f'tag_{i}') for i in range(91, 110)]
+    collection_info['tags'].insert(0, 'application')
     res = CollectionInfo(**collection_info)
-    assert [str(f'tag_{i}') for i in range(90, 110)] == res.tags
+    arr = [str(f'tag_{i}') for i in range(91, 110)]
+    arr.insert(0, 'application')
+    assert arr == res.tags
 
-    collection_info['tags'] = [str(f'tag_{i}') for i in range(90, 111)]
+    collection_info['tags'] = [str(f'tag_{i}') for i in range(91, 111)]
+    collection_info['tags'].insert(0, 'application')
     with pytest.raises(ValueError, match=r'Expecting no more than '):
         CollectionInfo(**collection_info)
+
+
+@pytest.fixture
+def temp_config_file():
+    try:
+        dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        config_file = os.path.join(dir, 'galaxy_importer', 'galaxy-importer.cfg')
+        yield config_file
+    finally:
+        os.remove(config_file)
+
+
+def test_required_tag(collection_info, temp_config_file):
+    with open(temp_config_file, 'w') as f:
+        f.write('[galaxy-importer]\nCHECK_REQUIRED_TAGS = True')
+        f.flush()
+        config_data = config.ConfigFile.load()
+        config.Config(config_data=config_data)
+        collection_info['tags'] = ['fail']
+        with pytest.raises(ValueError, match=r'At least one tag required from tag list: '):
+            CollectionInfo(**collection_info)
 
 
 @pytest.mark.parametrize(
