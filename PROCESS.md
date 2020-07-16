@@ -8,6 +8,7 @@ Notes about the process surrounding the `galaxy-importer` package, which is a de
 #### Issues and pull requests
 
 * Issues for enhancements or fixes are located on [galaxy_ng](https://github.com/ansible/galaxy_ng)
+* Please install the pre-commit hook in `hooks/pre-commit` and correct any failures prior to submitting a pull request.
 * Pull Requests in `galaxy-importer` should include a changelog file inside `CHANGES/` and a label for release: `release/x.x.x`
 * Changelog filename should be the number of the PR, and the extension of `.feature`, `.bugfix`, `.doc`, `.removal`, or `.misc` - see [towncrier](https://github.com/hawkowl/towncrier#news-fragments) for descriptions of each extension. Example: `CHANGES/56.feature`. File contents should be a one line description of the change.
 
