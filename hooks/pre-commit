@@ -3,4 +3,3 @@
 echo Running pre-commit hook
 make test/flake8
 make test
-make test/integration
