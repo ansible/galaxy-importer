@@ -52,8 +52,7 @@ MANIFEST_JSON = """
   "readme": "README.md",
   "tags": [
    "deployment",
-   "fedora",
-   "linux"
+   "fedora"
   ],
   "description": "A collection with various roles and plugins",
   "license": [
@@ -104,7 +103,7 @@ def test_manifest_success(_build_docs_blob, tmp_collection_root):
     assert data.metadata.version == '2.0.2'
     assert data.metadata.authors == ['John Doe']
     assert data.metadata.readme == 'README.md'
-    assert data.metadata.tags == ['deployment', 'fedora', 'linux']
+    assert data.metadata.tags == ['deployment', 'fedora']
     assert data.metadata.description == \
         'A collection with various roles and plugins'
     assert data.metadata.license_file is None
