@@ -37,6 +37,7 @@ class Config(object):
         'ansible_test_local_image': False,
         'local_image_docker': False,
         'infra_osd': False,
+        'check_required_tags': False,
     }
 
     def __init__(self, config_data=None):

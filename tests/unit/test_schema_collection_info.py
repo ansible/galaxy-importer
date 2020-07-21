@@ -15,9 +15,11 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import os
 import pytest
 
 from galaxy_importer.schema import CollectionInfo
+from galaxy_importer import config
 
 
 @pytest.fixture
@@ -148,6 +150,38 @@ def test_max_tags(collection_info):
     collection_info['tags'] = [str(f'tag_{i}') for i in range(90, 111)]
     with pytest.raises(ValueError, match=r'Expecting no more than '):
         CollectionInfo(**collection_info)
+
+
+@pytest.fixture
+def temp_config_file():
+    try:
+        dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        config_file = os.path.join(dir, 'galaxy_importer', 'galaxy-importer.cfg')
+        yield config_file
+    finally:
+        os.remove(config_file)
+
+
+def test_required_tag_enabled(collection_info, temp_config_file):
+    with open(temp_config_file, 'w') as f:
+        f.write('[galaxy-importer]\nCHECK_REQUIRED_TAGS = True')
+        f.flush()
+        config_data = config.ConfigFile.load()
+        config.Config(config_data=config_data)
+        collection_info['tags'] = ['application']
+        res = CollectionInfo(**collection_info)
+        assert ['application'] == res.tags
+
+
+def test_required_tag_enabled_exception(collection_info, temp_config_file):
+    with open(temp_config_file, 'w') as f:
+        f.write('[galaxy-importer]\nCHECK_REQUIRED_TAGS = True')
+        f.flush()
+        config_data = config.ConfigFile.load()
+        config.Config(config_data=config_data)
+        collection_info['tags'] = ['fail']
+        with pytest.raises(ValueError, match=r'At least one tag required from tag list: '):
+            CollectionInfo(**collection_info)
 
 
 @pytest.mark.parametrize(
