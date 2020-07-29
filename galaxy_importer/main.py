@@ -51,7 +51,7 @@ def main(args=None):
 
 def setup_logger(cfg):
     """Sets up logger with custom formatter."""
-    app_logger = logging.getLogger('galaxy_importer')
+    app_logger = logging.getLogger()
     app_logger.setLevel(getattr(logging, cfg.log_level_main, 'INFO'))
 
     ch = logging.StreamHandler(stream=sys.stdout)
