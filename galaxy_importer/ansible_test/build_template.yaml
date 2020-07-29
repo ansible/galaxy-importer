@@ -15,14 +15,13 @@ spec:
       name: {image_name}
   source:
     dockerfile: |
-      FROM ansible/default-test-container:latest
+      FROM quay.io/cloudservices/automation-hub-ansible-test:latest
       RUN wget '{download_url}' -O /archive/archive.tar.gz
   strategy:
     type: Docker
     dockerStrategy:
-      from:
-        kind: ImageStreamTag
-        name: ansible-test:stable
+      pullSecret:
+        name: quay-cloudservices-pull
   triggers:
   - type: ConfigChange
   imagePullPolicy: IfNotPresent
