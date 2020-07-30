@@ -1,0 +1,1 @@
+Timeouts for OpenShift image build is increased and made configurable via environment variables: ``IMPORTER_JOB_API_CHECK_RETRIES`` and ``IMPORTER_JOB_API_CHECK_DELAY_SECONDS``.
