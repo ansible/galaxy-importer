@@ -2,8 +2,9 @@ language: python
 python: 3.6
 
 before_install:
+  - git fetch origin "+refs/heads/${TRAVIS_BRANCH}:refs/remotes/origin/${TRAVIS_BRANCH}"
   - REGEXP="CHANGES\/[0-9]+\.(feature|bugfix|doc|removal|misc)$"
-  - PR_FILES=$(git diff --name-only $TRAVIS_BRANCH...HEAD)
+  - PR_FILES=$(git diff --name-only ${TRAVIS_BRANCH})
   - for file in $PR_FILES; do
       echo $file;
       if [[ $file =~ $REGEXP ]]; then
