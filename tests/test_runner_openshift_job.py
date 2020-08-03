@@ -281,8 +281,8 @@ def test_build_start_and_get_image_link(mocker, build):
     mocker.patch.object(openshift_job.Build, '_wait_until_image_available')
     mocker.patch.object(openshift_job.Build, '_get_image')
     openshift_job.Build._get_image.return_value = {
-        'metadata': {'name': 'image_stream_tag_name'}}
-    assert build.start_and_get_image_link() == 'image_stream_tag_name'
+        'image': {'dockerImageReference': 'registry.example.com/image_stream_tag_name'}}
+    assert build.start_and_get_image_link() == 'registry.example.com/image_stream_tag_name'
     assert openshift_job.Build._create_buildconfig.called
     assert openshift_job.Build._wait_until_build_created.called
     assert openshift_job.Build._wait_until_build_complete.called

@@ -137,7 +137,7 @@ class Build(object):
         self._wait_until_image_available()
 
         imagestream_tag = self._get_image()
-        return imagestream_tag['metadata']['name']
+        return imagestream_tag['image']['dockerImageReference']
 
     def _create_buildconfig(self):
         self.log.info(f'Creating buildconfig {self.name}')
