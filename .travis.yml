@@ -2,19 +2,7 @@ language: python
 python: 3.6
 
 before_install:
-  - REGEXP="CHANGES\/[0-9]+\.(feature|bugfix|doc|removal|misc)$"
-  - PR_FILES=$(git diff --name-only $TRAVIS_BRANCH...HEAD)
-  - for file in $PR_FILES; do
-      echo $file;
-      if [[ $file =~ $REGEXP ]]; then
-          echo $file IS A MATCH;
-          CHANGELOG_FOUND=true;
-      fi;
-    done
-  - if [ "$CHANGELOG_FOUND" != true ] && [ "$TRAVIS_PULL_REQUEST" != false ]; then
-        echo No changelog entry found in CHANGES/;
-        exit 1;
-    fi
+  - .travis/check_commit.sh
 install:
   - pip install -e .[dev]
 

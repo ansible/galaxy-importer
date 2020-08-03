@@ -32,8 +32,9 @@ from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 default_logger = logging.getLogger(__name__)
 
 cfg = config.Config()
-API_CHECK_RETRIES = 300
-API_CHECK_DELAY_SECONDS = 1
+# TODO(cutwater): Implement individual timeouts for each step.
+API_CHECK_RETRIES = int(os.environ.get('IMPORTER_JOB_API_CHECK_RETRIES', '300'))
+API_CHECK_DELAY_SECONDS = int(os.environ.get('IMPORTER_JOB_API_CHECK_DELAY_SECONDS', '3'))
 OCP_SERVICEACCOUNT_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/'
 IMAGE_BASE_NAME = 'ansible-test'
 
@@ -136,7 +137,7 @@ class Build(object):
         self._wait_until_image_available()
 
         imagestream_tag = self._get_image()
-        return imagestream_tag['metadata']['name']
+        return imagestream_tag['image']['dockerImageReference']
 
     def _create_buildconfig(self):
         self.log.info(f'Creating buildconfig {self.name}')
