@@ -179,6 +179,7 @@ class DocStringLoader():
     def load(self):
         self.log.info('Getting doc strings via ansible-doc')
         docs = {}
+
         for plugin_type in ANSIBLE_DOC_SUPPORTED_TYPES:
             plugin_dir_name = ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
 
@@ -284,8 +285,10 @@ class RoleLoader(ContentLoader):
         self._log_loading()
         description = self._get_metadata_description()
         readme = self._get_readme()
-        for line in self._lint_role(self.rel_path):
-            self.log.warning(line)
+
+        if self.cfg.run_ansible_lint:
+            for line in self._lint_role(self.rel_path):
+                self.log.warning(line)
 
         return schema.Content(
             name=self.path_name,

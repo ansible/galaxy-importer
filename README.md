@@ -42,6 +42,8 @@ Example configuration file:
 [galaxy-importer]
 LOG_LEVEL_MAIN = INFO
 RUN_FLAKE8 = False
+RUN_ANSIBLE_DOC = True
+RUN_ANSIBLE_LINT = True
 RUN_ANSIBLE_TEST = False
 ANSIBLE_TEST_LOCAL_IMAGE = False
 INFRA_OSD = False

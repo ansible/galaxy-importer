@@ -143,11 +143,13 @@ class CollectionLoader(object):
         self._check_filename_matches_manifest()
         self._check_metadata_filepaths()
 
-        self.doc_strings = loaders.DocStringLoader(
-            path=self.path,
-            fq_collection_name='{}.{}'.format(self.metadata.namespace, self.metadata.name),
-            logger=self.log,
-        ).load()
+        self.doc_strings = {}
+        if self.cfg.run_ansible_doc:
+            self.doc_strings = loaders.DocStringLoader(
+                path=self.path,
+                fq_collection_name='{}.{}'.format(self.metadata.namespace, self.metadata.name),
+                logger=self.log,
+            ).load()
 
         self.content_objs = list(self._load_contents())
 
@@ -220,6 +222,18 @@ class CollectionLoader(object):
 
     def _build_docs_blob(self):
         """Build importer result docs_blob from collection documentation."""
+
+        # return an empty DocsBlob if run_ansible_doc=False
+        rendered_readme = schema.RenderedDocFile()
+        docs_blob = schema.DocsBlob(
+            collection_readme=rendered_readme,
+            documentation_files=[],
+            contents=[],
+        )
+
+        if not self.cfg.run_ansible_doc:
+            return docs_blob
+
         contents = [
             schema.DocsBlobContentItem(
                 content_name=c.name,
