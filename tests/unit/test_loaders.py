@@ -374,3 +374,22 @@ def test_load_role(mocked_lint_role, temp_root, loader_role):
     assert res.name == 'my_sample_role'
     assert res.content_type == constants.ContentType.ROLE
     assert res.description == 'Test description inside metadata'
+
+
+@mock.patch('shutil.which')
+def test_no_flake8_bin(mocked_shutil_which, loader_module, caplog):
+    mocked_shutil_which.return_value = False
+    assert loader_module.name == 'my_module'
+    loader_module.load()
+    assert 'flake8 not found, skipping' in [r.message for r in caplog.records]
+
+
+@mock.patch('shutil.which')
+def test_no_ansible_lint_bin(mocked_shutil_which, temp_root, loader_role, caplog):
+    mocked_shutil_which.return_value = False
+    loader_role.root = ''
+    loader_role.rel_path = temp_root
+    with open(os.path.join(temp_root, 'README.md'), 'w') as fp:
+        fp.write('This is the role readme text')
+    loader_role.load()
+    assert 'ansible-lint not found, skipping lint of role' in [r.message for r in caplog.records]

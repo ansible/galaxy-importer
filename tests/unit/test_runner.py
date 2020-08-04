@@ -19,6 +19,7 @@ import logging
 import os
 import subprocess
 from types import SimpleNamespace
+from unittest import mock
 
 import pytest
 
@@ -121,3 +122,13 @@ def test_local_run_rc_error(mocker, caplog):
     assert len(caplog.records) == 5
     assert caplog.records[4].levelname == 'ERROR'
     assert 'An exception occurred in ansible-test sanity' in str(caplog.records[4])
+
+
+@mock.patch('shutil.which')
+def test_local_no_ansible_bin(mocked_shutil_which, caplog):
+    mocked_shutil_which.return_value = False
+    metadata = SimpleNamespace(
+        namespace='test_ns', name='test_name', version='test_version')
+    runner = runners.local_ansible_test.LocalAnsibleTestRunner(metadata=metadata)
+    runner.run()
+    assert 'ansible not found, skipping ansible-test' in [r.message for r in caplog.records]

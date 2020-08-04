@@ -394,3 +394,15 @@ def test_load_ansible_doc_error(mocked_popen, doc_string_loader, tmpdir):
 
     res = doc_string_loader.load()
     assert res == {'inventory': {}}
+
+
+@mock.patch('shutil.which')
+def test_no_ansible_doc_bin(mocked_shutil_which, doc_string_loader, tmpdir, caplog):
+    mocked_shutil_which.return_value = False
+
+    doc_string_loader.path = str(tmpdir)
+    tmpdir.mkdir('plugins').mkdir('inventory').join('my_plugin.py').write('')
+
+    doc_string_loader.load()
+    assert 'ansible-doc not found, skipping loading of docstrings' in \
+        [r.message for r in caplog.records]
