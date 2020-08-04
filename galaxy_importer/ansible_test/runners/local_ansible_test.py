@@ -17,6 +17,7 @@
 
 
 import os
+import shutil
 import subprocess
 
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
@@ -25,6 +26,10 @@ from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 class LocalAnsibleTestRunner(BaseTestRunner):
     """Run ansible-test locally with --docker or using venv."""
     def run(self):
+        if not shutil.which('ansible'):
+            self.log.error('ansible not found, skipping ansible-test')
+            return
+
         version_proc = subprocess.Popen(
             ['ansible', '--version'],
             stdout=subprocess.PIPE,

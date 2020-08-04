@@ -22,6 +22,7 @@ import logging
 import os
 from pathlib import Path
 import re
+import shutil
 from subprocess import Popen, PIPE
 import yaml
 
@@ -138,6 +139,11 @@ class PluginLoader(ContentLoader):
 
     def _run_flake8(self, path):
         self.log.info(f'Linting {self.content_type.value} {self.path_name} via flake8...')
+
+        if not shutil.which('flake8'):
+            self.log.warning('flake8 not found, skipping')
+            return
+
         cmd = [
             'flake8', '--exit-zero', '--isolated',
             '--extend-ignore', FLAKE8_IGNORE_ERRORS,
@@ -179,6 +185,10 @@ class DocStringLoader():
     def load(self):
         self.log.info('Getting doc strings via ansible-doc')
         docs = {}
+
+        if not shutil.which('ansible-doc'):
+            self.log.warning('ansible-doc not found, skipping loading of docstrings')
+            return docs
 
         for plugin_type in ANSIBLE_DOC_SUPPORTED_TYPES:
             plugin_dir_name = ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
@@ -309,6 +319,11 @@ class RoleLoader(ContentLoader):
 
     def _lint_role(self, path):
         self.log.info(f'Linting role {self.path_name} via ansible-lint...')
+
+        if not shutil.which('ansible-lint'):
+            self.log.warning('ansible-lint not found, skipping lint of role')
+            return
+
         cmd = [
             'ansible-lint', path,
             '-p',
