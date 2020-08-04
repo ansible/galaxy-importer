@@ -97,7 +97,11 @@ def test_manifest_success(_build_docs_blob, tmp_collection_root):
         pass
 
     filename = CollectionFilename('my_namespace', 'my_collection', '2.0.2')
-    data = CollectionLoader(tmp_collection_root, filename).load()
+    data = CollectionLoader(
+        tmp_collection_root,
+        filename,
+        cfg=SimpleNamespace(run_ansible_doc=True),
+    ).load()
     assert data.metadata.namespace == 'my_namespace'
     assert data.metadata.name == 'my_collection'
     assert data.metadata.version == '2.0.2'
@@ -175,7 +179,8 @@ def test_build_contents_blob():
 def test_build_docs_blob_contents(get_readme_doc_file, get_html):
     get_readme_doc_file.return_value.name = 'README.md'
     get_html.return_value = '<p>A detailed guide</p>'
-    collection_loader = CollectionLoader('/tmpdir', 'filename')
+    collection_loader = CollectionLoader('/tmpdir', 'filename',
+                                         cfg=SimpleNamespace(run_ansible_doc=True))
     collection_loader.content_objs = [
         schema.Content(name='my_module', content_type=ContentType.MODULE),
         schema.Content(name='my_role', content_type=ContentType.ROLE),
@@ -216,7 +221,8 @@ def test_build_docs_blob_doc_files(get_doc_files, get_readme, get_html):
         markup_utils.DocFile(name='INTRO2.md', text='Intro text',
                              mimetype='text/markdown', hash=''),
     ]
-    collection_loader = CollectionLoader('/tmpdir', 'filename')
+    collection_loader = CollectionLoader('/tmpdir', 'filename',
+                                         cfg=SimpleNamespace(run_ansible_doc=True))
     collection_loader.content_objs = []
     res = collection_loader._build_docs_blob()
     assert attr.asdict(res) == {
@@ -235,11 +241,23 @@ def test_build_docs_blob_doc_files(get_doc_files, get_readme, get_html):
         'contents': [],
     }
 
+    collection_loader = CollectionLoader('/tmpdir', 'filename',
+                                         cfg=SimpleNamespace(run_ansible_doc=False))
+    collection_loader.content_objs = []
+    res = collection_loader._build_docs_blob()
+    assert attr.asdict(res) == {
+        'collection_readme': {'name': None,
+                              'html': None},
+        'documentation_files': [],
+        'contents': [],
+    }
+
 
 @mock.patch('galaxy_importer.utils.markup.get_readme_doc_file')
 def test_build_docs_blob_no_readme(get_readme_doc_file):
     get_readme_doc_file.return_value = None
-    collection_loader = CollectionLoader('/tmpdir', 'filename')
+    collection_loader = CollectionLoader('/tmpdir', 'filename',
+                                         cfg=SimpleNamespace(run_ansible_doc=True))
     collection_loader.content_objs = []
     with pytest.raises(exc.ImporterError):
         collection_loader._build_docs_blob()
@@ -257,7 +275,11 @@ def test_filename_empty_value(_build_docs_blob, tmp_collection_root):
         namespace='my_namespace',
         name='my_collection',
         version=None)
-    data = CollectionLoader(tmp_collection_root, filename).load()
+    data = CollectionLoader(
+        tmp_collection_root,
+        filename,
+        cfg=SimpleNamespace(run_ansible_doc=True),
+    ).load()
     assert data.metadata.namespace == 'my_namespace'
     assert data.metadata.name == 'my_collection'
     assert data.metadata.version == '2.0.2'
@@ -272,7 +294,11 @@ def test_filename_none(_build_docs_blob, tmp_collection_root):
         pass
 
     filename = None
-    data = CollectionLoader(tmp_collection_root, filename).load()
+    data = CollectionLoader(
+        tmp_collection_root,
+        filename,
+        cfg=SimpleNamespace(run_ansible_doc=True),
+    ).load()
     assert data.metadata.namespace == 'my_namespace'
     assert data.metadata.name == 'my_collection'
     assert data.metadata.version == '2.0.2'
@@ -297,7 +323,11 @@ def test_license_file(tmp_collection_root):
         pass
     with open(os.path.join(tmp_collection_root, 'my_license.txt'), 'w'):
         pass
-    data = CollectionLoader(tmp_collection_root, filename=None).load()
+    data = CollectionLoader(
+        tmp_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(run_ansible_doc=True),
+    ).load()
     assert data.metadata.license_file == 'my_license.txt'
 
 
