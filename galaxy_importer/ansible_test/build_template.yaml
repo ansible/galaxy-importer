@@ -15,7 +15,7 @@ spec:
       name: {image_name}
   source:
     dockerfile: |
-      FROM quay.io/cloudservices/automation-hub-ansible-test:latest
+      FROM quay.io/awcrosby/galaxy-ansible-test:v0.2.7
       RUN wget '{download_url}' -O /archive/archive.tar.gz
   strategy:
     type: Docker
