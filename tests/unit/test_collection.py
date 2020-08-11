@@ -206,6 +206,7 @@ def test_build_docs_blob_contents(get_readme_doc_file, get_html):
                 'readme_html': None,
             },
         ],
+        'execution_environment': {}
     }
 
 
@@ -239,6 +240,7 @@ def test_build_docs_blob_doc_files(get_doc_files, get_readme, get_html):
             },
         ],
         'contents': [],
+        'execution_environment': {}
     }
 
     collection_loader = CollectionLoader('/tmpdir', 'filename',
@@ -250,6 +252,7 @@ def test_build_docs_blob_doc_files(get_doc_files, get_readme, get_html):
                               'html': None},
         'documentation_files': [],
         'contents': [],
+        'execution_environment': {}
     }
 
 
@@ -261,6 +264,85 @@ def test_build_docs_blob_no_readme(get_readme_doc_file):
     collection_loader.content_objs = []
     with pytest.raises(exc.ImporterError):
         collection_loader._build_docs_blob()
+
+
+@mock.patch('galaxy_importer.utils.markup.get_execution_environment')
+@mock.patch('galaxy_importer.utils.markup.lint_execution_environment_file')
+@mock.patch('galaxy_importer.utils.markup.get_html')
+@mock.patch('galaxy_importer.utils.markup.get_readme_doc_file')
+@mock.patch('galaxy_importer.utils.markup.get_doc_files')
+def test_build_docs_blob_execution_environment(
+    lint_execution_environment_file,
+    get_execution_environment,
+    get_doc_files,
+    get_readme,
+    get_html,
+    tmp_collection_root,
+    mocker,
+):
+    mocker.patch.object(os.path, 'exists')
+    os.path.exists.return_value = True
+    get_readme.return_value.name = 'README.md'
+    markup_utils.lint_execution_environment_file
+    get_html.return_value = '<p>A detailed guide</p>'
+    get_doc_files.return_value = [
+        markup_utils.DocFile(name='INTRO.md', text='Intro text',
+                             mimetype='text/markdown', hash=''),
+        markup_utils.DocFile(name='INTRO2.md', text='Intro text',
+                             mimetype='text/markdown', hash=''),
+    ]
+    lint_execution_environment_file.return_value = None
+    get_execution_environment.return_value = {
+        "version": 1,
+        "dependencies": {
+            "python": [
+                "somepkg==1.3",
+                "otherpkg>=3.0"
+            ],
+            "files": [
+                "/usr/bin/oc",
+                "/usr/lib/libssl.so.1"
+            ],
+            "system": [
+                "python3.6-dateutil"
+            ]
+        }
+    }
+    collection_loader = CollectionLoader('/tmpdir', 'filename',
+                                         cfg=SimpleNamespace(run_ansible_doc=True))
+    collection_loader.content_objs = []
+    res = collection_loader._build_docs_blob()
+    assert attr.asdict(res) == {
+        'collection_readme': {'name': 'README.md',
+                              'html': '<p>A detailed guide</p>'},
+        'documentation_files': [
+            {
+                'name': 'INTRO.md',
+                'html': '<p>A detailed guide</p>',
+            },
+            {
+                'name': 'INTRO2.md',
+                'html': '<p>A detailed guide</p>',
+            },
+        ],
+        'contents': [],
+        'execution_environment': {
+            "version": 1,
+            "dependencies": {
+                "python": [
+                    "somepkg==1.3",
+                    "otherpkg>=3.0"
+                ],
+                "files": [
+                    "/usr/bin/oc",
+                    "/usr/lib/libssl.so.1"
+                ],
+                "system": [
+                    "python3.6-dateutil"
+                ]
+            }
+        }
+    }
 
 
 @mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')

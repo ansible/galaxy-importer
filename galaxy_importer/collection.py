@@ -261,10 +261,29 @@ class CollectionLoader(object):
                 for f in doc_files
             ]
 
+        ex_env_path = os.path.join(self.path, 'meta', 'execution_environment.yml')
+        execution_environment = {}
+        if not os.path.exists(ex_env_path):
+            self.log.info('No execution environment found.')
+        else:
+            try:
+                self.log.info('Linting execution environment data')
+                linting_result = markup_utils.lint_execution_environment_file(ex_env_path)
+                for line in linting_result:
+                    self.log.warning(line)
+            except Exception as e:
+                self.log.error(f'Error during linting of execution environment metadata: {e}')
+
+            try:
+                execution_environment = markup_utils.get_execution_environment(ex_env_path)
+            except Exception as e:
+                self.log.error(f'Error during parsing of execution environment metadata: {e}')
+
         return schema.DocsBlob(
             collection_readme=rendered_readme,
             documentation_files=rendered_doc_files,
             contents=contents,
+            execution_environment=execution_environment,
         )
 
     def _check_metadata_filepaths(self):
