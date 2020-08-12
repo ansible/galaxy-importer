@@ -19,13 +19,10 @@ import collections
 import hashlib
 import mimetypes
 import os
-import yaml
 
 import markdown
 import bleach
 from bleach_whitelist import markdown_tags, markdown_attrs
-from yamllint.config import YamlLintConfig
-from yamllint import linter
 
 README_NAME = 'README'
 DOCFILE_EXTENSIONS = [
@@ -78,19 +75,6 @@ def get_html(doc_file):
     if doc_file.mimetype == 'text/markdown':
         return _render_from_markdown(doc_file)
     return None
-
-
-def get_execution_environment(env_file):
-    execution_environment = {}
-    with open(env_file) as fp:
-        execution_environment = yaml.safe_load(fp)
-    return execution_environment
-
-
-def lint_execution_environment_file(env_file):
-    with open(env_file) as fp:
-        conf = YamlLintConfig('extends: default')
-        return linter.run(fp, conf)
 
 
 def _find_readme(directory):
