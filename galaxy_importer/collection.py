@@ -32,6 +32,7 @@ from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.ansible_test import runners
 from galaxy_importer.utils import markup as markup_utils
+from galaxy_importer.utils import yaml as yaml_utils
 from galaxy_importer import __version__
 
 
@@ -261,23 +262,7 @@ class CollectionLoader(object):
                 for f in doc_files
             ]
 
-        ex_env_path = os.path.join(self.path, 'meta', 'execution_environment.yml')
-        execution_environment = {}
-        if not os.path.exists(ex_env_path):
-            self.log.info('No execution environment found.')
-        else:
-            try:
-                self.log.info('Linting execution environment data')
-                linting_result = markup_utils.lint_execution_environment_file(ex_env_path)
-                for line in linting_result:
-                    self.log.warning(line)
-            except Exception as e:
-                self.log.error(f'Error during linting of execution environment metadata: {e}')
-
-            try:
-                execution_environment = markup_utils.get_execution_environment(ex_env_path)
-            except Exception as e:
-                self.log.error(f'Error during parsing of execution environment metadata: {e}')
+        execution_environment = CollectionLoader._process_execution_environment(self.path, self.log)
 
         return schema.DocsBlob(
             collection_readme=rendered_readme,
@@ -285,6 +270,19 @@ class CollectionLoader(object):
             contents=contents,
             execution_environment=execution_environment,
         )
+
+    def _process_execution_environment(path, logger):
+        ex_env_path = os.path.join(path, 'meta', 'execution_environment.yml')
+        execution_environment = {}
+        if not os.path.exists(ex_env_path):
+            logger.info('No execution environment found.')
+        else:
+            logger.info('Linting execution environment data')
+            linting_result = yaml_utils.lint_file(ex_env_path)
+            for line in linting_result:
+                logger.warning(line)
+            execution_environment = yaml_utils.safe_load_file(ex_env_path)
+        return execution_environment
 
     def _check_metadata_filepaths(self):
         paths = []
