@@ -30,13 +30,6 @@ def job():
         'my_domain', 'my_ns', 'session_token', 'ca_path', 'image', 'job_template', logger=None)
 
 
-@pytest.fixture
-def build():
-    return openshift_job.Build(
-        'my_domain', 'my_ns', 'session_token', 'ca_path',
-        'build_template', 'archive_url', logger=None)
-
-
 def test_runner_run(mocker, monkeypatch):
     mocker.patch.object(openshift_job.OpenshiftJobTestRunner, '_get_token')
     mocker.patch.object(openshift_job.OpenshiftJobTestRunner, '_get_job_template')
@@ -45,8 +38,6 @@ def test_runner_run(mocker, monkeypatch):
     mocker.patch.object(openshift_job.Job, 'wait_on_pod_ready')
     mocker.patch.object(openshift_job.Job, 'get_logs')
     mocker.patch.object(openshift_job.Job, 'cleanup')
-    mocker.patch.object(openshift_job.Build, 'start_and_get_image_link')
-    mocker.patch.object(openshift_job.Build, 'cleanup')
 
     openshift_job.Job.get_logs.return_value = ['log_entry', b'bytes_log_entry']
     openshift_job.OpenshiftJobTestRunner._get_pulp_archive_url.return_value = 'image_link'
@@ -55,12 +46,10 @@ def test_runner_run(mocker, monkeypatch):
     runner = openshift_job.OpenshiftJobTestRunner()
     runner.run()
 
-    assert openshift_job.Build.start_and_get_image_link.called
     assert openshift_job.Job.create.called
     assert openshift_job.Job.wait_on_pod_ready.called
     assert openshift_job.Job.get_logs.called
     assert openshift_job.Job.cleanup.called
-    assert openshift_job.Build.cleanup.called
 
 
 def test_runner_get_token(mocker, tmp_path):
@@ -172,118 +161,3 @@ def test_job_cleanup_fail(mocker, job):
     ):
         job.cleanup()
     assert requests.delete.called
-
-
-def test_build_create_buildconfig(mocker, build):
-    mocker.patch.object(requests, 'post')
-
-    requests.post.return_value = SimpleNamespace(status_code=201)
-    build._create_buildconfig()
-    assert requests.post.called
-
-    requests.post.return_value = SimpleNamespace(status_code=500, reason='', text='')
-    with pytest.raises(exc.AnsibleTestError):
-        build._create_buildconfig()
-
-
-def test_job_get_build(mocker, build):
-    mocker.patch.object(requests, 'get')
-
-    requests.get.return_value = SimpleNamespace(status_code=200, json=lambda: {'func': 'result'})
-    assert build._get_build() == {'func': 'result'}
-
-    requests.get.return_value = SimpleNamespace(status_code=500, reason='', text='')
-    with pytest.raises(exc.AnsibleTestError):
-        build._get_build()
-
-
-def test_job_get_image(mocker, build):
-    mocker.patch.object(requests, 'get')
-
-    requests.get.return_value = SimpleNamespace(status_code=200, json=lambda: {'func': 'result'})
-    assert build._get_image() == {'func': 'result'}
-
-    requests.get.return_value = SimpleNamespace(status_code=500)
-    assert build._get_image() is None
-
-
-def test_runner_get_build_template(mocker, tmp_path):
-    build_template = openshift_job.OpenshiftJobTestRunner._get_build_template()
-    assert build_template.startswith('apiVersion: build.openshift.io/v1\nkind: BuildConfig')
-
-
-def test_wait_until_build_created(mocker, build):
-    mocker.patch.object(openshift_job.Build, '_get_build')
-    mocker.patch.object(openshift_job, 'API_CHECK_RETRIES')
-    openshift_job.API_CHECK_RETRIES = 1
-
-    openshift_job.Build._get_build.return_value = {'items': ['item']}
-    build._wait_until_build_created()
-
-    openshift_job.Build._get_build.return_value = {'items': []}
-    with pytest.raises(exc.AnsibleTestError):
-        build._wait_until_build_created()
-
-
-def test_wait_until_build_complete(mocker, build):
-    mocker.patch.object(openshift_job.Build, '_get_build')
-    mocker.patch.object(openshift_job, 'API_CHECK_RETRIES')
-    openshift_job.API_CHECK_RETRIES = 1
-
-    openshift_job.Build._get_build.return_value = {'items': [{'status': {'phase': 'Complete'}}]}
-    build._wait_until_build_complete()
-
-    openshift_job.Build._get_build.return_value = {'items': [{'status': {'phase': 'Pending'}}]}
-    with pytest.raises(exc.AnsibleTestError):
-        build._wait_until_build_complete()
-
-
-def test_wait_until_image_available(mocker, build):
-    mocker.patch.object(openshift_job.Build, '_get_image')
-    mocker.patch.object(openshift_job, 'API_CHECK_RETRIES')
-    openshift_job.API_CHECK_RETRIES = 1
-
-    openshift_job.Build._get_image.return_value = 'image_link'
-    build._wait_until_image_available()
-
-    openshift_job.Build._get_image.return_value = None
-    with pytest.raises(exc.AnsibleTestError):
-        build._wait_until_image_available()
-
-
-def test_delete_buildconfig(mocker, build):
-    mocker.patch.object(requests, 'delete')
-    requests.delete.return_value = SimpleNamespace(status_code=204, reason='', text='')
-    build._delete_buildconfig()
-    assert requests.delete.called
-
-
-def test_delete_imagestreamtag(mocker, build):
-    mocker.patch.object(requests, 'delete')
-    requests.delete.return_value = SimpleNamespace(status_code=204, reason='', text='')
-    build._delete_imagestreamtag()
-    assert requests.delete.called
-
-
-def test_build_cleanup(mocker, build):
-    mocker.patch.object(openshift_job.Build, '_delete_buildconfig')
-    mocker.patch.object(openshift_job.Build, '_delete_imagestreamtag')
-    mocker.patch.object(requests, 'delete')
-    build.cleanup()
-    assert openshift_job.Build._delete_buildconfig.called
-    assert openshift_job.Build._delete_imagestreamtag.called
-
-
-def test_build_start_and_get_image_link(mocker, build):
-    mocker.patch.object(openshift_job.Build, '_create_buildconfig')
-    mocker.patch.object(openshift_job.Build, '_wait_until_build_created')
-    mocker.patch.object(openshift_job.Build, '_wait_until_build_complete')
-    mocker.patch.object(openshift_job.Build, '_wait_until_image_available')
-    mocker.patch.object(openshift_job.Build, '_get_image')
-    openshift_job.Build._get_image.return_value = {
-        'image': {'dockerImageReference': 'registry.example.com/image_stream_tag_name'}}
-    assert build.start_and_get_image_link() == 'registry.example.com/image_stream_tag_name'
-    assert openshift_job.Build._create_buildconfig.called
-    assert openshift_job.Build._wait_until_build_created.called
-    assert openshift_job.Build._wait_until_build_complete.called
-    assert openshift_job.Build._wait_until_image_available.called

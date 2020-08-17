@@ -6,7 +6,8 @@ mkdir -p /ansible_collections/placeholder_namespace/placeholder_name
 pushd ansible_collections/ > /dev/null
 pushd placeholder_namespace/placeholder_name/ > /dev/null
 
-echo "Copying and extracting collection archive..."
+echo "Downloading and extracting collection archive..."
+wget $ARCHIVE_URL -q -O /archive/archive.tar.gz
 cp /archive/archive.tar.gz .
 tar -xzf archive.tar.gz
 
