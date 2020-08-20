@@ -12,8 +12,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: {job_name}
-        # TODO(awcrosby): Change to SHA tag after merging /docker changes and building
-        image: quay.io/cloudservices/automation-hub-ansible-test:latest
+        image: quay.io/cloudservices/automation-hub-ansible-test:a53df53
         resources:
           requests:
             cpu: {cpu_request}
@@ -24,5 +23,7 @@ spec:
         env:
         - name: ARCHIVE_URL
           value: {archive_url}
+      imagePullSecrets:
+      - name: quay-cloudservices-pull
       restartPolicy: Never
       imagePullPolicy: IfNotPresent
