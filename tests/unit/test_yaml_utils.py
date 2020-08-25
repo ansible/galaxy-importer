@@ -32,33 +32,37 @@ def tmp_file():
         os.remove(tmp_file)
 
 
-EX_ENV_YAML = """version: 1
+EX_ENV_YAML = """---
+version: 1
 dependencies:
-  python:
-    - somepkg==1.3
-    - otherpkg>=3.0
-  files:
-    - "/usr/bin/oc"
-    - "/usr/lib/libssl.so.1"
-  system:
-    - python3.6-dateutil
+  galaxy: requirements.yml
+  python: requirements.txt
+  system: bindep.txt
+
+additional_build_steps:
+  prepend: |
+    RUN whoami
+    RUN cat /etc/os-release
+  append:
+    - RUN echo This is a post-install command!
+    - RUN ls -la /etc
+
 """
 
 
 def test_safe_load_file(tmp_file):
     data = {
-        "version": 1,
-        "dependencies": {
-            "python": [
-                "somepkg==1.3",
-                "otherpkg>=3.0"
-            ],
-            "files": [
-                "/usr/bin/oc",
-                "/usr/lib/libssl.so.1"
-            ],
-            "system": [
-                "python3.6-dateutil"
+        'version': 1,
+        'dependencies': {
+            'galaxy': 'requirements.yml',
+            'python': 'requirements.txt',
+            'system': 'bindep.txt'
+        },
+        'additional_build_steps': {
+            'prepend': 'RUN whoami\nRUN cat /etc/os-release\n',
+            'append': [
+                'RUN echo This is a post-install command!',
+                'RUN ls -la /etc'
             ]
         }
     }

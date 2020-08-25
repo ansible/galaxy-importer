@@ -31,8 +31,8 @@ from galaxy_importer.finder import ContentFinder
 from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.ansible_test import runners
+from galaxy_importer.utils import execution_environment as ee_utils
 from galaxy_importer.utils import markup as markup_utils
-from galaxy_importer.utils import yaml as yaml_utils
 from galaxy_importer import __version__
 
 
@@ -262,7 +262,7 @@ class CollectionLoader(object):
                 for f in doc_files
             ]
 
-        execution_environment = CollectionLoader._process_execution_environment(self.path, self.log)
+        execution_environment = ee_utils.process_execution_environment(self.path, self.log)
 
         return schema.DocsBlob(
             collection_readme=rendered_readme,
@@ -270,19 +270,6 @@ class CollectionLoader(object):
             contents=contents,
             execution_environment=execution_environment,
         )
-
-    def _process_execution_environment(path, logger):
-        ex_env_path = os.path.join(path, 'meta', 'execution_environment.yml')
-        execution_environment = {}
-        if not os.path.exists(ex_env_path):
-            logger.info('No execution environment found.')
-        else:
-            logger.info('Linting execution environment data')
-            linting_result = yaml_utils.lint_file(ex_env_path)
-            for line in linting_result:
-                logger.warning(line)
-            execution_environment = yaml_utils.safe_load_file(ex_env_path)
-        return execution_environment
 
     def _check_metadata_filepaths(self):
         paths = []

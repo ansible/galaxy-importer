@@ -19,7 +19,6 @@ from collections import namedtuple
 import json
 import logging
 import os
-import shutil
 import tarfile
 import tempfile
 from types import SimpleNamespace
@@ -265,59 +264,6 @@ def test_build_docs_blob_no_readme(get_readme_doc_file):
     collection_loader.content_objs = []
     with pytest.raises(exc.ImporterError):
         collection_loader._build_docs_blob()
-
-
-@pytest.fixture
-def temp_root():
-    try:
-        tmp = tempfile.mkdtemp()
-        yield tmp
-    finally:
-        shutil.rmtree(tmp)
-
-
-EX_ENV_YAML = """version: 1
-dependencies:
-  python:
-    - somepkg==1.3
-    - otherpkg>=3.0
-  files:
-    - "/usr/bin/oc"
-    - "/usr/lib/libssl.so.1"
-  system:
-    - python3.6-dateutil
-"""
-
-
-def test_process_execution_environment(temp_root, logger=logging):
-    env_dir = os.path.join(temp_root, 'meta')
-    env_file_path = os.path.join(env_dir, 'execution_environment.yml')
-    os.makedirs(env_dir)
-    with open(env_file_path, 'w') as f:
-        f.write(EX_ENV_YAML)
-        f.flush()
-        res = CollectionLoader._process_execution_environment(temp_root, logger)
-    assert res == {
-        "version": 1,
-        "dependencies": {
-            "python": [
-                "somepkg==1.3",
-                "otherpkg>=3.0"
-            ],
-            "files": [
-                "/usr/bin/oc",
-                "/usr/lib/libssl.so.1"
-            ],
-            "system": [
-                "python3.6-dateutil"
-            ]
-        }
-    }
-
-
-def test_process_execution_environment_not_present(logger=logging):
-    res = CollectionLoader._process_execution_environment('/tmp/does/not/exist.yml', logger)
-    assert res == {}
 
 
 @mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
