@@ -24,36 +24,27 @@ from galaxy_importer.utils import yaml as yaml_utils
 def process_execution_environment(path, logger):
     ex_env = {}
     ex_env_path = os.path.join(path, 'meta', 'execution-environment.yml')
-    ex_env_exists = os.path.exists(ex_env_path)
 
-    if ex_env_exists:
+    if os.path.exists(ex_env_path):
         ex_env = _load_yaml(ex_env_path, logger)
-
-    if 'dependencies' in ex_env.keys():
-        system_path = os.path.join(path, ex_env['dependencies']['system'])
-        galaxy_path = os.path.join(path, ex_env['dependencies']['galaxy'])
-        python_path = os.path.join(path, ex_env['dependencies']['python'])
     else:
-        system_path = os.path.join(path, 'bindep.txt')
-        galaxy_path = os.path.join(path, 'requirements.yml')
-        python_path = os.path.join(path, 'requirements.txt')
+        logger.info('No execution environment data found.')
+        return ex_env
 
-    if os.path.exists(galaxy_path):
+    if os.path.exists(os.path.join(path, ex_env['dependencies']['galaxy'])):
         logger.info('Linting collection dependencies')
-        galaxy_contents = _load_yaml(galaxy_path, logger)
+        galaxy_contents = _load_yaml(os.path.join(path, ex_env['dependencies']['galaxy']), logger)
         logger.info('Loading collection dependencies')
         ex_env = _write_to_ee(ex_env, 'galaxy', galaxy_contents)
-    if os.path.exists(python_path):
+    if os.path.exists(os.path.join(path, ex_env['dependencies']['python'])):
         logger.info('Loading python dependencies')
-        python_contents = _load_python(python_path)
+        python_contents = _load_python(os.path.join(path, ex_env['dependencies']['python']))
         ex_env = _write_to_ee(ex_env, 'python', python_contents)
-    if os.path.exists(system_path):
+    if os.path.exists(os.path.join(path, ex_env['dependencies']['system'])):
         logger.info('Loading system dependencies')
-        system_contents = _load_list(system_path)
+        system_contents = _load_list(os.path.join(path, ex_env['dependencies']['system']))
         ex_env = _write_to_ee(ex_env, 'system', system_contents)
 
-    if 'dependencies' not in ex_env.keys():
-        logger.info('No execution environment data found.')
     return ex_env
 
 
