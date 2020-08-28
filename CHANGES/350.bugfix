@@ -1,1 +1,0 @@
-Fixed OpenShift Job referencing image by name only. Replaced `.metadata.name` with `.image.dockerImageReference`.

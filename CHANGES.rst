@@ -1,3 +1,30 @@
+galaxy-importer 0.2.8 (2020-08-28)
+==================================
+
+Features
+--------
+
+- Enable checking that a collection contains a tag from the required tag list. (`#255 <https://github.com/ansible/galaxy_ng/issues/255>`_)
+- In OpenShift replace image build with ansible-test job that downloads archive (`#342 <https://github.com/ansible/galaxy_ng/issues/342>`_)
+- Allow galaxy-import to enable/disable ansible-lint based on config (`#353 <https://github.com/ansible/galaxy_ng/issues/353>`_)
+
+
+Bugfixes
+--------
+
+- Add integration test to run galaxy-importer from shell (`#292 <https://github.com/ansible/galaxy_ng/issues/292>`_)
+- Standardize importer to require repository in collection metadata (`#293 <https://github.com/ansible/galaxy_ng/issues/293>`_)
+- Fix OpenShift template base image reference. (`#338 <https://github.com/ansible/galaxy_ng/issues/338>`_)
+- Timeouts for OpenShift image build is increased and made configurable via environment variables: ``IMPORTER_JOB_API_CHECK_RETRIES`` and ``IMPORTER_JOB_API_CHECK_DELAY_SECONDS``. (`#345 <https://github.com/ansible/galaxy_ng/issues/345>`_)
+- Fixed OpenShift Job referencing image by name only. Replaced `.metadata.name` with `.image.dockerImageReference`. (`#350 <https://github.com/ansible/galaxy_ng/issues/350>`_)
+
+
+Misc
+----
+
+- `#342 <https://github.com/ansible/galaxy_ng/issues/342>`_, `#355 <https://github.com/ansible/galaxy_ng/issues/355>`_
+
+
 galaxy-importer 0.2.7 (2020-07-10)
 ==================================
 

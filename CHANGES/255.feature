@@ -1,1 +1,0 @@
-Enable checking that a collection contains a tag from the required tag list.
