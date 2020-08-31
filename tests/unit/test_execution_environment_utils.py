@@ -31,14 +31,6 @@ dependencies:
   galaxy: requirements.yml
   python: requirements.txt
   system: bindep.txt
-
-additional_build_steps:
-  prepend: |
-    RUN whoami
-    RUN cat /etc/os-release
-  append:
-    - RUN echo This is a post-install command!
-    - RUN ls -la /etc
 """
 
 
@@ -48,14 +40,6 @@ dependencies:
   galaxy: meta/requirements.yml
   python: meta/requirements.txt
   system: meta/bindep.txt
-
-additional_build_steps:
-  prepend: |
-    RUN whoami
-    RUN cat /etc/os-release
-  append:
-    - RUN echo This is a post-install command!
-    - RUN ls -la /etc
 """
 
 REQUIREMENTS_YML = """
@@ -85,16 +69,30 @@ IMPORTED_REQUIREMENTS_YML = {
 
 
 REQUIREMENTS_TXT = """
-ansible
-paramiko
+certifi>=14.05.14 # MPL
+six>=1.9.0  # MIT
+python-dateutil>=2.5.3  # BSD
+setuptools>=21.0.0  # PSF/ZPL
+pyyaml>=3.12  # MIT
+google-auth>=1.0.1  # Apache-2.0
+ipaddress>=1.0.17;python_version=="2.7"  # PSF
+requests # Apache-2.0
+requests-oauthlib # ISC
+urllib3>=1.24.2  # MIT
 """
 
 BINDEP_TXT = """
-gcc
-python3-devel
-libcurl-devel
-openssl-devel
-libxml2-devel
+# This is a cross-platform list tracking distribution packages needed by tests;
+# see https://docs.openstack.org/infra/bindep/ for additional information.
+
+gcc [compile test]
+libc6-dev [compile test platform:dpkg]
+libffi-devel [platform:rpm]
+libffi-dev [compile test platform:dpkg]
+libffi6 [platform:dpkg]
+libssl-dev [compile test platform:dpkg]
+python3-dev [compile test platform:dpkg]
+python3-devel [compile test platform:rpm]
 """
 
 
@@ -134,23 +132,26 @@ PROCESSED_EE = {
             ]
         },
         'python': [
-            'ansible: []',
-            'paramiko: []'
+            "certifi: [('>=', '14.05.14')]",
+            "six: [('>=', '1.9.0')]",
+            "python-dateutil: [('>=', '2.5.3')]",
+            "setuptools: [('>=', '21.0.0')]",
+            "pyyaml: [('>=', '3.12')]",
+            "google-auth: [('>=', '1.0.1')]",
+            "ipaddress: [('>=', '1.0.17')]",
+            'requests: []',
+            'requests-oauthlib: []',
+            "urllib3: [('>=', '1.24.2')]"
         ],
         'system': [
-            'gcc',
-            'python3-devel',
-            'libcurl-devel',
-            'openssl-devel',
-            'libxml2-devel'
-        ]
-
-    },
-    'additional_build_steps': {
-        'prepend': 'RUN whoami\nRUN cat /etc/os-release\n',
-        'append': [
-            'RUN echo This is a post-install command!',
-            'RUN ls -la /etc'
+            'gcc [compile test]',
+            'libc6-dev [compile test platform:dpkg]',
+            'libffi-devel [platform:rpm]',
+            'libffi-dev [compile test platform:dpkg]',
+            'libffi6 [platform:dpkg]',
+            'libssl-dev [compile test platform:dpkg]',
+            'python3-dev [compile test platform:dpkg]',
+            'python3-devel [compile test platform:rpm]'
         ]
     }
 }
@@ -199,6 +200,72 @@ def test_process_execution_environment():
         os.rmdir(os.path.join(dir, 'meta'))
 
 
+def test_process_execution_environment_requirements_yml_missing(caplog):
+    dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    os.mkdir(os.path.join(dir, 'meta'))
+    files = [
+        os.path.join(dir, 'meta/execution-environment.yml'),
+        os.path.join(dir, 'requirements.txt'),
+        os.path.join(dir, 'bindep.txt')
+    ]
+    file_contents = [EE_YAML, REQUIREMENTS_TXT, BINDEP_TXT]
+    try:
+        for f, c in zip(files, file_contents):
+            with open(f, 'w') as fp:
+                fp.write(c)
+                fp.flush()
+        ee_utils.process_execution_environment(dir, logger)
+        assert 'Galaxy dependencies file not found' in caplog.text
+    finally:
+        for f in files:
+            os.remove(f)
+        os.rmdir(os.path.join(dir, 'meta'))
+
+
+def test_process_execution_environment_requirements_txt_missing(caplog):
+    dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    os.mkdir(os.path.join(dir, 'meta'))
+    files = [
+        os.path.join(dir, 'meta/execution-environment.yml'),
+        os.path.join(dir, 'requirements.yml'),
+        os.path.join(dir, 'bindep.txt')
+    ]
+    file_contents = [EE_YAML, REQUIREMENTS_YML, REQUIREMENTS_TXT, BINDEP_TXT]
+    try:
+        for f, c in zip(files, file_contents):
+            with open(f, 'w') as fp:
+                fp.write(c)
+                fp.flush()
+        ee_utils.process_execution_environment(dir, logger)
+        assert 'Python dependencies file not found' in caplog.text
+    finally:
+        for f in files:
+            os.remove(f)
+        os.rmdir(os.path.join(dir, 'meta'))
+
+
+def test_process_execution_environment_bindep_txt_missing(caplog):
+    dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    os.mkdir(os.path.join(dir, 'meta'))
+    files = [
+        os.path.join(dir, 'meta/execution-environment.yml'),
+        os.path.join(dir, 'requirements.yml'),
+        os.path.join(dir, 'requirements.txt'),
+    ]
+    file_contents = [EE_YAML, REQUIREMENTS_YML, REQUIREMENTS_TXT, BINDEP_TXT]
+    try:
+        for f, c in zip(files, file_contents):
+            with open(f, 'w') as fp:
+                fp.write(c)
+                fp.flush()
+        ee_utils.process_execution_environment(dir, logger)
+        assert 'System dependencies file not found' in caplog.text
+    finally:
+        for f in files:
+            os.remove(f)
+        os.rmdir(os.path.join(dir, 'meta'))
+
+
 def test_process_execution_environment_deps_in_directory():
     dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     os.mkdir(os.path.join(dir, 'meta'))
@@ -238,11 +305,14 @@ def test_load_list(tmp_txt_file):
         )
         res = ee_utils._load_list(path)
         assert res == [
-            'gcc',
-            'python3-devel',
-            'libcurl-devel',
-            'openssl-devel',
-            'libxml2-devel'
+            'gcc [compile test]',
+            'libc6-dev [compile test platform:dpkg]',
+            'libffi-devel [platform:rpm]',
+            'libffi-dev [compile test platform:dpkg]',
+            'libffi6 [platform:dpkg]',
+            'libssl-dev [compile test platform:dpkg]',
+            'python3-dev [compile test platform:dpkg]',
+            'python3-devel [compile test platform:rpm]'
         ]
     pass
 
@@ -257,8 +327,16 @@ def test_load_python(tmp_txt_file):
         )
         res = ee_utils._load_python(path)
         assert res == [
-            'ansible: []',
-            'paramiko: []'
+            "certifi: [('>=', '14.05.14')]",
+            "six: [('>=', '1.9.0')]",
+            "python-dateutil: [('>=', '2.5.3')]",
+            "setuptools: [('>=', '21.0.0')]",
+            "pyyaml: [('>=', '3.12')]",
+            "google-auth: [('>=', '1.0.1')]",
+            "ipaddress: [('>=', '1.0.17')]",
+            'requests: []',
+            'requests-oauthlib: []',
+            "urllib3: [('>=', '1.24.2')]"
         ]
 
 

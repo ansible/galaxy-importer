@@ -31,19 +31,36 @@ def process_execution_environment(path, logger):
         logger.info('No execution environment data found.')
         return ex_env
 
-    if os.path.exists(os.path.join(path, ex_env['dependencies']['galaxy'])):
+    if 'dependencies' in ex_env and 'galaxy' in ex_env['dependencies'] and os.path.exists(
+        os.path.join(path, ex_env['dependencies']['galaxy'])
+    ):
         logger.info('Linting collection dependencies')
-        galaxy_contents = _load_yaml(os.path.join(path, ex_env['dependencies']['galaxy']), logger)
+        galaxy_contents = _load_yaml(
+            os.path.join(path, ex_env['dependencies']['galaxy']),
+            logger
+        )
         logger.info('Loading collection dependencies')
         ex_env = _write_to_ee(ex_env, 'galaxy', galaxy_contents)
-    if os.path.exists(os.path.join(path, ex_env['dependencies']['python'])):
+    else:
+        logger.warning('Galaxy dependencies file not found')
+
+    if 'dependencies' in ex_env and 'python' in ex_env['dependencies'] and os.path.exists(
+        os.path.join(path, ex_env['dependencies']['python'])
+    ):
         logger.info('Loading python dependencies')
         python_contents = _load_python(os.path.join(path, ex_env['dependencies']['python']))
         ex_env = _write_to_ee(ex_env, 'python', python_contents)
-    if os.path.exists(os.path.join(path, ex_env['dependencies']['system'])):
+    else:
+        logger.warning('Python dependencies file not found')
+
+    if 'dependencies' in ex_env and 'system' in ex_env['dependencies'] and os.path.exists(
+        os.path.join(path, ex_env['dependencies']['system'])
+    ):
         logger.info('Loading system dependencies')
         system_contents = _load_list(os.path.join(path, ex_env['dependencies']['system']))
         ex_env = _write_to_ee(ex_env, 'system', system_contents)
+    else:
+        logger.warning('System dependencies file not found')
 
     return ex_env
 
