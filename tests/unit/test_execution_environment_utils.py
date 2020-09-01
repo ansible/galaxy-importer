@@ -120,28 +120,21 @@ PROCESSED_EE = {
     'dependencies': {
         'galaxy': {
             'collections': [
-                {
-                    'name': 'https://github.com/AlanCoding/awx.git#awx_collection,ee_req',
-                    'type': 'git'
-                },
-                {
-                    'name': 'https://github.com/AlanCoding/azure.git',
-                    'version': 'ee_req',
-                    'type': 'git'
-                },
+                {'name': 'https://github.com/AlanCoding/awx.git#awx_collection,ee_req', 'type': 'git'},
+                {'name': 'https://github.com/AlanCoding/azure.git', 'version': 'ee_req', 'type': 'git'}
             ]
         },
         'python': [
-            "certifi: [('>=', '14.05.14')]",
-            "six: [('>=', '1.9.0')]",
-            "python-dateutil: [('>=', '2.5.3')]",
-            "setuptools: [('>=', '21.0.0')]",
-            "pyyaml: [('>=', '3.12')]",
-            "google-auth: [('>=', '1.0.1')]",
-            "ipaddress: [('>=', '1.0.17')]",
-            'requests: []',
-            'requests-oauthlib: []',
-            "urllib3: [('>=', '1.24.2')]"
+            'certifi>=14.05.14',
+            'six>=1.9.0',
+            'python-dateutil>=2.5.3',
+            'setuptools>=21.0.0',
+            'pyyaml>=3.12',
+            'google-auth>=1.0.1',
+            'ipaddress>=1.0.17;python_version=="2.7"',
+            'requests',
+            'requests-oauthlib',
+            'urllib3>=1.24.2'
         ],
         'system': [
             'gcc [compile test]',
@@ -295,7 +288,7 @@ def test_process_execution_environment_no_files():
     assert res == {}
 
 
-def test_load_list(tmp_txt_file):
+def test_bindep_file_data(tmp_txt_file):
     with open(tmp_txt_file, 'w') as f:
         f.write(BINDEP_TXT)
         f.flush()
@@ -303,7 +296,7 @@ def test_load_list(tmp_txt_file):
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
             'file.txt'
         )
-        res = ee_utils._load_list(path)
+        res = ee_utils._bindep_file_data(path)
         assert res == [
             'gcc [compile test]',
             'libc6-dev [compile test platform:dpkg]',
@@ -317,7 +310,7 @@ def test_load_list(tmp_txt_file):
     pass
 
 
-def test_load_python(tmp_txt_file):
+def test_pip_file_data(tmp_txt_file):
     with open(tmp_txt_file, 'w') as f:
         f.write(REQUIREMENTS_TXT)
         f.flush()
@@ -325,18 +318,19 @@ def test_load_python(tmp_txt_file):
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
             'file.txt'
         )
-        res = ee_utils._load_python(path)
+        res = ee_utils._pip_file_data(path)
+        print(res)
         assert res == [
-            "certifi: [('>=', '14.05.14')]",
-            "six: [('>=', '1.9.0')]",
-            "python-dateutil: [('>=', '2.5.3')]",
-            "setuptools: [('>=', '21.0.0')]",
-            "pyyaml: [('>=', '3.12')]",
-            "google-auth: [('>=', '1.0.1')]",
-            "ipaddress: [('>=', '1.0.17')]",
-            'requests: []',
-            'requests-oauthlib: []',
-            "urllib3: [('>=', '1.24.2')]"
+            'certifi>=14.05.14',
+            'six>=1.9.0',
+            'python-dateutil>=2.5.3',
+            'setuptools>=21.0.0',
+            'pyyaml>=3.12',
+            'google-auth>=1.0.1',
+            'ipaddress>=1.0.17;python_version=="2.7"',
+            'requests',
+            'requests-oauthlib',
+            'urllib3>=1.24.2'
         ]
 
 

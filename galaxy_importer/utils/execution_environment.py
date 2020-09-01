@@ -16,7 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import os
-import requirements
+import re
 
 from galaxy_importer.utils import yaml as yaml_utils
 
@@ -48,7 +48,7 @@ def process_execution_environment(path, logger):
         os.path.join(path, ex_env['dependencies']['python'])
     ):
         logger.info('Loading python dependencies')
-        python_contents = _load_python(os.path.join(path, ex_env['dependencies']['python']))
+        python_contents = _pip_file_data(os.path.join(path, ex_env['dependencies']['python']))
         ex_env = _write_to_ee(ex_env, 'python', python_contents)
     else:
         logger.warning('Python dependencies file not found')
@@ -57,7 +57,7 @@ def process_execution_environment(path, logger):
         os.path.join(path, ex_env['dependencies']['system'])
     ):
         logger.info('Loading system dependencies')
-        system_contents = _load_list(os.path.join(path, ex_env['dependencies']['system']))
+        system_contents = _bindep_file_data(os.path.join(path, ex_env['dependencies']['system']))
         ex_env = _write_to_ee(ex_env, 'system', system_contents)
     else:
         logger.warning('System dependencies file not found')
@@ -65,21 +65,37 @@ def process_execution_environment(path, logger):
     return ex_env
 
 
-def _load_list(path):
-    content = []
-    with open(path) as f:
-        for line in f.readlines():
-            if line.rstrip() != '' and not line.startswith('#'):
-                content.append(line.rstrip())
-    return content
-
-
-def _load_python(path):
-    content = []
+def _bindep_file_data(path):
     with open(path, 'r') as f:
-        for req in requirements.parse(f):
-            content.append(f'{req.name}: {req.specs}')
-    return content
+        sys_content = f.read()
+
+    sys_lines = []
+    for line in sys_content.split('\n'):
+        if line_is_empty(line):
+            continue
+        sys_lines.append(line)
+
+    return sys_lines
+
+
+def _pip_file_data(path):
+    with open(path, 'r') as f:
+        pip_content = f.read()
+
+    pip_lines = []
+    for line in pip_content.split('\n'):
+        if line_is_empty(line):
+            continue
+        if '#' in line:
+            line = re.sub(r' *#.*\n?', '', line)
+        if line.startswith('-r') or line.startswith('--requirement'):
+            _, new_filename = line.split(None, 1)
+            new_path = os.path.join(os.path.dirname(path or '.'), new_filename)
+            pip_lines.extend(_pip_file_data(new_path))
+        else:
+            pip_lines.append(line.rstrip())
+
+    return pip_lines
 
 
 def _load_yaml(path, logger):
@@ -94,3 +110,7 @@ def _write_to_ee(ex_env, key_name, key_value):
         ex_env['dependencies'] = {}
     ex_env['dependencies'][key_name] = key_value
     return ex_env
+
+
+def line_is_empty(line):
+    return bool((not line.strip()) or line.startswith('#'))
