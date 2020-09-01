@@ -120,8 +120,15 @@ PROCESSED_EE = {
     'dependencies': {
         'galaxy': {
             'collections': [
-                {'name': 'https://github.com/AlanCoding/awx.git#awx_collection,ee_req', 'type': 'git'},
-                {'name': 'https://github.com/AlanCoding/azure.git', 'version': 'ee_req', 'type': 'git'}
+                {
+                    'name': 'https://github.com/AlanCoding/awx.git#awx_collection,ee_req',
+                    'type': 'git'
+                },
+                {
+                    'name': 'https://github.com/AlanCoding/azure.git',
+                    'version': 'ee_req',
+                    'type': 'git'
+                }
             ]
         },
         'python': [
