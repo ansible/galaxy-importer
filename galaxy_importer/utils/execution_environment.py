@@ -30,36 +30,25 @@ def process_execution_environment(path, logger):
     else:
         logger.info('No execution environment data found.')
         return ex_env
+    if 'dependencies' not in ex_env:
+        logger.warning('No dependencies found')
+        return ex_env
 
-    if 'dependencies' in ex_env and 'galaxy' in ex_env['dependencies'] and os.path.exists(
-        os.path.join(path, ex_env['dependencies']['galaxy'])
-    ):
-        logger.info('Linting collection dependencies')
-        galaxy_contents = _load_yaml(
-            os.path.join(path, ex_env['dependencies']['galaxy']),
-            logger
-        )
-        logger.info('Loading collection dependencies')
-        ex_env = _write_to_ee(ex_env, 'galaxy', galaxy_contents)
-    else:
-        logger.warning('Galaxy dependencies file not found')
+    python_exists = os.path.exists(os.path.join(path, ex_env['dependencies']['python']))
+    system_exists = os.path.exists(os.path.join(path, ex_env['dependencies']['system']))
 
-    if 'dependencies' in ex_env and 'python' in ex_env['dependencies'] and os.path.exists(
-        os.path.join(path, ex_env['dependencies']['python'])
-    ):
+    if 'python' in ex_env['dependencies'] and python_exists:
         logger.info('Loading python dependencies')
         python_contents = _pip_file_data(os.path.join(path, ex_env['dependencies']['python']))
         ex_env = _write_to_ee(ex_env, 'python', python_contents)
-    else:
+    elif 'python' in ex_env['dependencies'] and not python_exists:
         logger.warning('Python dependencies file not found')
 
-    if 'dependencies' in ex_env and 'system' in ex_env['dependencies'] and os.path.exists(
-        os.path.join(path, ex_env['dependencies']['system'])
-    ):
+    if 'system' in ex_env['dependencies'] and system_exists:
         logger.info('Loading system dependencies')
         system_contents = _bindep_file_data(os.path.join(path, ex_env['dependencies']['system']))
         ex_env = _write_to_ee(ex_env, 'system', system_contents)
-    else:
+    elif 'system' in ex_env['dependencies'] and not system_exists:
         logger.warning('System dependencies file not found')
 
     return ex_env

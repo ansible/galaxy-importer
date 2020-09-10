@@ -28,44 +28,26 @@ logger = logging.getLogger(__name__)
 EE_YAML = """---
 version: 1
 dependencies:
-  galaxy: requirements.yml
   python: requirements.txt
   system: bindep.txt
 """
 
 
+EE_IMPORTED = {
+    'version': 1,
+    'dependencies': {
+        'python': 'requirements.txt',
+        'system': 'bindep.txt'
+    }
+}
+
+
 EE_DIR_YAML = """---
 version: 1
 dependencies:
-  galaxy: meta/requirements.yml
   python: meta/requirements.txt
   system: meta/bindep.txt
 """
-
-REQUIREMENTS_YML = """
----
-collections:
-  - name: https://github.com/AlanCoding/awx.git#awx_collection,ee_req
-    type: git
-  - name: https://github.com/AlanCoding/azure.git
-    version: ee_req
-    type: git
-"""
-
-
-IMPORTED_REQUIREMENTS_YML = {
-    'collections': [
-        {
-            'name': 'https://github.com/AlanCoding/awx.git#awx_collection,ee_req',
-            'type': 'git'
-        },
-        {
-            'name': 'https://github.com/AlanCoding/azure.git',
-            'version': 'ee_req',
-            'type': 'git'
-        },
-    ]
-}
 
 
 REQUIREMENTS_TXT = """
@@ -96,21 +78,30 @@ python3-devel [compile test platform:rpm]
 """
 
 
+BINDEP_PROCESSED = [
+    'gcc [compile test]',
+    'libc6-dev [compile test platform:dpkg]',
+    'libffi-devel [platform:rpm]',
+    'libffi-dev [compile test platform:dpkg]',
+    'libffi6 [platform:dpkg]',
+    'libssl-dev [compile test platform:dpkg]',
+    'python3-dev [compile test platform:dpkg]',
+    'python3-devel [compile test platform:rpm]'
+]
+
+
 WRITE_TO_EE_RESULT = {
     'dependencies': {
-        'galaxy': {
-            'collections': [
-                {
-                    'name': 'https://github.com/AlanCoding/awx.git#awx_collection,ee_req',
-                    'type': 'git'
-                },
-                {
-                    'name': 'https://github.com/AlanCoding/azure.git',
-                    'version': 'ee_req',
-                    'type': 'git'
-                },
-            ]
-        }
+        'system': [
+            'gcc [compile test]',
+            'libc6-dev [compile test platform:dpkg]',
+            'libffi-devel [platform:rpm]',
+            'libffi-dev [compile test platform:dpkg]',
+            'libffi6 [platform:dpkg]',
+            'libssl-dev [compile test platform:dpkg]',
+            'python3-dev [compile test platform:dpkg]',
+            'python3-devel [compile test platform:rpm]'
+        ]
     }
 }
 
@@ -118,19 +109,6 @@ WRITE_TO_EE_RESULT = {
 PROCESSED_EE = {
     'version': 1,
     'dependencies': {
-        'galaxy': {
-            'collections': [
-                {
-                    'name': 'https://github.com/AlanCoding/awx.git#awx_collection,ee_req',
-                    'type': 'git'
-                },
-                {
-                    'name': 'https://github.com/AlanCoding/azure.git',
-                    'version': 'ee_req',
-                    'type': 'git'
-                }
-            ]
-        },
         'python': [
             'certifi>=14.05.14',
             'six>=1.9.0',
@@ -182,11 +160,10 @@ def test_process_execution_environment():
     os.mkdir(os.path.join(dir, 'meta'))
     files = [
         os.path.join(dir, 'meta/execution-environment.yml'),
-        os.path.join(dir, 'requirements.yml'),
         os.path.join(dir, 'requirements.txt'),
         os.path.join(dir, 'bindep.txt')
     ]
-    file_contents = [EE_YAML, REQUIREMENTS_YML, REQUIREMENTS_TXT, BINDEP_TXT]
+    file_contents = [EE_YAML, REQUIREMENTS_TXT, BINDEP_TXT]
     try:
         for f, c in zip(files, file_contents):
             with open(f, 'w') as fp:
@@ -200,37 +177,14 @@ def test_process_execution_environment():
         os.rmdir(os.path.join(dir, 'meta'))
 
 
-def test_process_execution_environment_requirements_yml_missing(caplog):
-    dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    os.mkdir(os.path.join(dir, 'meta'))
-    files = [
-        os.path.join(dir, 'meta/execution-environment.yml'),
-        os.path.join(dir, 'requirements.txt'),
-        os.path.join(dir, 'bindep.txt')
-    ]
-    file_contents = [EE_YAML, REQUIREMENTS_TXT, BINDEP_TXT]
-    try:
-        for f, c in zip(files, file_contents):
-            with open(f, 'w') as fp:
-                fp.write(c)
-                fp.flush()
-        ee_utils.process_execution_environment(dir, logger)
-        assert 'Galaxy dependencies file not found' in caplog.text
-    finally:
-        for f in files:
-            os.remove(f)
-        os.rmdir(os.path.join(dir, 'meta'))
-
-
 def test_process_execution_environment_requirements_txt_missing(caplog):
     dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     os.mkdir(os.path.join(dir, 'meta'))
     files = [
         os.path.join(dir, 'meta/execution-environment.yml'),
-        os.path.join(dir, 'requirements.yml'),
         os.path.join(dir, 'bindep.txt')
     ]
-    file_contents = [EE_YAML, REQUIREMENTS_YML, REQUIREMENTS_TXT, BINDEP_TXT]
+    file_contents = [EE_YAML, BINDEP_TXT]
     try:
         for f, c in zip(files, file_contents):
             with open(f, 'w') as fp:
@@ -249,10 +203,9 @@ def test_process_execution_environment_bindep_txt_missing(caplog):
     os.mkdir(os.path.join(dir, 'meta'))
     files = [
         os.path.join(dir, 'meta/execution-environment.yml'),
-        os.path.join(dir, 'requirements.yml'),
         os.path.join(dir, 'requirements.txt'),
     ]
-    file_contents = [EE_YAML, REQUIREMENTS_YML, REQUIREMENTS_TXT, BINDEP_TXT]
+    file_contents = [EE_YAML, REQUIREMENTS_TXT, BINDEP_TXT]
     try:
         for f, c in zip(files, file_contents):
             with open(f, 'w') as fp:
@@ -266,16 +219,31 @@ def test_process_execution_environment_bindep_txt_missing(caplog):
         os.rmdir(os.path.join(dir, 'meta'))
 
 
+def test_process_execution_environment_no_deps_key(caplog):
+    dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    os.mkdir(os.path.join(dir, 'meta'))
+    try:
+        f = os.path.join(dir, 'meta/execution-environment.yml')
+        with open(f, 'w') as fp:
+            fp.write('version: 1')
+            fp.flush()
+        res = ee_utils.process_execution_environment(dir, logger)
+        assert res == {'version': 1}
+        assert 'No dependencies found' in caplog.text
+    finally:
+        os.remove(f)
+        os.rmdir(os.path.join(dir, 'meta'))
+
+
 def test_process_execution_environment_deps_in_directory():
     dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     os.mkdir(os.path.join(dir, 'meta'))
     files = [
         os.path.join(dir, 'meta/execution-environment.yml'),
-        os.path.join(dir, 'meta/requirements.yml'),
         os.path.join(dir, 'meta/requirements.txt'),
         os.path.join(dir, 'meta/bindep.txt')
     ]
-    file_contents = [EE_DIR_YAML, REQUIREMENTS_YML, REQUIREMENTS_TXT, BINDEP_TXT]
+    file_contents = [EE_DIR_YAML, REQUIREMENTS_TXT, BINDEP_TXT]
     try:
         for f, c in zip(files, file_contents):
             with open(f, 'w') as fp:
@@ -341,31 +309,85 @@ def test_pip_file_data(tmp_txt_file):
         ]
 
 
+REQUIREMENTS_DASHR_TXT = """
+certifi>=14.05.14 # MPL
+six>=1.9.0  # MIT
+python-dateutil>=2.5.3  # BSD
+-r requirements.txt
+"""
+
+
+REQUIREMENTS_FLAG_TXT = """
+apypie>=0.2.0
+requests
+PyYAML
+--requirements requirements-more.txt
+"""
+
+
+REQUIREMENTS_TO_INCLUDE_TXT = """
+google-auth>=1.0.1
+ipaddress>=1.0.17;python_version=="2.7"
+requests-oauthlib
+"""
+
+
+def test_pip_file_data_with_included_requirements():
+    dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    files = [
+        os.path.join(dir, 'requirements-dev.txt'),
+        os.path.join(dir, 'requirements.txt'),
+        os.path.join(dir, 'requirements-more.txt'),
+    ]
+    file_contents = [REQUIREMENTS_DASHR_TXT, REQUIREMENTS_FLAG_TXT, REQUIREMENTS_TO_INCLUDE_TXT]
+    try:
+        for f, c in zip(files, file_contents):
+            with open(f, 'w') as fp:
+                fp.write(c)
+                fp.flush()
+        res = ee_utils._pip_file_data(os.path.join(dir, 'requirements-dev.txt'))
+        print(res)
+        assert res == [
+            'certifi>=14.05.14',
+            'six>=1.9.0',
+            'python-dateutil>=2.5.3',
+            'apypie>=0.2.0',
+            'requests',
+            'PyYAML',
+            'google-auth>=1.0.1',
+            'ipaddress>=1.0.17;python_version=="2.7"',
+            'requests-oauthlib'
+        ]
+    finally:
+        for f in files:
+            os.remove(f)
+
+
 def test_load_yaml(tmp_yml_file):
     with open(tmp_yml_file, 'w') as f:
-        f.write(REQUIREMENTS_YML)
+        f.write(EE_YAML)
         f.flush()
         path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
             'requirements.yml'
         )
         res = ee_utils._load_yaml(path, logger)
-        assert res == IMPORTED_REQUIREMENTS_YML
+        assert res == EE_IMPORTED
 
 
 def test_write_to_ee():
     ee = {
         'dependencies': {}
     }
-    key_name = 'galaxy'
-    key_value = IMPORTED_REQUIREMENTS_YML
+    key_name = 'system'
+    key_value = BINDEP_PROCESSED
     res = ee_utils._write_to_ee(ee, key_name, key_value)
     assert res == WRITE_TO_EE_RESULT
 
 
 def test_write_to_ee_no_dep_key():
     ee = {}
-    key_name = 'galaxy'
-    key_value = IMPORTED_REQUIREMENTS_YML
+    key_name = 'system'
+    key_value = BINDEP_PROCESSED
     res = ee_utils._write_to_ee(ee, key_name, key_value)
     assert res == WRITE_TO_EE_RESULT
