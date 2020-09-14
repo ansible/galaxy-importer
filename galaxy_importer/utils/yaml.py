@@ -25,7 +25,7 @@ def safe_load_file(file_path):
     d = {}
     with open(file_path) as fp:
         d = yaml.safe_load(fp)
-    return d
+    return d or {}
 
 
 def lint_file(file_path):
