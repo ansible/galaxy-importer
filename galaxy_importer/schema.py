@@ -326,3 +326,4 @@ class DocsBlob(object):
     collection_readme = attr.ib(type=RenderedDocFile)
     documentation_files = attr.ib(factory=list, type=RenderedDocFile)
     contents = attr.ib(factory=list, type=DocsBlobContentItem)
+    execution_environment = attr.ib(factory=dict)

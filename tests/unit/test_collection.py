@@ -206,6 +206,7 @@ def test_build_docs_blob_contents(get_readme_doc_file, get_html):
                 'readme_html': None,
             },
         ],
+        'execution_environment': {}
     }
 
 
@@ -239,6 +240,7 @@ def test_build_docs_blob_doc_files(get_doc_files, get_readme, get_html):
             },
         ],
         'contents': [],
+        'execution_environment': {}
     }
 
     collection_loader = CollectionLoader('/tmpdir', 'filename',
@@ -250,6 +252,7 @@ def test_build_docs_blob_doc_files(get_doc_files, get_readme, get_html):
                               'html': None},
         'documentation_files': [],
         'contents': [],
+        'execution_environment': {}
     }
 
 

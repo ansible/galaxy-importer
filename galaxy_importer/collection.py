@@ -31,6 +31,7 @@ from galaxy_importer.finder import ContentFinder
 from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.ansible_test import runners
+from galaxy_importer.utils import execution_environment as ee_utils
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer import __version__
 
@@ -261,10 +262,13 @@ class CollectionLoader(object):
                 for f in doc_files
             ]
 
+        execution_environment = ee_utils.process_execution_environment(self.path, self.log)
+
         return schema.DocsBlob(
             collection_readme=rendered_readme,
             documentation_files=rendered_doc_files,
             contents=contents,
+            execution_environment=execution_environment,
         )
 
     def _check_metadata_filepaths(self):
