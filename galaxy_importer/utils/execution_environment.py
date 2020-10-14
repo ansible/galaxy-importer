@@ -19,20 +19,20 @@ import ansible_builder.introspect
 
 
 def process_execution_environment(path, logger):
-    deps = ansible_builder.introspect.process_collection(path)
+    python_deps, system_deps = ansible_builder.introspect.process_collection(path)
     ex_env = {}
 
-    if len(deps[0]) == 0 and len(deps[1]) == 0:
+    if not python_deps and not system_deps:
         logger.info('No execution environment dependencies found')
         return ex_env
 
-    if len(deps[0]) > 0:
+    if python_deps:
         logger.info('Loading python dependencies')
-        ex_env = _write_to_ee(ex_env, 'python', deps[0])
+        ex_env = _write_to_ee(ex_env, 'python', python_deps)
 
-    if len(deps[1]) > 0:
+    if system_deps:
         logger.info('Loading system dependencies')
-        ex_env = _write_to_ee(ex_env, 'system', deps[1])
+        ex_env = _write_to_ee(ex_env, 'system', system_deps)
 
     return ex_env
 

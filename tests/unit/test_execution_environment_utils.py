@@ -28,6 +28,16 @@ dependencies:
   python: requirements.txt
   system: bindep.txt
 """
+EE_ONLY_PYTHON_YAML = """
+version: 1
+dependencies:
+  python: requirements.txt
+"""
+EE_ONLY_SYSTEM_YAML = """
+version: 1
+dependencies:
+  system: bindep.txt
+"""
 REQUIREMENTS_TXT = """
 google-auth>=1.0.1  # Apache-2.0
 requests # Apache-2.0
@@ -64,6 +74,87 @@ def test_process_execution_environment():
                     'requests # Apache-2.0',
                     'requests-oauthlib # ISC',
                 ],
+                'system': [
+                    'libffi-devel [platform:rpm]',
+                    'python3-devel [compile test platform:rpm]'
+                ]
+            }
+        }
+    finally:
+        for f in files:
+            os.remove(f)
+        os.rmdir(os.path.join(dir, 'meta'))
+
+
+def test_process_empty_execution_environment_with_local_files():
+    dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    os.mkdir(os.path.join(dir, 'meta'))
+    files = [
+        os.path.join(dir, 'meta/execution-environment.yml'),
+        os.path.join(dir, 'requirements.txt'),
+        os.path.join(dir, 'bindep.txt')
+    ]
+    file_contents = ['version: 1', REQUIREMENTS_TXT, BINDEP_TXT]
+    try:
+        for f, c in zip(files, file_contents):
+            with open(f, 'w') as fp:
+                fp.write(c)
+                fp.flush()
+        res = ee_utils.process_execution_environment(dir, logger)
+        assert res == {}
+    finally:
+        for f in files:
+            os.remove(f)
+        os.rmdir(os.path.join(dir, 'meta'))
+
+
+def test_process_python_execution_environment_with_local_system_file():
+    dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    os.mkdir(os.path.join(dir, 'meta'))
+    files = [
+        os.path.join(dir, 'meta/execution-environment.yml'),
+        os.path.join(dir, 'requirements.txt'),
+        os.path.join(dir, 'bindep.txt')
+    ]
+    file_contents = [EE_ONLY_PYTHON_YAML, REQUIREMENTS_TXT, BINDEP_TXT]
+    try:
+        for f, c in zip(files, file_contents):
+            with open(f, 'w') as fp:
+                fp.write(c)
+                fp.flush()
+        res = ee_utils.process_execution_environment(dir, logger)
+        assert res == {
+            'dependencies': {
+                'python': [
+                    'google-auth>=1.0.1  # Apache-2.0',
+                    'requests # Apache-2.0',
+                    'requests-oauthlib # ISC',
+                ]
+            }
+        }
+    finally:
+        for f in files:
+            os.remove(f)
+        os.rmdir(os.path.join(dir, 'meta'))
+
+
+def test_process_system_execution_environment_with_local_python_file():
+    dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    os.mkdir(os.path.join(dir, 'meta'))
+    files = [
+        os.path.join(dir, 'meta/execution-environment.yml'),
+        os.path.join(dir, 'requirements.txt'),
+        os.path.join(dir, 'bindep.txt')
+    ]
+    file_contents = [EE_ONLY_SYSTEM_YAML, REQUIREMENTS_TXT, BINDEP_TXT]
+    try:
+        for f, c in zip(files, file_contents):
+            with open(f, 'w') as fp:
+                fp.write(c)
+                fp.flush()
+        res = ee_utils.process_execution_environment(dir, logger)
+        assert res == {
+            'dependencies': {
                 'system': [
                     'libffi-devel [platform:rpm]',
                     'python3-devel [compile test platform:rpm]'
