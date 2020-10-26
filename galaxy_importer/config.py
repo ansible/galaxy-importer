@@ -40,6 +40,7 @@ class Config(object):
         'run_ansible_doc': True,
         'infra_osd': False,
         'check_required_tags': False,
+        'tmp_root_dir': None,
     }
 
     def __init__(self, config_data=None):

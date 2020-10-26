@@ -46,7 +46,8 @@ def test_config_set_from_file(temp_config_file):
     with open(temp_config_file, 'w') as f:
         f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
                 'ANSIBLE_TEST_LOCAL_IMAGE = True\n'
-                'LOCAL_IMAGE_DOCKER = True')
+                'LOCAL_IMAGE_DOCKER = True\n'
+                'TMP_ROOT_DIR = /tmp')
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
@@ -55,6 +56,7 @@ def test_config_set_from_file(temp_config_file):
         assert cfg.ansible_test_local_image is True
         assert cfg.local_image_docker is True
         assert cfg.infra_osd is False
+        assert cfg.tmp_root_dir == '/tmp'
 
 
 def test_config_set_from_env(temp_config_file_b, monkeypatch):
@@ -81,6 +83,7 @@ def test_no_config_data():
     assert cfg.ansible_test_local_image is False
     assert cfg.local_image_docker is False
     assert cfg.infra_osd is False
+    assert cfg.tmp_root_dir is None
 
 
 def test_config_bad_ini_section(temp_config_file):

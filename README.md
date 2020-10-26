@@ -47,6 +47,7 @@ RUN_ANSIBLE_LINT = True
 RUN_ANSIBLE_TEST = False
 ANSIBLE_TEST_LOCAL_IMAGE = False
 INFRA_OSD = False
+TMP_ROOT_DIR = None
 ```
 
 - `RUN_ANSIBLE_TEST` - Set to `True` to run `ansible-test` during collection import. Defaults to `False`.
