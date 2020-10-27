@@ -153,6 +153,7 @@ class CollectionLoader(object):
                 path=self.path,
                 fq_collection_name='{}.{}'.format(self.metadata.namespace, self.metadata.name),
                 logger=self.log,
+                cfg=self.cfg,
             ).load()
 
         self.content_objs = list(self._load_contents())

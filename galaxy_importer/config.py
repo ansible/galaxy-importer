@@ -41,6 +41,7 @@ class Config(object):
         'infra_osd': False,
         'check_required_tags': False,
         'tmp_root_dir': None,
+        'ansible_local_tmp': '~/.ansible/tmp'
     }
 
     def __init__(self, config_data=None):
