@@ -58,10 +58,7 @@ def import_collection(file, filename=None, logger=None, cfg=None):
 
 
 def _import_collection(file, filename, logger, cfg):
-    tmp_root_dir = None
-    if cfg:
-        tmp_root_dir = cfg.tmp_root_dir
-    with tempfile.TemporaryDirectory(dir=tmp_root_dir) as tmp_dir:
+    with tempfile.TemporaryDirectory(dir=cfg.tmp_root_dir) as tmp_dir:
         sub_path = 'ansible_collections/placeholder_namespace/placeholder_name'
         extract_dir = os.path.join(tmp_dir, sub_path)
         os.makedirs(extract_dir)

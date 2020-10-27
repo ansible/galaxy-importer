@@ -1,1 +1,1 @@
-Make root temp directory configurable
+Make root and ansible local temp directories configurable

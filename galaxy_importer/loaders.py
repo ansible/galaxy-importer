@@ -227,13 +227,10 @@ class DocStringLoader():
         return plugins
 
     def _run_ansible_doc(self, plugin_type, plugins):
-        ansible_local_tmp = '~/.ansible/tmp'
-        if self.cfg:
-            ansible_local_tmp = self.cfg.ansible_local_tmp
         collections_path = '/'.join(self.path.split('/')[:-3])
         cmd = [
             '/usr/bin/env', f'ANSIBLE_COLLECTIONS_PATHS={collections_path}',
-            f'ANSIBLE_LOCAL_TEMP={ansible_local_tmp}'
+            f'ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}'
             'ansible-doc',
             '--type', plugin_type,
             '--json',
