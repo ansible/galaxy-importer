@@ -17,7 +17,6 @@
 
 import json
 import os
-import re
 import shutil
 import tempfile
 from types import SimpleNamespace
@@ -267,45 +266,35 @@ def temp_root():
         shutil.rmtree(tmp)
 
 
-def test_ansiblelint_file(loader_role):
+def test_ansiblelint_file(loader_role, caplog):
     loader_role.root = None
     with tempfile.NamedTemporaryFile('w') as fp:
         fp.write(ANSIBLELINT_TASK_SUDO_WARN)
         fp.flush()
-        res = list(loader_role._lint_role(fp.name))
-    assert 'deprecated sudo' in ' '.join(res).lower()
+        loader_role._lint_role(fp.name)
+    assert 'deprecated sudo' in str(caplog.records).lower()
 
 
-def test_ansiblelint_role(temp_root, loader_role):
+def test_ansiblelint_role(temp_root, loader_role, caplog):
     task_dir = os.path.join(temp_root, 'tasks')
     loader_role.root = None
     os.makedirs(task_dir)
     with open(os.path.join(task_dir, 'main.yml'), 'w') as fp:
         fp.write(ANSIBLELINT_TASK_SUDO_WARN)
         fp.flush()
-        res = list(loader_role._lint_role(temp_root))
-    assert 'deprecated sudo' in ' '.join(res).lower()
-    lint_output_path = re.compile(r'^tmp.+\/tasks\/main\.yml.+$')
-    assert re.match(lint_output_path, res[0])
+        loader_role._lint_role(temp_root)
+    assert 'deprecated sudo' in str(caplog.records).lower()
 
 
-def test_ansiblelint_role_no_warn(temp_root, loader_role):
+def test_ansiblelint_role_no_warn(temp_root, loader_role, caplog):
     loader_role.root = None
     task_dir = os.path.join(temp_root, 'tasks')
     os.makedirs(task_dir)
     with open(os.path.join(task_dir, 'main.yml'), 'w') as fp:
         fp.write(ANSIBLELINT_TASK_OK)
         fp.flush()
-        res = list(loader_role._lint_role(temp_root))
-    assert res == []
-
-
-@mock.patch('galaxy_importer.loaders.Popen')
-def test_ansible_lint_exception(mocked_popen, loader_role):
-    mocked_popen.return_value.stdout = ''
-    mocked_popen.return_value.wait.return_value = 1
-    res = list(loader_role._lint_role('.'))
-    assert 'Exception running ansible-lint' in res[0]
+        loader_role._lint_role(temp_root)
+    assert len(caplog.records) == 0
 
 
 def test_find_metadata_file_path(temp_root, loader_role):
