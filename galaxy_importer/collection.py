@@ -58,7 +58,7 @@ def import_collection(file, filename=None, logger=None, cfg=None):
 
 
 def _import_collection(file, filename, logger, cfg):
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory(dir=cfg.tmp_root_dir) as tmp_dir:
         sub_path = 'ansible_collections/placeholder_namespace/placeholder_name'
         extract_dir = os.path.join(tmp_dir, sub_path)
         os.makedirs(extract_dir)
@@ -150,6 +150,7 @@ class CollectionLoader(object):
                 path=self.path,
                 fq_collection_name='{}.{}'.format(self.metadata.namespace, self.metadata.name),
                 logger=self.log,
+                cfg=self.cfg,
             ).load()
 
         self.content_objs = list(self._load_contents())

@@ -20,14 +20,17 @@ from unittest import mock
 
 import pytest
 
+from galaxy_importer import config
 from galaxy_importer import loaders
 
 
 @pytest.fixture
 def doc_string_loader():
+    cfg = config.Config(config_data=config.ConfigFile.load())
     return loaders.DocStringLoader(
         path='/tmp_dir/tmp123/ansible_collections/my_namespace/my_collection',
-        fq_collection_name='my_namespace.my_collection')
+        fq_collection_name='my_namespace.my_collection',
+        cfg=cfg)
 
 
 def test_init_loader(doc_string_loader):

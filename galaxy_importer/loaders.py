@@ -177,9 +177,10 @@ class DocStringLoader():
     """Process ansible-doc doc strings for entire collection.
 
     Load by calling ansible-doc once in batch for each plugin type."""
-    def __init__(self, path, fq_collection_name, logger=None):
+    def __init__(self, path, fq_collection_name, cfg, logger=None):
         self.path = path
         self.fq_collection_name = fq_collection_name
+        self.cfg = cfg
         self.log = logger or default_logger
 
     def load(self):
@@ -229,6 +230,7 @@ class DocStringLoader():
         collections_path = '/'.join(self.path.split('/')[:-3])
         cmd = [
             '/usr/bin/env', f'ANSIBLE_COLLECTIONS_PATHS={collections_path}',
+            f'ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}'
             'ansible-doc',
             '--type', plugin_type,
             '--json',

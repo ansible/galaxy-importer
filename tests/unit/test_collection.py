@@ -30,6 +30,7 @@ import requests
 
 from galaxy_importer import collection
 from galaxy_importer.collection import CollectionLoader
+from galaxy_importer import config
 from galaxy_importer.config import ConfigFile
 from galaxy_importer.constants import ContentType
 from galaxy_importer import exceptions as exc
@@ -363,8 +364,9 @@ def mock__import_collection(mocker):
 
 def test__import_collection(mocker, tmp_collection_root, mock__import_collection):
     mocker.patch.object(collection, 'subprocess')
+    cfg = config.Config(config_data=config.ConfigFile.load())
     with open(os.path.join(tmp_collection_root, 'test_file.tar.gz'), 'w') as f:
-        collection._import_collection(file=f, filename='', logger=logging, cfg=None)
+        collection._import_collection(file=f, filename='', logger=logging, cfg=cfg)
     assert collection.subprocess.run.called
 
 
