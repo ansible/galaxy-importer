@@ -118,10 +118,12 @@ def test_local_run_rc_error(mocker, caplog):
     runner = runners.local_ansible_test.LocalAnsibleTestRunner(metadata=metadata)
     runner.run()
 
+    cmd = '/usr/bin/env ANSIBLE_LOCAL_TEMP=~/.ansible/tmp ansible-test sanity'
+
     assert subprocess.Popen.called
     assert len(caplog.records) == 5
     assert caplog.records[4].levelname == 'ERROR'
-    assert 'An exception occurred in ansible-test sanity' in str(caplog.records[4])
+    assert f'An exception occurred in {cmd}' in str(caplog.records[4])
 
 
 @mock.patch('shutil.which')
