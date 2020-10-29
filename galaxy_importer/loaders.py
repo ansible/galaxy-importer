@@ -230,7 +230,7 @@ class DocStringLoader():
         collections_path = '/'.join(self.path.split('/')[:-3])
         cmd = [
             '/usr/bin/env', f'ANSIBLE_COLLECTIONS_PATHS={collections_path}',
-            f'ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}'
+            f'ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}',
             'ansible-doc',
             '--type', plugin_type,
             '--json',

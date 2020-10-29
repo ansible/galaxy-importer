@@ -20,7 +20,11 @@ import os
 import shutil
 import subprocess
 
+from galaxy_importer import config
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
+
+config_data = config.ConfigFile.load()
+cfg = config.Config(config_data=config_data)
 
 
 class LocalAnsibleTestRunner(BaseTestRunner):
@@ -31,7 +35,10 @@ class LocalAnsibleTestRunner(BaseTestRunner):
             return
 
         version_proc = subprocess.Popen(
-            ['ansible', '--version'],
+            [
+                '/usr/bin/env', f'ANSIBLE_LOCAL_TEMP={cfg.ansible_local_tmp}',
+                'ansible', '--version'
+            ],
             stdout=subprocess.PIPE,
             encoding='utf-8',
         )
@@ -41,6 +48,7 @@ class LocalAnsibleTestRunner(BaseTestRunner):
         collection_dir = os.path.join(self.dir, suffix)
 
         cmd = [
+            '/usr/bin/env', f'ANSIBLE_LOCAL_TEMP={cfg.ansible_local_tmp}',
             'ansible-test', 'sanity',
             '--docker',
             '--color', 'yes',
