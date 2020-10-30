@@ -327,6 +327,7 @@ class RoleLoader(ContentLoader):
             return
 
         cmd = [
+            '/usr/bin/env', f'ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}',
             'ansible-lint', path,
             '-p',
             '-x', 'metadata',
