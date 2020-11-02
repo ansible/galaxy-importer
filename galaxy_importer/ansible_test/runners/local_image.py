@@ -15,6 +15,7 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+from galaxy_importer import config
 from galaxy_importer import exceptions
 from galaxy_importer.ansible_test.builders.local_image_build import Build
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
@@ -24,20 +25,26 @@ from subprocess import Popen, PIPE, STDOUT
 class LocalImageTestRunner(BaseTestRunner):
     """Run image locally with docker or podman."""
     def run(self):
+        cfg = config.Config(config_data=config.ConfigFile.load())
+
         build = Build(
             self.filepath,
             f'{self.metadata.namespace}-{self.metadata.name}-{self.metadata.version}',
+            cfg,
             self.log)
 
         image_id = build.build_image()
 
         self.log.info('Running image...')
-        self._run_image(image_id=image_id)
+        self._run_image(
+            image_id=image_id,
+            container_engine=build.get_container_engine(cfg)
+        )
 
         build.cleanup()
 
-    def _run_image(self, image_id):
-        cmd = ['docker', 'run', image_id, 'LOCAL_IMAGE_RUNNER']
+    def _run_image(self, image_id, container_engine):
+        cmd = [container_engine, 'run', image_id, 'LOCAL_IMAGE_RUNNER']
         proc = Popen(
             cmd,
             stdout=PIPE,
