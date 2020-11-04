@@ -1,3 +1,18 @@
+galaxy-importer 0.2.9 (2020-11-04)
+==================================
+
+Features
+--------
+
+- Import execution environment metadata when present (`#23 <https://github.com/ansible/galaxy_ng/issues/23>`_)
+
+
+Misc
+----
+
+- `#91 <https://github.com/ansible/galaxy_ng/issues/91>`_
+
+
 galaxy-importer 0.2.8 (2020-08-28)
 ==================================
 
