@@ -19,6 +19,7 @@ import os
 import pytest
 import tempfile
 
+from galaxy_importer import config
 from galaxy_importer import exceptions as exc
 from galaxy_importer.ansible_test.builders.local_image_build import Build
 from unittest import mock
@@ -26,7 +27,8 @@ from unittest import mock
 
 @pytest.fixture
 def build():
-    return Build('/file/path/to/archive.tar.gz', 'name')
+    cfg = config.Config(config_data=config.ConfigFile.load())
+    return Build('/file/path/to/archive.tar.gz', 'name', cfg)
 
 
 @pytest.fixture
@@ -40,12 +42,14 @@ def tmp_file():
 
 
 def test_build_image(mocker, tmp_file):
+    cfg = config.Config(config_data=config.ConfigFile.load())
     with open(tmp_file, 'w') as f:
         f.write('file contents go here')
         f.flush()
         build = Build(
             filepath=tmp_file,
-            collection_name='namespace-name-version'
+            collection_name='namespace-name-version',
+            cfg=cfg
         )
         mocker.patch.object(Build, '_build_dockerfile')
         mocker.patch.object(Build, '_copy_collection_file')
@@ -95,3 +99,31 @@ def test_copy_collection_file():
         Build._copy_collection_file(dir, filepath)
         assert os.path.exists(os.path.join(dir, 'archive.tar.gz'))
         os.remove(f.name)
+
+
+@pytest.fixture
+def temp_config_file():
+    try:
+        dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        config_file = os.path.join(dir, 'galaxy_importer', 'galaxy-importer.cfg')
+        yield config_file
+    finally:
+        os.remove(config_file)
+
+
+def test_get_container_image_podman(temp_config_file):
+    with open(temp_config_file, 'w') as f:
+        f.write('[galaxy-importer]\nLOCAL_IMAGE_DOCKER = False')
+        f.flush()
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+        assert Build.get_container_engine(cfg) == 'podman'
+
+
+def test_get_container_image_docker(temp_config_file):
+    with open(temp_config_file, 'w') as f:
+        f.write('[galaxy-importer]\nLOCAL_IMAGE_DOCKER = True')
+        f.flush()
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+        assert Build.get_container_engine(cfg) == 'docker'
