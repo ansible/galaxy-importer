@@ -1,4 +1,10 @@
 #!/bin/bash
+
+function download_archive {
+  echo "Downloading collection archive..."
+  wget $ARCHIVE_URL -q -O /archive/archive.tar.gz
+}
+
 set -e
 
 # Extract collection to path needed for ansible-test sanity
@@ -6,8 +12,18 @@ mkdir -p /ansible_collections/placeholder_namespace/placeholder_name
 pushd ansible_collections/ > /dev/null
 pushd placeholder_namespace/placeholder_name/ > /dev/null
 
-echo "Downloading and extracting collection archive..."
-wget $ARCHIVE_URL -q -O /archive/archive.tar.gz
+case $1 in
+  # run via local image, do not download archive
+  LOCAL_IMAGE_RUNNER)
+    ;;
+
+  # default, run via openshift, download archive
+  *)
+    download_archive
+    ;;
+esac
+
+echo "Extracting archive..."
 cp /archive/archive.tar.gz .
 tar -xzf archive.tar.gz
 
