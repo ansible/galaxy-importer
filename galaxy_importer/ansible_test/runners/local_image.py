@@ -37,7 +37,7 @@ class LocalImageTestRunner(BaseTestRunner):
         build.cleanup()
 
     def _run_image(self, image_id):
-        cmd = ['docker', 'run', image_id]
+        cmd = ['docker', 'run', image_id, 'LOCAL_IMAGE_RUNNER']
         proc = Popen(
             cmd,
             stdout=PIPE,

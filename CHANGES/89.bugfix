@@ -1,0 +1,1 @@
+Fix local image ansible-test run so won't attempt archive download
