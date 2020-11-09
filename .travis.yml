@@ -1,22 +1,19 @@
 language: python
-python: 3.7
-
+python: 3.6
 before_install:
-  - .travis/check_commit.sh
+- ".travis/check_commit.sh"
 install:
-  - pip install -e .[dev]
-
+- pip install -e .[dev]
 script:
-  - flake8
-  - make test
-  - make test/integration
-
+- flake8
+- make test
+- make test/integration
 deploy:
   provider: pypi
-  user: "__token__"
+  user: __token__
   password:
-    secure: "BrqEesRjE1Ixz9j48qqeh9TNh8lwdIIXLVj+ia0x4h69aq9nqd4M0E7MYzd1diAOb2LdREftIu+rd/oisTKqUnC4f2X42IejpNc0C94gD9NGx/T6MEAUoczXBPTUxa3NevbY0cYu6Oh82jIdzk6Afcd0tTlRIteLfnfE1OfQSN9DYRv8eNqPgwdipy5fm8UmHrrTAmxf3pfulz+qCTpIty8dcpl2Y8l9KEzNExXx+SOIqRt7RYke4cdTViooxIZsQeQk3/V0ywBAj8F0KZWhIoQRFkN0okz5pwi7jYj5cAOlPGUQq2OvxbpY3kr/8UQ+gVnZ5Xpjjg6EuTuToAXHZXrGHHL/p2plKz5opLWjWcwBnXqCDC6QDAicuvMFeSKXlFIJBcRXRd3vqeQTTSifC8eaMPc5/5c5w7IhjffXcTjsqJT31ue3dFFoYu7B+AxAjm7nT797yO2WZJbzEzWaAipYXHc4fPdGStitQvpvTLEQfwKY7b45XliyMwIE+js0O8iHn7A3dMVvUI5zwpKr5rJwoGKHvjABYCwF9Bdx+9WSsuvyDhc4FXzW9mK2NTqvoyT0Cf65/Uudv+1cSetkWPHmg0Kaf6vN8BYF5VkbFdCHv1cXacTvkeQ7h7mLCUOmcMgqj+CL6YVCRbq62LkCfpJHtURODu4yuJYoXAJJUg4="
-  distributions: "sdist bdist_wheel"
+    secure: foT2FMh27/NVhCsOvlajINVA73UqlIsUqREGTV6I0vjgOgTiHVJ3HN0ntdangAphVQR1qhHttzMImQSwaF4yiX26o/Lm2LjRMePis9otnaFeEy6Ez8XJTuHs57XnP+trwhCaUes7mEi6g/MPAIbEGBRrin2HmKRFh4LduNhclkvnEN78K1khm6ENlLrs3HjPTcxhZi96oJUQPmdJqRFHEh1sNp7DILCxIhf7NSWjjOxRxT726Km0kY/TcW/pdRiNyy3fKvBtA9XfI1DJGeRVNQ3HCPz9Yw02usiUBkugtgAWX17N/6SWvPbystUHKE1sn+LWS9DhtHHuyY9lojslSadrZHZR+dHzu+IFTOLWpdNtnmiH68tJqJKdDTPSQQ8v9Agrrc6vloek10artQOF6OorCGGE+hOUlP6qrgEz2YmklwcIN8Q/pWbp2srrD8gXf42nWOzKlZIeBh7BPgYQCL5erI6oyaVcCaPeJ+SDpPW0O3T1aqI4yd4YzA+XgYPAwIWPcWQyfi6lMbSIwwdvICBu9NG7Vb7U+2OoO6srzcNL/dKaSRYeeWT/4JJyPv23+0lDg91Fz0kwV/S20apCTtXAC5VqfnDjD/eE3cXKA49wyWWRh2D16z5ndYVG3t3WtGnuNmRMsapTFGqsp1TqZ+SYXIiC6J5MJkLp+qPS/ws=
+  distributions: sdist bdist_wheel
   skip_existing: true
   on:
     tags: true
