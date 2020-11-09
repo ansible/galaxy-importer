@@ -1,16 +1,25 @@
+galaxy-importer 0.2.10 (2020-11-09)
+===================================
+
+Bugfixes
+--------
+
+- Fix local image ansible-test run so won't attempt archive download (`#89 <https://issues.redhat.com/browse/AAH-89>`_)
+
+
 galaxy-importer 0.2.9 (2020-11-04)
 ==================================
 
 Features
 --------
 
-- Import execution environment metadata when present (`#23 <https://github.com/ansible/galaxy_ng/issues/23>`_)
+- Import execution environment metadata when present (`#23 <https://issues.redhat.com/browse/AAH-23>`_)
 
 
 Misc
 ----
 
-- `#91 <https://github.com/ansible/galaxy_ng/issues/91>`_
+- `#91 <https://issues.redhat.com/browse/AAH-91>`_
 
 
 galaxy-importer 0.2.8 (2020-08-28)
