@@ -3,4 +3,4 @@
     directory = "CHANGES/"
     filename = "CHANGES.rst"
     title_format = "galaxy-importer {version} ({project_date})"
-    issue_format = "`#{issue} <https://github.com/ansible/galaxy_ng/issues/{issue}>`_"
+    issue_format = "`AAH-{issue} <https://issues.redhat.com/browse/AAH-{issue}>`_"
