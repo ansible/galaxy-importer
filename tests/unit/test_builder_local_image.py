@@ -15,6 +15,7 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import logging
 import os
 import pytest
 import tempfile
@@ -41,23 +42,51 @@ def tmp_file():
         os.remove(tmp_file)
 
 
-def test_build_image(mocker, tmp_file):
-    cfg = config.Config(config_data=config.ConfigFile.load())
-    with open(tmp_file, 'w') as f:
-        f.write('file contents go here')
+def test_build_image(mocker, tmp_file, temp_config_file, caplog):
+    with open(temp_config_file, 'w') as f:
+        f.write('[galaxy-importer]\nLOCAL_IMAGE_DOCKER = False')
         f.flush()
-        build = Build(
-            filepath=tmp_file,
-            collection_name='namespace-name-version',
-            cfg=cfg
-        )
-        mocker.patch.object(Build, '_build_dockerfile')
-        mocker.patch.object(Build, '_copy_collection_file')
-        mocker.patch.object(Build, '_build_image_with_artifact')
-        _ = build.build_image()
-        assert build._build_dockerfile.called
-        assert build._copy_collection_file.called
-        assert build._build_image_with_artifact.called
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+        caplog.set_level(logging.INFO)
+        with open(tmp_file, 'w') as f:
+            f.write('file contents go here')
+            f.flush()
+            build = Build(
+                filepath=tmp_file,
+                collection_name='namespace-name-version',
+                cfg=cfg
+            )
+            mocker.patch.object(Build, '_build_dockerfile')
+            mocker.patch.object(Build, '_copy_collection_file')
+            mocker.patch.object(Build, '_build_image_with_artifact')
+            _ = build.build_image()
+    assert build._build_dockerfile.called
+    assert build._copy_collection_file.called
+    assert build._build_image_with_artifact.called
+    assert 'Building ContainerFile' in [r.message for r in caplog.records]
+
+
+def test_build_image_dockerfile(mocker, tmp_file, temp_config_file, caplog):
+    with open(temp_config_file, 'w') as f:
+        f.write('[galaxy-importer]\nLOCAL_IMAGE_DOCKER = True')
+        f.flush()
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+        caplog.set_level(logging.INFO)
+        with open(tmp_file, 'w') as f:
+            f.write('file contents go here')
+            f.flush()
+            build = Build(
+                filepath=tmp_file,
+                collection_name='namespace-name-version',
+                cfg=cfg
+            )
+            mocker.patch.object(Build, '_build_dockerfile')
+            mocker.patch.object(Build, '_copy_collection_file')
+            mocker.patch.object(Build, '_build_image_with_artifact')
+            _ = build.build_image()
+    assert 'Building Dockerfile' in [r.message for r in caplog.records]
 
 
 @mock.patch('galaxy_importer.ansible_test.builders.local_image_build.run')
