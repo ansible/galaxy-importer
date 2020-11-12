@@ -15,11 +15,13 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import shutil
+from subprocess import Popen, PIPE, STDOUT
+
 from galaxy_importer import config
 from galaxy_importer import exceptions
 from galaxy_importer.ansible_test.builders.local_image_build import Build
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
-from subprocess import Popen, PIPE, STDOUT
 
 
 class LocalImageTestRunner(BaseTestRunner):
@@ -33,12 +35,18 @@ class LocalImageTestRunner(BaseTestRunner):
             cfg,
             self.log)
 
+        container_engine = build.get_container_engine(cfg)
+
+        if not shutil.which(container_engine):
+            self.log.warning(f'"{container_engine}" not found, skipping ansible-test sanity')
+            return
+
         image_id = build.build_image()
 
         self.log.info('Running image...')
         self._run_image(
             image_id=image_id,
-            container_engine=build.get_container_engine(cfg)
+            container_engine=container_engine
         )
 
         build.cleanup()

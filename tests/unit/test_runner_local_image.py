@@ -15,6 +15,7 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import logging
 import pytest
 
 from galaxy_importer.ansible_test.builders.local_image_build import Build
@@ -41,6 +42,7 @@ def test_runner_run(metadata, mocker):
     mocker.patch.object(Build, 'cleanup')
     mocker.patch.object(Build, 'get_container_engine')
     mocker.patch.object(runner, '_run_image')
+    Build.get_container_engine.return_value = 'podman'
 
     runner.run()
 
@@ -48,6 +50,27 @@ def test_runner_run(metadata, mocker):
     assert runner._run_image.called
     assert Build.cleanup.called
     assert Build.get_container_engine.called
+
+
+def test_runner_run_exits(metadata, mocker, caplog):
+    caplog.set_level(logging.WARNING)
+    runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
+
+    mocker.patch.object(Build, 'build_image')
+    mocker.patch.object(Build, 'cleanup')
+    mocker.patch.object(Build, 'get_container_engine')
+    mocker.patch.object(runner, '_run_image')
+    Build.get_container_engine.return_value = 'random_container_engine'
+
+    runner.run()
+
+    assert Build.build_image.not_called
+    assert runner._run_image.not_called
+    assert Build.cleanup.not_called
+    assert Build.get_container_engine.called
+    assert '"random_container_engine" not found, skipping ansible-test sanity' in [
+        r.message for r in caplog.records
+    ]
 
 
 @mock.patch('galaxy_importer.ansible_test.runners.local_image.Popen')
