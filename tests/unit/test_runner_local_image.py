@@ -17,6 +17,7 @@
 
 import logging
 import pytest
+import shutil
 
 from galaxy_importer.ansible_test.builders.local_image_build import Build
 from galaxy_importer import exceptions as exc
@@ -35,7 +36,8 @@ def metadata():
     return SimpleNamespace(namespace='test_ns', name='test_name', version='test_version')
 
 
-def test_runner_run(metadata, mocker):
+@mock.patch('shutil.which')
+def test_runner_run(mocked_shutil_which, metadata, mocker):
     runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
 
     mocker.patch.object(Build, 'build_image')
@@ -43,6 +45,7 @@ def test_runner_run(metadata, mocker):
     mocker.patch.object(Build, 'get_container_engine')
     mocker.patch.object(runner, '_run_image')
     Build.get_container_engine.return_value = 'podman'
+    shutil.which.return_value = True
 
     runner.run()
 
@@ -52,7 +55,8 @@ def test_runner_run(metadata, mocker):
     assert Build.get_container_engine.called
 
 
-def test_runner_run_exits(metadata, mocker, caplog):
+@mock.patch('shutil.which')
+def test_runner_run_exits(mocked_shutil_which, metadata, mocker, caplog):
     caplog.set_level(logging.WARNING)
     runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
 
@@ -61,6 +65,7 @@ def test_runner_run_exits(metadata, mocker, caplog):
     mocker.patch.object(Build, 'get_container_engine')
     mocker.patch.object(runner, '_run_image')
     Build.get_container_engine.return_value = 'random_container_engine'
+    shutil.which.return_value = False
 
     runner.run()
 
