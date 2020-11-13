@@ -20,26 +20,28 @@ import os
 import requests
 import tempfile
 
-from galaxy_importer import config
 from galaxy_importer import exceptions
 from shutil import copy
 from subprocess import Popen, PIPE, STDOUT, run, CalledProcessError
 
-config_data = config.ConfigFile.load()
-cfg = config.Config(config_data=config_data)
 default_logger = logging.getLogger(__name__)
 
 
 class Build(object):
     """Use docker/podman to build ansible-test image with artifact inside."""
-    def __init__(self, filepath, collection_name, logger=default_logger):
+    def __init__(self, filepath, collection_name, cfg, logger=default_logger):
+        self.cfg = cfg
+        self.container_engine = Build.get_container_engine(cfg)
         self.filepath = filepath
         self.log = logger or default_logger
         self.image = ''
         self.working_dir = tempfile.TemporaryDirectory()
 
     def build_image(self):
-        self.log.info('Building Dockerfile')
+        if self.container_engine == 'docker':
+            self.log.info('Building Dockerfile')
+        else:
+            self.log.info('Building ContainerFile')
         Build._build_dockerfile(self.working_dir.name)
         Build._copy_collection_file(
             dir=self.working_dir.name,
@@ -47,19 +49,29 @@ class Build(object):
         )
 
         self.log.info('Building image...')
-        self.image = Build._build_image_with_artifact(dir=self.working_dir.name)
+        self.image = Build._build_image_with_artifact(
+            container_engine=self.container_engine,
+            dir=self.working_dir.name
+        )
         return self.image
 
     def cleanup(self):
         self.log.info('Removing temporary files, image and container')
         self.working_dir.cleanup()
 
-        cmd = ['docker', 'image', 'rm', '-f', self.image]
+        cmd = [self.container_engine, 'image', 'rm', '-f', self.image]
         try:
             run(cmd)
         except CalledProcessError as e:
             raise exceptions.AnsibleTestError(
                 'An exception occurred in: {}, message={}'.format(' '.join(cmd), e.msg))
+
+    @staticmethod
+    def get_container_engine(cfg):
+        if cfg.local_image_docker is True:
+            return 'docker'
+        else:
+            return 'podman'
 
     def _build_dockerfile(dir):
         url = 'https://raw.githubusercontent.com/ansible/galaxy-importer \
@@ -79,8 +91,8 @@ class Build(object):
             f.seek(0)
             f.writelines(lines)
 
-    def _build_image_with_artifact(dir):
-        cmd = ['docker', 'build', '.', '--quiet']
+    def _build_image_with_artifact(container_engine, dir):
+        cmd = [container_engine, 'build', '.', '--quiet']
         proc = Popen(
             cmd,
             cwd=dir,
@@ -89,16 +101,18 @@ class Build(object):
             encoding='utf-8',
         )
 
-        result = ''
+        image_id = ''
         for line in proc.stdout:
-            result = line.strip()
+            image_id = line.strip()
 
         return_code = proc.wait()
         if return_code != 0:
             raise exceptions.AnsibleTestError(
                 'An exception occurred in {}, returncode={}'
                 .format(' '.join(cmd), return_code))
-        return result.split(':')[-1]
+        if container_engine == 'docker':
+            image_id = image_id.split(':')[-1]
+        return image_id
 
     def _copy_collection_file(dir, filepath):
         path = os.path.join(dir, 'archive.tar.gz')

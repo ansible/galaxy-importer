@@ -46,6 +46,7 @@ RUN_ANSIBLE_DOC = True
 RUN_ANSIBLE_LINT = True
 RUN_ANSIBLE_TEST = False
 ANSIBLE_TEST_LOCAL_IMAGE = False
+LOCAL_IMAGE_DOCKER = False
 INFRA_OSD = False
 TMP_ROOT_DIR = None
 ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
@@ -53,7 +54,9 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 - `RUN_ANSIBLE_TEST` - Set to `True` to run `ansible-test` during collection import. Defaults to `False`.
 
-- `ANSIBLE_TEST_LOCAL_IMAGE` - Set to `True` to run `ansible-test` sandboxed within a container image. Requires installation of Docker to run the container. Defaults to `False`.
+- `ANSIBLE_TEST_LOCAL_IMAGE` - Set to `True` to run `ansible-test` sandboxed within a container image. Requires installation of either Podman or Docker to run the container. Defaults to `False`.
+
+- `LOCAL_IMAGE_DOCKER` - Set to `True` to run the `ansible-test` container image via Docker; otherwise, Podman will be used. Defaults to `False`.
 
 ### Issues and Process
 

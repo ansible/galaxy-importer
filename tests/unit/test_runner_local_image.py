@@ -15,7 +15,9 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import logging
 import pytest
+import shutil
 
 from galaxy_importer.ansible_test.builders.local_image_build import Build
 from galaxy_importer import exceptions as exc
@@ -34,18 +36,46 @@ def metadata():
     return SimpleNamespace(namespace='test_ns', name='test_name', version='test_version')
 
 
-def test_runner_run(metadata, mocker):
+@mock.patch('shutil.which')
+def test_runner_run(mocked_shutil_which, metadata, mocker):
     runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
 
     mocker.patch.object(Build, 'build_image')
     mocker.patch.object(Build, 'cleanup')
+    mocker.patch.object(Build, 'get_container_engine')
     mocker.patch.object(runner, '_run_image')
+    Build.get_container_engine.return_value = 'podman'
+    shutil.which.return_value = True
 
     runner.run()
 
     assert Build.build_image.called
     assert runner._run_image.called
     assert Build.cleanup.called
+    assert Build.get_container_engine.called
+
+
+@mock.patch('shutil.which')
+def test_runner_run_exits(mocked_shutil_which, metadata, mocker, caplog):
+    caplog.set_level(logging.WARNING)
+    runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
+
+    mocker.patch.object(Build, 'build_image')
+    mocker.patch.object(Build, 'cleanup')
+    mocker.patch.object(Build, 'get_container_engine')
+    mocker.patch.object(runner, '_run_image')
+    Build.get_container_engine.return_value = 'random_container_engine'
+    shutil.which.return_value = False
+
+    runner.run()
+
+    assert Build.build_image.not_called
+    assert runner._run_image.not_called
+    assert Build.cleanup.not_called
+    assert Build.get_container_engine.called
+    assert '"random_container_engine" not found, skipping ansible-test sanity' in [
+        r.message for r in caplog.records
+    ]
 
 
 @mock.patch('galaxy_importer.ansible_test.runners.local_image.Popen')
@@ -54,7 +84,7 @@ def test_run_image(mocked_popen, metadata):
     mocked_popen.return_value.stdout = ['test 1 ran', 'test2 ran']
     mocked_popen.return_value.wait.return_value = 0
 
-    runner._run_image('galaxy-importer:tag')
+    runner._run_image('1234', 'podman')
 
     assert mocked_popen.called
 
@@ -66,4 +96,4 @@ def test_run_image_exception(mocked_popen, metadata):
     mocked_popen.return_value.wait.return_value = 1
 
     with pytest.raises(exc.AnsibleTestError):
-        runner._run_image('galaxy-importer:tag')
+        runner._run_image('1234', 'podman')
