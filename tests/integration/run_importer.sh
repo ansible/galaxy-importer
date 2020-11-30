@@ -26,9 +26,15 @@ python -c 'from galaxy_importer import main'
 ansible-galaxy collection init foo.bar
 cd foo/bar
 ansible-galaxy collection build
+cd $TMPDIR
+
+# create config file to run ansible-test sanity in locally built container
+printf "[galaxy-importer]\nRUN_ANSIBLE_TEST = True\nANSIBLE_TEST_LOCAL_IMAGE = True\nLOCAL_IMAGE_DOCKER = True\n" > galaxy-importer.cfg
+export GALAXY_IMPORTER_CONFIG=galaxy-importer.cfg
+echo "Using galaxy-importer.cfg:"
+cat galaxy-importer.cfg
 
 # run the importer
-cd $TMPDIR
 python3 -m galaxy_importer.main foo/bar/foo-bar-*.tar.gz
 RETURN_CODE=$?
 
