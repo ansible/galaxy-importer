@@ -39,7 +39,6 @@ ANSIBLE_DOC_SUPPORTED_TYPES = [
     'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
 ANSIBLE_DOC_PLUGIN_MAP = {'module': 'modules'}
 ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
-ANSIBLE_LINT_EXCEPTION_RETURN_CODE = 1
 ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
 FLAKE8_MAX_LINE_LENGTH = 160
 FLAKE8_IGNORE_ERRORS = 'E402'
@@ -299,8 +298,7 @@ class RoleLoader(ContentLoader):
         readme = self._get_readme()
 
         if self.cfg.run_ansible_lint:
-            for line in self._lint_role(self.rel_path):
-                self.log.warning(line)
+            self._lint_role(self.rel_path)
 
         return schema.Content(
             name=self.path_name,
@@ -338,20 +336,15 @@ class RoleLoader(ContentLoader):
             cwd=self.root,
             encoding='utf-8',
             stdout=PIPE,
+            stderr=PIPE,
         )
+        proc.wait()
 
         for line in proc.stdout:
-            # shorten linter message filepath to last 3 parts of path
-            # /tmp/tmp_zyx/roles/role_test1/tasks/main.yml:19: [E201] Trail...
-            line_list = line.split(' ')
-            rel_path = os.path.join(*Path(line_list[0]).parts[-3:])
-            line_list[0] = rel_path
-            line = ' '.join(line_list)
-            yield line.strip()
+            self.log.warning(line.strip())
 
-        # returncode 1 is app exception, 0 is no linter err, 2 is linter err
-        if proc.wait() == ANSIBLE_LINT_EXCEPTION_RETURN_CODE:
-            yield 'Exception running ansible-lint, could not complete linting'
+        for line in proc.stderr:
+            self.log.error(line.rstrip())
 
     def _get_readme(self):
         readme = markup_utils.get_readme_doc_file(
