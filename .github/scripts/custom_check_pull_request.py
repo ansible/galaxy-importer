@@ -1,6 +1,5 @@
 import glob
 import logging
-import os
 import re
 import subprocess
 import sys
@@ -39,12 +38,7 @@ ISSUE_LABEL_REGEX = re.compile(
 
 JIRA_URL = "https://issues.redhat.com/rest/api/latest/issue/AAH-{issue}"
 
-
-def git_list_commits(commit_range):
-    git_range = "..".join(commit_range)
-    cmd = ["git", "rev-list", "--no-merges", git_range]
-    result = subprocess.run(cmd, stdout=subprocess.PIPE, encoding="utf-8", check=True)
-    return result.stdout.strip().split("\n")
+COMMIT_SHA = sys.argv[1]
 
 
 def git_commit_message(commit_sha):
@@ -93,21 +87,11 @@ def check_commit(commit_sha):
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    # pull_request = os.environ["TRAVIS_PULL_REQUEST"]
-    # repo_slug = os.environ["TRAVIS_REPO_SLUG"]
-    commit_range = os.environ["TRAVIS_COMMIT_RANGE"].split("...")
-    commit_list = git_list_commits(commit_range)
-
-    ok = True
-    for commit_sha in commit_list:
-        LOG.debug(f"Checking commit {commit_sha[:8]} ...")
-        if not check_commit(commit_sha):
-            ok = False
+    LOG.debug(f"Checking commit {COMMIT_SHA[:8]} ...")
+    if not check_commit(COMMIT_SHA):
+        sys.exit(1)
 
     # TODO: Validate pull request message.
-
-    if not ok:
-        sys.exit(1)
 
 
 if __name__ == "__main__":
