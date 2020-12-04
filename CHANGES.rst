@@ -1,3 +1,20 @@
+galaxy-importer 0.2.12 (2020-12-04)
+===================================
+
+Features
+--------
+
+- Enables running ansible-test via Podman. (`AAH-5 <https://issues.redhat.com/browse/AAH-5>`_)
+- Allow one to customize version for sdist building (`AAH-185 <https://issues.redhat.com/browse/AAH-185>`_)
+- Surface ansible-lint exception within galaxy-importer (`AAH-188 <https://issues.redhat.com/browse/AAH-188>`_)
+
+
+Misc
+----
+
+- `AAH-173 <https://issues.redhat.com/browse/AAH-173>`_
+
+
 galaxy-importer 0.2.11 (2020-11-09)
 ===================================
 
