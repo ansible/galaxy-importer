@@ -1,3 +1,12 @@
+galaxy-importer 0.2.13 (2020-12-16)
+===================================
+
+Bugfixes
+--------
+
+- Fix the check for max size of docs files (`AAH-220 <https://issues.redhat.com/browse/AAH-220>`_)
+
+
 galaxy-importer 0.2.12 (2020-12-04)
 ===================================
 
