@@ -94,7 +94,7 @@ class TestFindGetFiles(TestCase):
 
     @mock.patch('os.path.getsize')
     def test_get_file_with_file_size_error(self, getsize):
-        getsize.return_value = (512 ** 2) + 1
+        getsize.return_value = markup_utils.DOCFILE_MAX_SIZE + 1
         filename = 'README.md'
         file_path = os.path.join(self.directory, filename)
         self.fs.create_file(file_path)

@@ -31,7 +31,7 @@ DOCFILE_EXTENSIONS = [
 DOCFILE_MIMETYPES = {
     '.md': 'text/markdown',
 }
-DOCFILE_MAX_SIZE = 512 ** 2  # 512 KiB
+DOCFILE_MAX_SIZE = 512 * 1024  # 512 KiB
 
 DocFile = collections.namedtuple(
     'DocFile', ['name', 'text', 'mimetype', 'hash']
@@ -117,8 +117,11 @@ def _get_file(directory, filename):
 
     if os.path.getsize(filename) > DOCFILE_MAX_SIZE:
         raise FileSizeError(
-            'Documentation file "{0}" is bigger than 512 KiB.'
-            .format(os.path.relpath(filename, directory)))
+            'Documentation file "{0}" is bigger than {1} KiB.'.format(
+                os.path.relpath(filename, directory),
+                int(DOCFILE_MAX_SIZE / 1024),
+            )
+        )
 
     mimetype, encoding = mimetypes.guess_type(filename)
 
