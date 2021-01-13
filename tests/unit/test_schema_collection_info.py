@@ -18,8 +18,9 @@
 import os
 import pytest
 
-from galaxy_importer.schema import CollectionInfo
 from galaxy_importer import config
+from galaxy_importer import schema
+from galaxy_importer.schema import CollectionInfo
 
 
 @pytest.fixture
@@ -104,6 +105,7 @@ def test_invalid_names(collection_info, invalid_name):
 @pytest.mark.parametrize(
     'valid_tags',
     [
+        [],
         ['good_tag', 'goodtag'],
         ['deployment'],
         ['fedora'],
@@ -168,18 +170,16 @@ def test_required_tag_enabled(collection_info, temp_config_file):
         f.flush()
         config_data = config.ConfigFile.load()
         config.Config(config_data=config_data)
+
         collection_info['tags'] = ['application']
         res = CollectionInfo(**collection_info)
         assert ['application'] == res.tags
 
-
-def test_required_tag_enabled_exception(collection_info, temp_config_file):
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nCHECK_REQUIRED_TAGS = True')
-        f.flush()
-        config_data = config.ConfigFile.load()
-        config.Config(config_data=config_data)
         collection_info['tags'] = ['fail']
+        with pytest.raises(ValueError, match=r'At least one tag required from tag list: '):
+            CollectionInfo(**collection_info)
+
+        collection_info['tags'] = []
         with pytest.raises(ValueError, match=r'At least one tag required from tag list: '):
             CollectionInfo(**collection_info)
 
@@ -374,4 +374,63 @@ def test_self_dependency(collection_info):
         '{}.{}'.format(namespace, name): '1.0.0'
     }
     with pytest.raises(ValueError, match=r'Cannot have self dependency'):
+        CollectionInfo(**collection_info)
+
+
+@pytest.mark.parametrize(
+    'url',
+    [
+        'repository',
+        'homepage',
+        'issues',
+        'documentation',
+    ]
+)
+def test_max_length_url(collection_info, url):
+    collection_info[url] = 'x' * (schema.MAX_LENGTH_URL + 1)
+    with pytest.raises(ValueError, match=rf"'{url}' must not be greater than"):
+        CollectionInfo(**collection_info)
+
+
+@pytest.mark.parametrize(
+    'field_max',
+    [
+        ('namespace', schema.MAX_LENGTH_NAME),
+        ('name', schema.MAX_LENGTH_NAME),
+    ]
+)
+def test_max_length_namespace(collection_info, field_max):
+    collection_info[field_max[0]] = 'x' * field_max[1]
+    CollectionInfo(**collection_info)
+    collection_info[field_max[0]] += 'x'
+    with pytest.raises(ValueError, match=rf"'{field_max[0]}' must not be greater than"):
+        CollectionInfo(**collection_info)
+
+
+@pytest.mark.parametrize(
+    'field_max',
+    [
+        ('authors', schema.MAX_LENGTH_AUTHOR),
+        ('tags', schema.MAX_LENGTH_TAG),
+    ]
+)
+def test_max_length_author(collection_info, field_max):
+    collection_info[field_max[0]].append('x' * field_max[1])
+    CollectionInfo(**collection_info)
+    collection_info[field_max[0]][-1] += 'x'
+    with pytest.raises(ValueError, match=rf"in '{field_max[0]}' list must not be greater"):
+        CollectionInfo(**collection_info)
+
+
+def test_max_length_version(collection_info):
+    collection_info['version'] = '1.1.' + '1' * (schema.MAX_LENGTH_VERSION - 4)
+    CollectionInfo(**collection_info)
+    collection_info['version'] += '1'
+    with pytest.raises(ValueError, match=r"'version' must not be greater than"):
+        CollectionInfo(**collection_info)
+
+
+def test_max_length_license(collection_info):
+    collection_info['license'].append('x' * (schema.MAX_LENGTH_LICENSE + 1))
+    with pytest.raises(ValueError, match=r"license in 'licenses' list must not be greater"):
         CollectionInfo(**collection_info)

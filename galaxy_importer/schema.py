@@ -25,6 +25,13 @@ from galaxy_importer import config
 from galaxy_importer import constants
 from galaxy_importer.utils.spdx_licenses import is_valid_license_id
 
+MAX_LENGTH_AUTHOR = 64
+MAX_LENGTH_LICENSE = 32
+MAX_LENGTH_NAME = 64
+MAX_LENGTH_TAG = 64
+MAX_LENGTH_URL = 2000
+MAX_LENGTH_VERSION = 128
+
 SHA1_LEN = 40
 REQUIRED_TAG_LIST = [
     'application',
@@ -135,17 +142,23 @@ class CollectionInfo(object):
     @namespace.validator
     @name.validator
     def _check_name(self, attribute, value):
-        """Check value against name regular expression."""
+        """Check value against name regular expression and max length."""
         if not re.match(constants.NAME_REGEXP, value):
             self.value_error(f"'{attribute.name}' has invalid format: {value}")
+        if len(value) > MAX_LENGTH_NAME:
+            self.value_error(
+                f"'{attribute.name}' must not be greater than {MAX_LENGTH_NAME} characters")
 
     @version.validator
     def _check_version_format(self, attribute, value):
-        """Check that version is in semantic version format."""
+        """Check that version is in semantic version format, and max length."""
         if not semantic_version.validate(value):
             self.value_error(
                 "Expecting 'version' to be in semantic version "
                 f"format, instead found '{value}'.")
+        if len(value) > MAX_LENGTH_VERSION:
+            self.value_error(
+                f"'version' must not be greater than {MAX_LENGTH_VERSION} characters")
 
     @authors.validator
     @tags.validator
@@ -162,6 +175,11 @@ class CollectionInfo(object):
     @license.validator
     def _check_licenses(self, attribute, value):
         """Check that all licenses in license list are valid."""
+        for license in value:
+            if len(license) > MAX_LENGTH_LICENSE:
+                self.value_error(
+                    f"Each license in 'licenses' list must not be greater than "
+                    f"{MAX_LENGTH_LICENSE} characters")
         invalid_licenses = [id for id in value if not is_valid_license_id(id)]
         if invalid_licenses:
             self.value_error(
@@ -203,20 +221,37 @@ class CollectionInfo(object):
 
     @tags.validator
     def _check_tags(self, attribute, value):
-        """Check max tags and check against both tag regular expression and required tag list."""
-        if value is not None and len(value) > constants.MAX_TAGS_COUNT:
+        """Check tags field for
+           - presense of at least one required tag based on config
+           - maximum count of tags
+           - tag regular expression
+           - tag max length
+        """
+        no_req_tag_err = f'At least one tag required from tag list: {", ".join(REQUIRED_TAG_LIST)}'
+
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+        if cfg.check_required_tags and not value:
+            self.value_error(no_req_tag_err)
+
+        if cfg.check_required_tags and (not any(tag in REQUIRED_TAG_LIST for tag in value)):
+            self.value_error(no_req_tag_err)
+
+        if not value:
+            return
+
+        if len(value) > constants.MAX_TAGS_COUNT:
             self.value_error(
                 f"Expecting no more than {constants.MAX_TAGS_COUNT} tags "
                 "in metadata")
+
         for tag in value:
             if not re.match(constants.NAME_REGEXP, tag):
                 self.value_error(f"'tag' has invalid format: {tag}")
-        config_data = config.ConfigFile.load()
-        cfg = config.Config(config_data=config_data)
-        if cfg.check_required_tags and (not any(tag in REQUIRED_TAG_LIST for tag in value)):
-            self.value_error(
-                f'At least one tag required from tag list: {", ".join(REQUIRED_TAG_LIST)}'
-            )
+            if len(tag) > MAX_LENGTH_TAG:
+                self.value_error(
+                    f"Each tag in 'tags' list must not be greater than "
+                    f"{MAX_LENGTH_TAG} characters")
 
     @description.validator
     @repository.validator
@@ -229,6 +264,27 @@ class CollectionInfo(object):
         """Check that if value is present, it must be a string."""
         if value is not None and not isinstance(value, str):
             self.value_error(f"'{attribute.name}' must be a string")
+
+    @documentation.validator
+    @homepage.validator
+    @issues.validator
+    @repository.validator
+    def _check_max_length_url(self, attribute, value):
+        """Check value is not greater than max length of url"""
+        if not value:
+            return
+        if len(value) > MAX_LENGTH_URL:
+            self.value_error(
+                f"'{attribute.name}' must not be greater than {MAX_LENGTH_URL} characters")
+
+    @authors.validator
+    def _check_max_length_author(self, attribute, value):
+        """Check each value list item is not greater than max length of author"""
+        for author in value:
+            if len(author) > MAX_LENGTH_AUTHOR:
+                self.value_error(
+                    f"Each author in 'authors' list must not be greater than "
+                    f"{MAX_LENGTH_AUTHOR} characters")
 
     def __attrs_post_init__(self):
         """Checks called post init validation."""
