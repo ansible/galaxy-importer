@@ -22,6 +22,7 @@ import logging
 import os
 from pathlib import Path
 import re
+import semantic_version
 import shutil
 from subprocess import Popen, PIPE
 import yaml
@@ -43,6 +44,7 @@ ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
 FLAKE8_MAX_LINE_LENGTH = 160
 FLAKE8_IGNORE_ERRORS = 'E402'
 FLAKE8_SELECT_ERRORS = 'E,F,W'
+MAX_LENGTH_REQUIRES_ANSIBLE = 255
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
@@ -170,6 +172,40 @@ class PluginLoader(ContentLoader):
     def _make_path_name(rel_path, name):
         dirname_parts = Path(os.path.dirname(rel_path)).parts[2:]
         return '.'.join(list(dirname_parts) + [name])
+
+
+class RuntimeFileLoader():
+    """Load meta/runtime.yml."""
+    def __init__(self, collection_path):
+        self.path = os.path.join(collection_path, 'meta/runtime.yml')
+        self.data = None
+        self._load()
+
+    def _load(self):
+        if not os.path.exists(self.path):
+            return
+        with open(self.path) as fp:
+            try:
+                self.data = yaml.safe_load(fp)
+            except Exception:
+                raise exc.RuntimeFileError('Error during parsing of runtime.yml')
+
+    def get_requires_ansible(self):
+        if not self.data:
+            return
+        requires_ansible = self.data.get('requires_ansible')
+        if not requires_ansible:
+            return
+        if len(requires_ansible) > MAX_LENGTH_REQUIRES_ANSIBLE:
+            raise exc.RuntimeFileError(
+                f"'requires_ansible' must not be greater than "
+                f"{MAX_LENGTH_REQUIRES_ANSIBLE} characters")
+        try:
+            semantic_version.SimpleSpec(requires_ansible)
+            return requires_ansible
+        except ValueError:
+            raise exc.RuntimeFileError(
+                "'requires_ansible' is not a valid semantic_version requirement specification")
 
 
 class DocStringLoader():
