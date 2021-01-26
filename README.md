@@ -20,6 +20,17 @@ Run parsing/validation standalone to view log output and importer result for a b
 
 View log output in terminal, and view the importer result in the written file `importer_result.json`
 
+#### Structure of Output
+
+* `metadata` (all data from MANIFEST.json, set by CollectionLoader.\_load_collection_manifest())
+* `docs_blob` (set by CollectionLoader.\_build_docs_blob())
+ * `collection_readme`
+ * `documentation_files`
+ * `contents`
+ * `execution_environment`
+* `contents`
+* `requires_ansible`
+
 
 ### Configuration
 

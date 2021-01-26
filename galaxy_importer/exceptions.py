@@ -44,3 +44,7 @@ class ContentLoadError(ImporterError):
 
 class ContentNameError(ImporterError):
     pass
+
+
+class RuntimeFileError(ImporterError):
+    pass
