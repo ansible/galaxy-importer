@@ -1,3 +1,13 @@
+galaxy-importer 0.2.14 (2021-01-28)
+===================================
+
+Features
+--------
+
+- Check collection metadata fields for maximum length (`AAH-55 <https://issues.redhat.com/browse/AAH-55>`_)
+- Validate and return requires_ansible in importer result (`AAH-231 <https://issues.redhat.com/browse/AAH-231>`_)
+
+
 galaxy-importer 0.2.13 (2020-12-16)
 ===================================
 
