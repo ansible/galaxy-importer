@@ -22,7 +22,7 @@ import os
 
 import markdown
 import bleach
-from bleach_whitelist import markdown_tags, markdown_attrs
+from bleach_allowlist import markdown_tags, markdown_attrs
 
 README_NAME = 'README'
 DOCFILE_EXTENSIONS = [
@@ -141,7 +141,7 @@ def _render_from_markdown(doc_file):
     """Render html from markdown documentation file.
 
     :param doc_file: DocFile"""
-    # notes on bleach coming after markdown, and bleach_whitelist pkg:
+    # notes on bleach coming after markdown, and bleach_allowlist pkg:
     # https://github.com/Python-Markdown/markdown/issues/225
     unsafe_html = markdown.markdown(doc_file.text, extensions=['extra'])
     return bleach.clean(
