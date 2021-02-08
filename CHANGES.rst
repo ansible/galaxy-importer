@@ -1,3 +1,13 @@
+galaxy-importer 0.2.15 (2021-02-08)
+===================================
+
+Bugfixes
+--------
+
+- Update 'bleach' to 3.3.0 to fix 'xss mutation' CVE (`AAH-327 <https://issues.redhat.com/browse/AAH-327>`_)
+- Update bleach-allowlist, upstream package name has changed. (`AAH-328 <https://issues.redhat.com/browse/AAH-328>`_)
+
+
 galaxy-importer 0.2.14 (2021-01-28)
 ===================================
 
