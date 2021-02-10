@@ -1,0 +1,1 @@
+Move execution_environment from docs_blob to top-level importer result
