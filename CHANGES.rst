@@ -1,3 +1,12 @@
+galaxy-importer 0.2.16 (2021-02-10)
+===================================
+
+Features
+--------
+
+- Move execution_environment from docs_blob to top-level importer result (`AAH-7 <https://issues.redhat.com/browse/AAH-7>`_)
+
+
 galaxy-importer 0.2.15 (2021-02-08)
 ===================================
 
