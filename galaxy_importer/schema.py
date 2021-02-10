@@ -337,6 +337,7 @@ class ImportResult(object):
     contents = attr.ib(factory=list, type=ResultContentItem)
     custom_license = attr.ib(default=None)
     requires_ansible = attr.ib(default=None)
+    execution_environment = attr.ib(default=None)
 
 
 @attr.s
@@ -383,4 +384,3 @@ class DocsBlob(object):
     collection_readme = attr.ib(type=RenderedDocFile)
     documentation_files = attr.ib(factory=list, type=RenderedDocFile)
     contents = attr.ib(factory=list, type=DocsBlobContentItem)
-    execution_environment = attr.ib(factory=dict)

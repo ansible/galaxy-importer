@@ -101,7 +101,7 @@ def test_process_empty_execution_environment_with_local_files():
                 fp.write(c)
                 fp.flush()
         res = ee_utils.process_execution_environment(dir, logger)
-        assert res == {}
+        assert res is None
     finally:
         for f in files:
             os.remove(f)
@@ -246,8 +246,7 @@ version: 1
             fp.write(EE_YAML)
             fp.flush()
         res = ee_utils.process_execution_environment(dir, logger)
-        assert res == {}
-        # assert 'No execution environment dependencies found' in caplog.text
+        assert res is None
     finally:
         os.remove(ee_file)
         os.rmdir(os.path.join(dir, 'meta'))

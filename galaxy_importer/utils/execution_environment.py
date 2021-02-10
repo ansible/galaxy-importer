@@ -24,7 +24,7 @@ def process_execution_environment(path, logger):
 
     if not python_deps and not system_deps:
         logger.info('No execution environment dependencies found')
-        return ex_env
+        return
 
     if python_deps:
         logger.info('Loading python dependencies')
