@@ -41,6 +41,7 @@ ANSIBLE_DOC_SUPPORTED_TYPES = [
     'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
 ANSIBLE_DOC_PLUGIN_MAP = {'module': 'modules'}
 ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
+ANSIBLE_LINT_ERROR_PREFIXES = ('CRITICAL', 'ERROR')
 ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
 FLAKE8_MAX_LINE_LENGTH = 160
 FLAKE8_IGNORE_ERRORS = 'E402'
@@ -368,6 +369,15 @@ class RoleLoader(ContentLoader):
         return '.'.join(list(dirname_parts) + [name])
 
     def _lint_role(self, path):
+        """Log ansible-lint output.
+
+        ansible-lint stdout are linter violations, they are logged as warnings.
+
+        ansible-lint stderr includes info about vars, file discovery,
+        summary of linter violations, config suggestions, and raised errors.
+        Only raised errors are logged, they are logged as errors.
+        """
+
         self.log.info(f'Linting role {self.path_name} via ansible-lint...')
 
         if not shutil.which('ansible-lint'):
@@ -394,7 +404,8 @@ class RoleLoader(ContentLoader):
             self.log.warning(line.strip())
 
         for line in proc.stderr:
-            self.log.error(line.rstrip())
+            if line.startswith(ANSIBLE_LINT_ERROR_PREFIXES):
+                self.log.error(line.rstrip())
 
     def _get_readme(self):
         readme = markup_utils.get_readme_doc_file(
