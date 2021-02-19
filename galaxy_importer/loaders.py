@@ -30,7 +30,6 @@ import yaml
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
-from galaxy_importer.utils import execution_environment as ee_utils
 from galaxy_importer.utils import markup as markup_utils
 
 
@@ -208,19 +207,6 @@ class RuntimeFileLoader():
         except ValueError:
             raise exc.RuntimeFileError(
                 "'requires_ansible' is not a valid semantic_version requirement specification")
-
-
-class ExecutionEnvironmentLoader():
-    """Load execution environment from collection."""
-    def __init__(self, collection_path, log):
-        self.path = collection_path
-        self.log = log
-        self.data = None
-
-    def get_execution_env(self):
-        if not os.path.exists(self.path):
-            return
-        return ee_utils.process_execution_environment(self.path, self.log)
 
 
 class DocStringLoader():

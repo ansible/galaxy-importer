@@ -157,16 +157,12 @@ class CollectionLoader(object):
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
         self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
-        self.execution_environment = loaders.ExecutionEnvironmentLoader(
-            self.path, self.log
-        ).get_execution_env()
 
         return schema.ImportResult(
             metadata=self.metadata,
             docs_blob=self.docs_blob,
             contents=self.contents,
             requires_ansible=self.requires_ansible,
-            execution_environment=self.execution_environment,
         )
 
     def _load_collection_manifest(self):
