@@ -337,7 +337,6 @@ class ImportResult(object):
     contents = attr.ib(factory=list, type=ResultContentItem)
     custom_license = attr.ib(default=None)
     requires_ansible = attr.ib(default=None)
-    execution_environment = attr.ib(default=None)
 
 
 @attr.s

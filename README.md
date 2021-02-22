@@ -27,7 +27,6 @@ View log output in terminal, and view the importer result in the written file `i
  * `collection_readme`
  * `documentation_files`
  * `contents`
- * `execution_environment`
 * `contents`
 * `requires_ansible`
 
