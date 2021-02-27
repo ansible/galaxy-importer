@@ -38,7 +38,7 @@ jobs:
 
     - name: Install source package and dependencies
       run: |
-        python -m pip install -e .[dev]
+        python -m pip install -e .[dev,ansible]
 
     - name: Lint with flake8
       run: |
