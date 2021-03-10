@@ -1,3 +1,18 @@
+galaxy-importer 0.3.0 (2021-03-10)
+==================================
+
+Bugfixes
+--------
+
+- Fix ansible-lint exceptions for collection modules in roles (`AAH-51 <https://issues.redhat.com/browse/AAH-51>`_)
+
+
+Deprecations and Removals
+-------------------------
+
+- Remove no longer needed execution environment logic and tests. (`AAH-7 <https://issues.redhat.com/browse/AAH-7>`_)
+
+
 galaxy-importer 0.2.16 (2021-02-10)
 ===================================
 
