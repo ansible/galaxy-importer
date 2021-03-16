@@ -68,9 +68,9 @@ def _import_collection(file, filename, logger, cfg):
             filepath = str(file.file.file.name)
 
         if not os.path.exists(filepath):
-            parameters = {'ResponseContentDisposition': 'attachment;filename=archive.tar.gz'}
-            storage_archive_url = file.storage.url(file.name, parameters=parameters)
+            storage_archive_url = _get_storage_archive_url(file)
             filepath = _download_archive(storage_archive_url, tmp_dir)
+
         _extract_archive(tarfile_path=filepath, extract_dir=extract_dir)
 
         data = CollectionLoader(extract_dir, filename, cfg=cfg, logger=logger).load()
@@ -89,6 +89,17 @@ def _import_collection(file, filename, logger, cfg):
     )
 
     return attr.asdict(data)
+
+
+def _get_storage_archive_url(file):
+    """Get archive_url from pulp backend storage."""
+    parameters = {'ResponseContentDisposition': 'attachment;filename=archive.tar.gz'}
+    try:
+        storage_archive_url = file.storage.url(file.name, parameters=parameters)
+    except TypeError:
+        # handle pulpcore backend storage that does not take parameters arg, i.e. azure
+        storage_archive_url = file.storage.url(file.name)
+    return storage_archive_url
 
 
 def _download_archive(file_url, download_dir):
