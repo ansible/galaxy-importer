@@ -363,7 +363,7 @@ def test__import_collection(mocker, tmp_collection_root, mock__import_collection
     mocker.patch.object(collection, 'subprocess')
     cfg = config.Config(config_data=config.ConfigFile.load())
     with open(os.path.join(tmp_collection_root, 'test_file.tar.gz'), 'w') as f:
-        collection._import_collection(file=f, filename='', logger=logging, cfg=cfg)
+        collection._import_collection(file=f, filename='', file_url=None, logger=logging, cfg=cfg)
     assert collection.subprocess.run.called
 
 
