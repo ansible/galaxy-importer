@@ -1,3 +1,12 @@
+galaxy-importer 0.3.1 (2021-04-08)
+==================================
+
+Features
+--------
+
+- Use file_url from caller for remote storage (`AAH-431 <https://issues.redhat.com/browse/AAH-431>`_)
+
+
 galaxy-importer 0.3.0 (2021-03-10)
 ==================================
 
