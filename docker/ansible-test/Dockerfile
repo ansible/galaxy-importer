@@ -1,4 +1,4 @@
-FROM quay.io/ansible/default-test-container:1.12
+FROM quay.io/ansible/default-test-container:3.2.2
 
 RUN useradd user1 \
         --uid 1000 \
@@ -7,7 +7,8 @@ RUN useradd user1 \
     && mkdir -m 0775 /archive \
     && mkdir -p -m 0775 /ansible_collections \
     && chown user1:root /ansible_collections \
-    && pip install ansible==2.9.10
+    && pip install ansible-core==2.11.0
+# base default-test-container version should match that in ansible-core version
 
 # Update dir and permissions for where ansible-test sanity writes files
 # NOTE: when container non-privledged, if sanity test writes to new dir, it will fail
