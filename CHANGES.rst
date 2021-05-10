@@ -1,3 +1,12 @@
+galaxy-importer 0.3.2 (2021-05-10)
+==================================
+
+Features
+--------
+
+- Update deps and move from ansible 2.9 to ansible-core 2.11 (`AAH-588 <https://issues.redhat.com/browse/AAH-588>`_)
+
+
 galaxy-importer 0.3.1 (2021-04-08)
 ==================================
 
