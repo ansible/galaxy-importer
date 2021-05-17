@@ -306,19 +306,71 @@ class CollectionInfo(object):
 
 
 @attr.s(frozen=True)
+class CollectionArtifactFile(object):
+    name = attr.ib()
+    ftype = attr.ib()
+    src_name = attr.ib(default=None)
+    chksum_type = attr.ib(default="sha256")
+    chksum_sha256 = attr.ib(default=None)
+    format = attr.ib(default=1)
+
+
+@attr.s(frozen=True)
 class CollectionArtifactManifest(object):
     """Represents collection manifest metadata."""
 
     collection_info = attr.ib(type=CollectionInfo)
     format = attr.ib(default=1)
-    file_manifest_file = attr.ib(factory=dict)
+
+    file_manifest_file = attr.ib(default=None,
+                                 type=CollectionArtifactFile,
+                                 validator=attr.validators.optional(
+                                     attr.validators.instance_of(CollectionArtifactFile)))
 
     @classmethod
     def parse(cls, data):
         meta = json.loads(data)
         col_info = meta.pop('collection_info', None)
         meta['collection_info'] = CollectionInfo(**col_info)
+
+        try:
+            file_manifest_file = meta['file_manifest_file']
+        except KeyError as e:
+            msg = "MANIFEST.json did not contain a 'file_manifest_file' item pointing to FILES.json"
+            raise ValueError(msg) from e
+        meta['file_manifest_file'] = CollectionArtifactFile(**file_manifest_file)
         return cls(**meta)
+
+
+def convert_list_to_artifact_file_list(val):
+    '''Convert a list of dicts with file info into list of CollectionArtifactFile'''
+
+    new_list = []
+    for file_item in val:
+        if isinstance(file_item, CollectionArtifactFile):
+            new_list.append(file_item)
+        else:
+            artifact_file = CollectionArtifactFile(name=file_item['name'],
+                                                   ftype=file_item['ftype'],
+                                                   chksum_type=file_item.get('chksum_type'),
+                                                   chksum_sha256=file_item.get('chksum_sha256'))
+            new_list.append(artifact_file)
+
+    return new_list
+
+
+@attr.s(frozen=True)
+class CollectionArtifactFileManifest(object):
+    files = attr.ib(factory=list, converter=convert_list_to_artifact_file_list)
+
+    format = attr.ib(default=1,
+                     validator=attr.validators.instance_of(int))
+
+    @classmethod
+    def parse(cls, data):
+        artifact_file_manifest_data = json.loads(data)
+        artifact_file_list = artifact_file_manifest_data['files']
+        return cls(files=artifact_file_list)
 
 
 @attr.s(frozen=True)

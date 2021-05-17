@@ -20,6 +20,8 @@ import itertools
 import logging
 import os
 
+import attr
+
 from galaxy_importer import constants
 
 
@@ -102,3 +104,27 @@ class ContentFinder(object):
             else:
                 yield (content_type, 'plugins/' + content_type.value,
                        self._find_plugins)
+
+
+@attr.s
+class FileWalker(object):
+    collection_path = attr.ib()
+    file_errors = attr.ib(factory=list)
+
+    def walk(self):
+        full_collection_path = os.path.abspath(self.collection_path)
+
+        for dirpath, dirnames, filenames in os.walk(full_collection_path,
+                                                    onerror=self.on_walk_error,
+                                                    followlinks=False):
+            for dirname in dirnames:
+                dir_full_path = os.path.join(dirpath, dirname)
+                yield dir_full_path
+
+            for filename in filenames:
+                full_path = os.path.join(dirpath, filename)
+                yield full_path
+
+    def on_walk_error(self, walk_error):
+        default_logger.warning('walk error on %s: %s', walk_error.filename, walk_error)
+        self.file_errors.append(walk_error)
