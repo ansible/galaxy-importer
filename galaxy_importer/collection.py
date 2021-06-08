@@ -27,13 +27,14 @@ import requests
 
 from galaxy_importer import config
 from galaxy_importer import exceptions as exc
-from galaxy_importer.finder import ContentFinder
+from galaxy_importer.finder import ContentFinder, FileWalker
 from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.ansible_test import runners
 from galaxy_importer.utils import markup as markup_utils
+from galaxy_importer.utils import chksums
+from galaxy_importer.utils import string_utils
 from galaxy_importer import __version__
-
 
 default_logger = logging.getLogger(__name__)
 
@@ -126,6 +127,43 @@ def _extract_tar_shell(tarfile_path, extract_dir):
     subprocess.run(args, cwd=cwd, stderr=subprocess.PIPE, check=True)
 
 
+def check_artifact_file(path_prefix, artifact_file):
+    """Check existences of artifact_file on fs and check the chksum matches
+
+    Args:
+        path_prefix (str): Any file path prefix we need to add to file paths in the
+            CollectionArtifactFile artifact_file
+        artifact_file (CollectionArtifactFile): object with the expected info about
+            the file on the fs that will be checked.
+            This info includes name, type, path, and checksum.
+
+    Raises:
+        CollectionArtifactFileNotFound: If artifact_file is not found on the file system.
+        CollectionArtifactFileChecksumError: If the sha256sum of the on disk
+            artifact_file contents does not match artifact_file.chksum_sha256.
+
+    Returns:
+        bool: True if artifact_file check is ok, otherwise should raise exception
+    """
+    default_logger.debug('artifact_file: %s', artifact_file)
+
+    artifact_file_path = os.path.join(path_prefix, artifact_file.name)
+    if not os.path.exists(artifact_file_path):
+        msg = f"The file ({artifact_file.name}) was not found"
+        raise exc.CollectionArtifactFileNotFound(missing_file=artifact_file.name, msg=msg)
+
+    actual_chksum = chksums.sha256sum_from_path(artifact_file_path)
+
+    if actual_chksum != artifact_file.chksum_sha256:
+        err_msg = "".join([f"File {artifact_file.name} sha256sum should be ",
+                           f"{artifact_file.chksum_sha256} but the actual sha256sum ",
+                           f"was {actual_chksum}"])
+        default_logger.error(err_msg)
+        raise exc.CollectionArtifactFileChecksumError(err_msg)
+
+    return True
+
+
 class CollectionLoader(object):
     """Loads collection and content info."""
 
@@ -137,11 +175,28 @@ class CollectionLoader(object):
 
         self.content_objs = None
         self.metadata = None
+        self.file_manifest_file = None
         self.docs_blob = None
         self.contents = None
 
     def load(self):
-        self._load_collection_manifest()
+        # NOTE: If we knew the chksum for MANIFEST.json, we could check it here first
+        self.manifest = self._load_manifest()
+
+        self.metadata = self.manifest.collection_info
+
+        # The default name for 'file_manifest_file' is FILES.json
+        self.file_manifest_file = self.manifest.file_manifest_file
+
+        # load data from FILES.json
+        self.file_manifest = \
+            self._load_file_manifest(path_prefix=self.path,
+                                     file_manifest_file=self.file_manifest_file)
+
+        # check chksum for each file in FILES.json
+        # Note: Will raise exceptions on file_manifest / FILES.json errors
+        self._check_file_manifest(self.path, self.file_manifest, self.file_manifest_file.name)
+
         self._rename_extract_path()
         self._check_filename_matches_manifest()
         self._check_metadata_filepaths()
@@ -168,17 +223,107 @@ class CollectionLoader(object):
             requires_ansible=self.requires_ansible,
         )
 
-    def _load_collection_manifest(self):
+    def _load_manifest(self):
         manifest_file = os.path.join(self.path, 'MANIFEST.json')
         if not os.path.exists(manifest_file):
             raise exc.ManifestNotFound('No manifest found in collection')
+
+        default_logger.debug('manifest_file: %s', manifest_file)
 
         with open(manifest_file, 'r') as f:
             try:
                 data = schema.CollectionArtifactManifest.parse(f.read())
             except ValueError as e:
+                raise exc.ManifestValidationError(str(e)) from e
+
+            default_logger.debug('data: %s', data)
+            default_logger.debug('data.file_manifest_file: %s', data.file_manifest_file)
+            return data
+
+    def _load_file_manifest(self, path_prefix, file_manifest_file):
+        """Load CollectionArtifactFileManifest data from file_manifest_file
+
+        Args:
+            path_prefix (str): Any file path prefix we need to add to file paths in the
+                CollectionArtifactFile artifact_file
+            file_manifest_file (CollectionArtifactFile): object with info about the
+                FILES.json in the artifact. The info includes the name, type, path,
+                and chksum.
+
+        Raises:
+            ManifestValidationError: If there are any errors loading, parsing,
+                deserializing, or validating the data in file_manifest_file
+
+        Returns:
+            CollectionArtifactFileManifest: The data from file_manifest_file
+
+        """
+        default_logger.debug('file_manifest_file: %s', file_manifest_file)
+
+        check_artifact_file(path_prefix=path_prefix, artifact_file=file_manifest_file)
+
+        files_manifest_file = os.path.join(path_prefix, file_manifest_file.name)
+        default_logger.debug('files_manifest_file: %s', files_manifest_file)
+
+        with open(files_manifest_file, 'r') as f:
+            try:
+                file_manifest = schema.CollectionArtifactFileManifest.parse(f.read())
+            except ValueError as e:
                 raise exc.ManifestValidationError(str(e))
-            self.metadata = data.collection_info
+
+        return file_manifest
+
+    def _check_file_manifest(self, path_prefix, file_manifest, file_manifest_name):
+        """Check the file content described in file_manifest
+
+        Check the chksums for files.
+        Check for any missing files.
+        Check for any missing dirs.
+
+        Args:
+            path_prefix (str): Any file path prefix we need to add to file paths in the
+                CollectionArtifactFile artifact_file
+            file_manifest (CollectionArtifactFileManifest): Object with list of
+                CollectionArtifactFile items. The CollectionArtifactFile data
+                is used to check and validate each file.
+            file_manifest_name (str): The name of the file manifest (ie, "FILES.json")
+
+        Raises:
+            CollectionArtifactFileNotFound: If artifact_file is not found on the file system.
+            CollectionArtifactFileChecksumError: If the sha256sum of the on disk
+                artifact_file contents does not match artifact_file.chksum_sha256.
+
+        Returns:
+            bool: All the items in file_manifest were found and valid
+        """
+
+        for artifact_file in file_manifest.files:
+            if artifact_file.ftype != 'file':
+                continue
+
+            check_artifact_file(path_prefix=path_prefix,
+                                artifact_file=artifact_file)
+
+        # check the extract archive for any extra files.
+        filewalker = FileWalker(collection_path=path_prefix)
+        prefix = path_prefix + '/'
+        found_file_set = set([string_utils.removeprefix(fp, prefix) for fp in filewalker.walk()])
+
+        file_manifest_file_set = set([artifact_file.name for artifact_file in file_manifest.files])
+        # The artifact contains MANIFEST.json and FILES.JSON, but they aren't
+        # in file list in FILES.json so add them so we match expected.
+        file_manifest_file_set.add('MANIFEST.json')
+        file_manifest_file_set.add(file_manifest_name)
+
+        difference = sorted(list(found_file_set.difference(file_manifest_file_set)))
+
+        if difference:
+            err_msg = \
+                f'Files in the artifact but not the file manifest: {difference}'
+            raise exc.FileNotInFileManifestError(unexpected_files=difference,
+                                                 msg=err_msg)
+
+        return True
 
     def _rename_extract_path(self):
         old_ns_dir = os.path.dirname(self.path)
@@ -274,6 +419,7 @@ class CollectionLoader(object):
         )
 
     def _check_metadata_filepaths(self):
+        # NOTE: This may be redundant if _check_file_manifest() looks for missing files
         paths = []
         paths.append(os.path.join(self.path, self.metadata.readme))
         if self.metadata.license_file:

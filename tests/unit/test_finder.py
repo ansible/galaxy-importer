@@ -15,12 +15,17 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import logging
 import os
 import shutil
 import tempfile
 import unittest
 
-from galaxy_importer.finder import ContentFinder
+import pytest
+
+from galaxy_importer.finder import ContentFinder, FileWalker
+
+log = logging.getLogger(__name__)
 
 
 class TestContentFinder(unittest.TestCase):
@@ -109,3 +114,24 @@ class TestContentFinder(unittest.TestCase):
         content_items = [os.path.basename(c.path) for c in contents]
         assert 'my_role' in content_items
         assert len(content_items) == 1
+
+
+@pytest.fixture
+def walker_dir(tmp_path):
+    d = tmp_path / "sub"
+    d.mkdir()
+    p = d / "hello.txt"
+    p.write_text("blippy")
+    d2 = d / "another_level"
+    d2.mkdir()
+    f = d2 / "example.txt"
+    f.write_text("an example")
+    return tmp_path
+
+
+def test_file_walker(walker_dir):
+    file_walker = FileWalker(walker_dir)
+    file_name_generator = file_walker.walk()
+    for file_name in file_name_generator:
+        log.debug('file_name: %s', file_name)
+        assert os.path.exists(file_name)

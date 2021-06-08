@@ -34,6 +34,31 @@ class ManifestValidationError(ImporterError):
     pass
 
 
+class ManifestFileListValidationError(ImporterError):
+    pass
+
+
+class FileNotInFileManifestError(ImporterError):
+    """Files found in the artifact archive which were not listed in the file manifest"""
+    def __init__(self, unexpected_files=None, msg=None):
+        msg = msg or "Unexpected files found in the artifact but not the file manifest"
+        super().__init__(msg)
+        self.unexpected_files = unexpected_files or []
+
+
+class CollectionArtifactFileNotFound(ImporterError):
+    """The file the CollectionArtifactFile represents was not found"""
+    def __init__(self, missing_file=None, msg=None):
+        msg = msg or "File was listed in the file manifest but it was not found"
+        super().__init__(msg)
+        self.missing_file = missing_file
+
+
+class CollectionArtifactFileChecksumError(ImporterError):
+    """The chksum of the file contents does not match chksum_sha256sum"""
+    pass
+
+
 class ContentFindError(ImporterError):
     pass
 

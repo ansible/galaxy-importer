@@ -19,6 +19,7 @@ from collections import namedtuple
 import json
 import logging
 import os
+import re
 import tarfile
 import tempfile
 from types import SimpleNamespace
@@ -37,6 +38,7 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
 
+log = logging.getLogger(__name__)
 
 CollectionFilename = \
     namedtuple("CollectionFilename", ["namespace", "name", "version"])
@@ -70,8 +72,48 @@ MANIFEST_JSON = """
   "documentation": null,
   "homepage": null,
   "issues": null
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "dc90402feea54f479780e067cba748559cb01bff52e6724a15264b9a55e8f000",
+  "format": 1
  }
 }
+"""
+
+FILES_JSON = """
+{
+ "format": 1,
+ "files": [
+  {
+   "name": ".",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "LICENSE",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "af995cae1eec804d1c0423888d057eefe492f7d8f06a4672be45112927b37929",
+   "format": 1
+  },
+  {
+   "name": "README.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "format": 1
+  }
+ ]
+}
+"""
+
+LICENSE_FILE = """
+This collection is public domain. No rights Reserved.
 """
 
 
@@ -88,18 +130,54 @@ def tmp_collection_root():
         shutil.rmtree(tmp_dir)
 
 
-@mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
-def test_manifest_success(_build_docs_blob, tmp_collection_root):
-    _build_docs_blob.return_value = {}
+@pytest.fixture
+def populated_collection_root(tmp_collection_root):
     with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
         fh.write(MANIFEST_JSON)
-
     with open(os.path.join(tmp_collection_root, 'README.md'), 'w'):
         pass
+    with open(os.path.join(tmp_collection_root, 'FILES.json'), 'w') as fh:
+        fh.write(FILES_JSON)
+    with open(os.path.join(tmp_collection_root, 'LICENSE'), 'w') as fh:
+        fh.write(LICENSE_FILE)
+    return tmp_collection_root
+
+
+@pytest.fixture
+def readme_artifact_file(request):
+    marker = request.node.get_closest_marker("sha256")
+    sha256 = marker.args[0]
+    artifact_file = \
+        schema.CollectionArtifactFile(name="README.md",
+                                      ftype="file",
+                                      chksum_type="sha256",
+                                      chksum_sha256=sha256,
+                                      format=1)
+
+    return artifact_file
+
+
+@pytest.mark.sha256("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+def test_check_artifact_file(populated_collection_root, readme_artifact_file):
+    res = collection.check_artifact_file(populated_collection_root, readme_artifact_file)
+    log.debug('res: %s', res)
+    assert res is True
+
+
+@pytest.mark.sha256("deadbeef98fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+def test_check_artifact_file_bad_chksum(populated_collection_root, readme_artifact_file):
+    with pytest.raises(exc.CollectionArtifactFileChecksumError,
+                       match=r"File README.md.*but the.*actual sha256sum was.*"):
+        collection.check_artifact_file(populated_collection_root, readme_artifact_file)
+
+
+@mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
+def test_manifest_success(_build_docs_blob, populated_collection_root):
+    _build_docs_blob.return_value = {}
 
     filename = CollectionFilename('my_namespace', 'my_collection', '2.0.2')
     data = CollectionLoader(
-        tmp_collection_root,
+        populated_collection_root,
         filename,
         cfg=SimpleNamespace(run_ansible_doc=True),
     ).load()
@@ -265,19 +343,15 @@ def test_build_docs_blob_no_readme(get_readme_doc_file):
 
 
 @mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
-def test_filename_empty_value(_build_docs_blob, tmp_collection_root):
+def test_filename_empty_value(_build_docs_blob, populated_collection_root):
     _build_docs_blob.return_value = {}
-    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
-        fh.write(MANIFEST_JSON)
-    with open(os.path.join(tmp_collection_root, 'README.md'), 'w'):
-        pass
 
     filename = CollectionFilename(
         namespace='my_namespace',
         name='my_collection',
         version=None)
     data = CollectionLoader(
-        tmp_collection_root,
+        populated_collection_root,
         filename,
         cfg=SimpleNamespace(run_ansible_doc=True),
     ).load()
@@ -287,16 +361,12 @@ def test_filename_empty_value(_build_docs_blob, tmp_collection_root):
 
 
 @mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')
-def test_filename_none(_build_docs_blob, tmp_collection_root):
+def test_filename_none(_build_docs_blob, populated_collection_root):
     _build_docs_blob.return_value = {}
-    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
-        fh.write(MANIFEST_JSON)
-    with open(os.path.join(tmp_collection_root, 'README.md'), 'w'):
-        pass
 
     filename = None
     data = CollectionLoader(
-        tmp_collection_root,
+        populated_collection_root,
         filename,
         cfg=SimpleNamespace(run_ansible_doc=True),
     ).load()
@@ -305,41 +375,76 @@ def test_filename_none(_build_docs_blob, tmp_collection_root):
     assert data.metadata.version == '2.0.2'
 
 
-def test_filename_not_match_metadata(tmp_collection_root):
-    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
-        fh.write(MANIFEST_JSON)
-
+def test_filename_not_match_metadata(populated_collection_root):
     filename = CollectionFilename('diff_ns', 'my_collection', '2.0.2')
     with pytest.raises(exc.ManifestValidationError):
-        CollectionLoader(tmp_collection_root, filename).load()
+        CollectionLoader(populated_collection_root, filename).load()
 
 
-def test_license_file(tmp_collection_root):
-    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
+def test_license_file(populated_collection_root):
+    with open(os.path.join(populated_collection_root, 'MANIFEST.json'), 'w') as fh:
         manifest = json.loads(MANIFEST_JSON)
         manifest['collection_info']['license'] = []
-        manifest['collection_info']['license_file'] = 'my_license.txt'
+        manifest['collection_info']['license_file'] = 'LICENSE'
         fh.write(json.dumps(manifest))
-    with open(os.path.join(tmp_collection_root, 'README.md'), 'w'):
-        pass
-    with open(os.path.join(tmp_collection_root, 'my_license.txt'), 'w'):
-        pass
+
     data = CollectionLoader(
-        tmp_collection_root,
+        populated_collection_root,
         filename=None,
         cfg=SimpleNamespace(run_ansible_doc=True),
     ).load()
-    assert data.metadata.license_file == 'my_license.txt'
+    assert data.metadata.license_file == 'LICENSE'
 
 
-def test_missing_readme(tmp_collection_root):
-    with open(os.path.join(tmp_collection_root, 'MANIFEST.json'), 'w') as fh:
-        fh.write(MANIFEST_JSON)
+def test_missing_readme(populated_collection_root):
+    os.unlink(os.path.join(populated_collection_root, 'README.md'))
+
     with pytest.raises(
-        exc.ManifestValidationError,
-        match=r"Could not find file README.md"
-    ):
-        CollectionLoader(tmp_collection_root, filename=None).load()
+        exc.CollectionArtifactFileNotFound,
+        match=re.escape(r"The file (README.md) was not found")
+    ) as excinfo:
+        CollectionLoader(populated_collection_root, filename=None).load()
+    assert 'README.md' == excinfo.value.missing_file
+
+
+def test_manifest_json_with_no_files_json_info(populated_collection_root):
+    # Modify MANIFEST.json so it doesn't reference a FILES.json
+    manifest_json_obj = json.loads(MANIFEST_JSON)
+    del manifest_json_obj['file_manifest_file']
+    with open(os.path.join(populated_collection_root, 'MANIFEST.json'), 'w') as fh:
+        fh.write(json.dumps(manifest_json_obj))
+
+    # MANIFEST.json did not contain a 'file_manifest_file' item pointing to FILES.json
+    msg_match = "MANIFEST.json did not contain a 'file_manifest_file' item pointing to FILES.json"
+    with pytest.raises(exc.ManifestValidationError,
+                       match=msg_match) as excinfo:
+
+        CollectionLoader(populated_collection_root, filename=None).load()
+
+    # pytest.raises ensures the outer exeption is a ManifestValidationError, this
+    # asserts that the inner exceptions are a ValueError and a KeyError
+    assert isinstance(excinfo.value.__cause__, ValueError)
+    assert isinstance(excinfo.value.__cause__.__cause__, KeyError)
+
+
+def test_unaccounted_for_files(populated_collection_root):
+    extras = ['whatever.py.finalVerForReal',
+              'a.out',
+              'debug.log',
+              '.oops-a-secret']
+    for extra in extras:
+        with open(os.path.join(populated_collection_root, extra), 'w'):
+            pass
+
+    filename = None
+    with pytest.raises(exc.FileNotInFileManifestError,
+                       match='Files in the artifact but not the file manifest:') as excinfo:
+        CollectionLoader(
+            populated_collection_root,
+            filename,
+            cfg=SimpleNamespace(run_ansible_doc=True),
+        ).load()
+    assert 'a.out' in excinfo.value.unexpected_files
 
 
 def test_import_collection(mocker):
