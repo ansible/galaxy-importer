@@ -56,8 +56,11 @@ def test_runtime_file_bad_yaml(tmpdir):
 def test_no_requires_ansible(tmpdir):
     tmpdir.mkdir('meta').join('runtime.yml').write(RUNTIME_PLUGIN_ROUTING)
     loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
-    requires_ansible = loader.get_requires_ansible()
-    assert requires_ansible is None
+    with pytest.raises(
+        exc.RuntimeFileError,
+        match="'requires_ansible' in meta/runtime.yml is mandatory"
+    ):
+        loader.get_requires_ansible()
 
 
 def test_get_requires_ansible(tmpdir):
