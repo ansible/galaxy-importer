@@ -196,7 +196,7 @@ class RuntimeFileLoader():
             return
         requires_ansible = self.data.get('requires_ansible')
         if not requires_ansible:
-            return
+            raise exc.RuntimeFileError("'requires_ansible' in meta/runtime.yml is mandatory")
         if len(requires_ansible) > MAX_LENGTH_REQUIRES_ANSIBLE:
             raise exc.RuntimeFileError(
                 f"'requires_ansible' must not be greater than "
