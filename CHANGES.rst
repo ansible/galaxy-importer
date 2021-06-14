@@ -1,3 +1,14 @@
+galaxy-importer 0.3.3 (2021-06-14)
+==================================
+
+Features
+--------
+
+- Validate FILES.json and the chksums of files it defines. (`AAH-403 <https://issues.redhat.com/browse/AAH-403>`_)
+- Make `requires_ansible` in meta/runtime.yml mandatory (`AAH-538 <https://issues.redhat.com/browse/AAH-538>`_)
+- Update openshift job runner for ansible-test to use image with ansible-core 2.11 (`AAH-559 <https://issues.redhat.com/browse/AAH-559>`_)
+
+
 galaxy-importer 0.3.2 (2021-05-10)
 ==================================
 
