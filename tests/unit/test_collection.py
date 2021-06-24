@@ -77,7 +77,7 @@ MANIFEST_JSON = """
   "name": "FILES.json",
   "ftype": "file",
   "chksum_type": "sha256",
-  "chksum_sha256": "dc90402feea54f479780e067cba748559cb01bff52e6724a15264b9a55e8f000",
+  "chksum_sha256": "0c2e9514f54aaeda0605d8c9a60e71cab3e577113b58ecc65b839d2d1b86c216",
   "format": 1
  }
 }
@@ -107,6 +107,20 @@ FILES_JSON = """
    "chksum_type": "sha256",
    "chksum_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "format": 1
+  },
+  {
+   "name": "meta",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "meta/runtime.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "2feceaa030f25bd5ff0e44b5935a8ad870d334dcca6c7c7df32eaab10eaea20c",
+   "format": 1
   }
  ]
 }
@@ -114,6 +128,17 @@ FILES_JSON = """
 
 LICENSE_FILE = """
 This collection is public domain. No rights Reserved.
+"""
+
+META_RUNTIME_YAML = """
+requires_ansible: '>=2.9.10,<2.11.5'
+plugin_routing:
+  modules:
+    set_config:
+      redirect: my_ns.devops.devops_set_config
+      deprecation:
+        removal_date: '2022-06-01'
+        warning_text: See the plugin documentation for more details
 """
 
 
@@ -125,6 +150,7 @@ def tmp_collection_root():
         sub_path = 'ansible_collections/placeholder_namespace/placeholder_name'
         collection_root = os.path.join(tmp_dir, sub_path)
         os.makedirs(collection_root)
+        os.makedirs(os.path.join(collection_root, 'meta'))
         yield collection_root
     finally:
         shutil.rmtree(tmp_dir)
@@ -140,6 +166,8 @@ def populated_collection_root(tmp_collection_root):
         fh.write(FILES_JSON)
     with open(os.path.join(tmp_collection_root, 'LICENSE'), 'w') as fh:
         fh.write(LICENSE_FILE)
+    with open(os.path.join(tmp_collection_root, 'meta', 'runtime.yml'), 'w') as fh:
+        fh.write(META_RUNTIME_YAML)
     return tmp_collection_root
 
 

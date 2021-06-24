@@ -25,6 +25,10 @@ python -c 'from galaxy_importer import main'
 # make and build a collection
 ansible-galaxy collection init foo.bar
 cd foo/bar
+mkdir meta
+cd meta
+printf "requires_ansible: '>=2.9.10,<2.11.5'" > runtime.yml
+cd ..
 ansible-galaxy collection build
 cd $TMPDIR
 
