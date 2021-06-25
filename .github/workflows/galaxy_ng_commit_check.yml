@@ -30,11 +30,9 @@ jobs:
       run: |
         python .github/workflows/scripts/check_commits.py
 
-    # FIXME(awcrosby): after PR merge and this file exists in galaxy-importer
-    # change this to compare galaxy-importer and galaxy_ng
     - name: Compare galaxy-importer and galaxy_ng scripts and fail if different
       env:
         URL_1: https://raw.githubusercontent.com/ansible/galaxy_ng/master/.github/workflows/scripts/check_commits.py
-        URL_2: https://raw.githubusercontent.com/ansible/galaxy_ng/master/.github/workflows/scripts/check_commits.py
+        URL_2: https://raw.githubusercontent.com/ansible/galaxy-importer/master/.github/workflows/scripts/check_commits.py
       run: |
         python .github/workflows/scripts/compare_urls.py
