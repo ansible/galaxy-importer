@@ -1,5 +1,6 @@
 import glob
 import logging
+import os
 import re
 import subprocess
 import sys
@@ -38,7 +39,12 @@ ISSUE_LABEL_REGEX = re.compile(
 
 JIRA_URL = "https://issues.redhat.com/rest/api/latest/issue/AAH-{issue}"
 
-COMMIT_SHA = sys.argv[1]
+
+def git_list_commits(commit_range):
+    git_range = "..".join(commit_range)
+    cmd = ["git", "rev-list", "--no-merges", git_range]
+    result = subprocess.run(cmd, stdout=subprocess.PIPE, encoding="utf-8", check=True)
+    return result.stdout.strip().split("\n")
 
 
 def git_commit_message(commit_sha):
@@ -87,14 +93,46 @@ def check_commit(commit_sha):
     return ok
 
 
+def validate_push_commits(start_commit, end_commit):
+    commit_list = git_list_commits([start_commit, end_commit])
+    all_commits_ok = True
+    for commit_sha in commit_list:
+        LOG.info(f"Checking commit {commit_sha[:8]} ...")
+        if not check_commit(commit_sha):
+            all_commits_ok = False
+            break
+    return all_commits_ok
+
+
+def validate_pr_commits(github_pr_commits_url):
+    request = requests.get(github_pr_commits_url)
+    commit_list = [c['sha'] for c in request.json()]
+
+    at_least_one_commit_ok = False
+    for commit_sha in commit_list:
+        LOG.info(f"Checking commit {commit_sha[:8]} ...")
+        if check_commit(commit_sha):
+            at_least_one_commit_ok = True
+            break
+    return at_least_one_commit_ok
+
+
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    LOG.debug(f"Checking commit {COMMIT_SHA[:8]} ...")
-    if not check_commit(COMMIT_SHA):
-        sys.exit(1)
+    github_pr_commits_url = os.environ["GITHUB_PR_COMMITS_URL"]
+    start_commit = os.environ["START_COMMIT"]
+    end_commit = os.environ["END_COMMIT"]
 
-    # TODO: Validate pull request message.
+    if github_pr_commits_url:
+        is_valid = validate_pr_commits(github_pr_commits_url)
+    else:
+        is_valid = validate_push_commits(start_commit, end_commit)
+
+    if is_valid:
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

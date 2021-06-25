@@ -29,13 +29,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Check pull request commits for issue references
-      if: github.event_name == 'pull_request'
-      env:
-        GITHUB_PR_COMMITS_URL: ${{ github.event.pull_request.commits_url }}
-      run: |
-        sh .github/scripts/check_commit.sh
-
     - name: Install source package and dependencies
       run: |
         python -m pip install -e .[dev]
