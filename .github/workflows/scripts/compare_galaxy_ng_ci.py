@@ -6,7 +6,7 @@ import requests
 def main():
     galaxy_ng_url = (
         "https://raw.githubusercontent.com/ansible/galaxy_ng/master/"
-        ".github/workflows/scripts/check_commits.py")
+        ".ci/scripts/validate_commit_message_custom.py")
 
     with open(".github/workflows/scripts/check_commits.py") as f:
         galaxy_importer_text = f.read()
