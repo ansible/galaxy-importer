@@ -36,6 +36,7 @@ from galaxy_importer.config import ConfigFile
 from galaxy_importer.constants import ContentType
 from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
+from galaxy_importer.utils import chksums as chksums_utils
 from galaxy_importer.utils import markup as markup_utils
 
 log = logging.getLogger(__name__)
@@ -187,7 +188,7 @@ def readme_artifact_file(request):
 
 @pytest.mark.sha256("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
 def test_check_artifact_file(populated_collection_root, readme_artifact_file):
-    res = collection.check_artifact_file(populated_collection_root, readme_artifact_file)
+    res = chksums_utils.check_artifact_file(populated_collection_root, readme_artifact_file)
     log.debug('res: %s', res)
     assert res is True
 
@@ -196,7 +197,7 @@ def test_check_artifact_file(populated_collection_root, readme_artifact_file):
 def test_check_artifact_file_bad_chksum(populated_collection_root, readme_artifact_file):
     with pytest.raises(exc.CollectionArtifactFileChecksumError,
                        match=r"File README.md.*but the.*actual sha256sum was.*"):
-        collection.check_artifact_file(populated_collection_root, readme_artifact_file)
+        chksums_utils.check_artifact_file(populated_collection_root, readme_artifact_file)
 
 
 @mock.patch('galaxy_importer.collection.CollectionLoader._build_docs_blob')

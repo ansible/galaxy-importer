@@ -120,43 +120,6 @@ def _extract_tar_shell(tarfile_path, extract_dir):
     subprocess.run(args, cwd=cwd, stderr=subprocess.PIPE, check=True)
 
 
-def check_artifact_file(path_prefix, artifact_file):
-    """Check existences of artifact_file on fs and check the chksum matches
-
-    Args:
-        path_prefix (str): Any file path prefix we need to add to file paths in the
-            CollectionArtifactFile artifact_file
-        artifact_file (CollectionArtifactFile): object with the expected info about
-            the file on the fs that will be checked.
-            This info includes name, type, path, and checksum.
-
-    Raises:
-        CollectionArtifactFileNotFound: If artifact_file is not found on the file system.
-        CollectionArtifactFileChecksumError: If the sha256sum of the on disk
-            artifact_file contents does not match artifact_file.chksum_sha256.
-
-    Returns:
-        bool: True if artifact_file check is ok, otherwise should raise exception
-    """
-    default_logger.debug('artifact_file: %s', artifact_file)
-
-    artifact_file_path = os.path.join(path_prefix, artifact_file.name)
-    if not os.path.exists(artifact_file_path):
-        msg = f"The file ({artifact_file.name}) was not found"
-        raise exc.CollectionArtifactFileNotFound(missing_file=artifact_file.name, msg=msg)
-
-    actual_chksum = chksums.sha256sum_from_path(artifact_file_path)
-
-    if actual_chksum != artifact_file.chksum_sha256:
-        err_msg = "".join([f"File {artifact_file.name} sha256sum should be ",
-                           f"{artifact_file.chksum_sha256} but the actual sha256sum ",
-                           f"was {actual_chksum}"])
-        default_logger.error(err_msg)
-        raise exc.CollectionArtifactFileChecksumError(err_msg)
-
-    return True
-
-
 class CollectionLoader(object):
     """Loads collection and content info."""
 
@@ -273,7 +236,7 @@ class CollectionLoader(object):
         """
         default_logger.debug('file_manifest_file: %s', file_manifest_file)
 
-        check_artifact_file(path_prefix=path_prefix, artifact_file=file_manifest_file)
+        chksums.check_artifact_file(path_prefix=path_prefix, artifact_file=file_manifest_file)
 
         files_manifest_file = os.path.join(path_prefix, file_manifest_file.name)
         default_logger.debug('files_manifest_file: %s', files_manifest_file)
@@ -314,8 +277,8 @@ class CollectionLoader(object):
             if artifact_file.ftype != 'file':
                 continue
 
-            check_artifact_file(path_prefix=path_prefix,
-                                artifact_file=artifact_file)
+            chksums.check_artifact_file(path_prefix=path_prefix,
+                                        artifact_file=artifact_file)
 
         # check the extract archive for any extra files.
         filewalker = FileWalker(collection_path=path_prefix)
