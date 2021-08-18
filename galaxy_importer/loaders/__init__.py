@@ -1,3 +1,7 @@
+from .collection import (
+    CollectionLoader,
+)
+
 from .content import (
     ContentLoader,
     PluginLoader,
@@ -14,6 +18,7 @@ from .runtime_file import (
 )
 
 __all__ = (
+    'CollectionLoader',
     'ContentLoader',
     'PluginLoader',
     'RoleLoader',

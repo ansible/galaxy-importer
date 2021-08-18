@@ -15,7 +15,6 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-from collections import namedtuple
 import json
 import logging
 import os
@@ -40,9 +39,6 @@ from galaxy_importer.utils import chksums as chksums_utils
 from galaxy_importer.utils import markup as markup_utils
 
 log = logging.getLogger(__name__)
-
-CollectionFilename = \
-    namedtuple("CollectionFilename", ["namespace", "name", "version"])
 
 MANIFEST_JSON = """
 {
@@ -204,7 +200,7 @@ def test_check_artifact_file_bad_chksum(populated_collection_root, readme_artifa
 def test_manifest_success(_build_docs_blob, populated_collection_root):
     _build_docs_blob.return_value = {}
 
-    filename = CollectionFilename('my_namespace', 'my_collection', '2.0.2')
+    filename = collection.CollectionFilename('my_namespace', 'my_collection', '2.0.2')
     data = CollectionLoader(
         populated_collection_root,
         filename,
@@ -375,7 +371,7 @@ def test_build_docs_blob_no_readme(get_readme_doc_file):
 def test_filename_empty_value(_build_docs_blob, populated_collection_root):
     _build_docs_blob.return_value = {}
 
-    filename = CollectionFilename(
+    filename = collection.CollectionFilename(
         namespace='my_namespace',
         name='my_collection',
         version=None)
@@ -405,7 +401,7 @@ def test_filename_none(_build_docs_blob, populated_collection_root):
 
 
 def test_filename_not_match_metadata(populated_collection_root):
-    filename = CollectionFilename('diff_ns', 'my_collection', '2.0.2')
+    filename = collection.CollectionFilename('diff_ns', 'my_collection', '2.0.2')
     with pytest.raises(exc.ManifestValidationError):
         CollectionLoader(populated_collection_root, filename).load()
 
