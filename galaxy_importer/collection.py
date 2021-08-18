@@ -19,6 +19,7 @@ from collections import namedtuple
 import logging
 import os
 from pkg_resources import iter_entry_points
+import re
 import subprocess
 import tempfile
 
@@ -215,6 +216,7 @@ class CollectionLoader(object):
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
         self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
+        self._check_ansible_test_ignore_files()
 
         return schema.ImportResult(
             metadata=self.metadata,
@@ -222,6 +224,25 @@ class CollectionLoader(object):
             contents=self.contents,
             requires_ansible=self.requires_ansible,
         )
+
+    def _check_ansible_test_ignore_files(self):  # pragma: no cover
+        """Log a warning when ansible test sanity ignore files are present.
+        Method excluded from pytest coverage, test exist outside repo via iqe.
+        """
+        IGNORE_FILE_REGEXP = re.compile(r'^ignore-.+\.txt$')
+        IGNORE_WARNING = (
+            "Ignore files skip ansible-test sanity tests, "
+            "found {file} with {line_count} statement(s)")
+
+        sanity_path = os.path.join(self.path, "tests", "sanity")
+        if not os.path.exists(sanity_path):
+            return
+
+        listdir = os.listdir(sanity_path)
+        for ignore_file in filter(IGNORE_FILE_REGEXP.match, listdir):
+            with open(os.path.join(sanity_path, ignore_file), 'r+') as f:
+                line_count = len(f.readlines())
+            self.log.warning(IGNORE_WARNING.format(file=ignore_file, line_count=line_count))
 
     def _load_manifest(self):
         manifest_file = os.path.join(self.path, 'MANIFEST.json')
