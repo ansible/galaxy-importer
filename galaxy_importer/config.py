@@ -31,17 +31,18 @@ class Config(object):
     """Configuration for galaxy-importer."""
 
     DEFAULTS = {
-        "log_level_main": "INFO",
-        "run_flake8": False,
-        "run_ansible_test": False,
-        "ansible_test_local_image": False,
-        "local_image_docker": False,
-        "run_ansible_lint": True,
-        "run_ansible_doc": True,
-        "infra_osd": False,
-        "check_required_tags": False,
-        "tmp_root_dir": None,
         "ansible_local_tmp": "~/.ansible/tmp",
+        "ansible_test_local_image": False,
+        "check_required_tags": False,
+        "infra_osd": False,
+        "local_image_docker": False,
+        "log_level_main": "INFO",
+        "require_v1_or_greater": False,
+        "run_ansible_doc": True,
+        "run_ansible_lint": True,
+        "run_ansible_test": False,
+        "run_flake8": False,
+        "tmp_root_dir": None,
     }
 
     def __init__(self, config_data=None):
