@@ -18,7 +18,6 @@
 from collections import namedtuple
 import logging
 import os
-from pkg_resources import iter_entry_points
 import re
 import subprocess
 import tempfile
@@ -85,13 +84,6 @@ def _import_collection(file, filename, file_url, logger, cfg):
         if ansible_test_runner:
             ansible_test_runner(dir=tmp_dir, metadata=data.metadata,
                                 file=file, filepath=filepath, logger=logger).run()
-
-    _run_post_load_plugins(
-        artifact_file=file,
-        metadata=data.metadata,
-        content_objs=None,
-        logger=logger,
-    )
 
     return attr.asdict(data)
 
@@ -449,15 +441,3 @@ class CollectionLoader(object):
             if not os.path.exists(path):
                 raise exc.ManifestValidationError(
                     f'Could not find file {os.path.basename(path)}')
-
-
-def _run_post_load_plugins(artifact_file, metadata, content_objs, logger=None):
-    for ep in iter_entry_points(group='galaxy_importer.post_load_plugin'):
-        logger.debug(f'Running plugin: {ep.module_name}')
-        found_plugin = ep.load()
-        found_plugin(
-            artifact_file=artifact_file,
-            metadata=metadata,
-            content_objs=None,
-            logger=logger,
-        )
