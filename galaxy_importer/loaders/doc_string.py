@@ -22,12 +22,9 @@ import os
 import shutil
 from subprocess import Popen, PIPE
 
-default_logger = logging.getLogger(__name__)
+from galaxy_importer import constants
 
-ANSIBLE_DOC_SUPPORTED_TYPES = [
-    'become', 'cache', 'callback', 'cliconf', 'connection',
-    'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
-ANSIBLE_DOC_PLUGIN_MAP = {'module': 'modules'}
+default_logger = logging.getLogger(__name__)
 
 
 class DocStringLoader():
@@ -48,8 +45,8 @@ class DocStringLoader():
             self.log.warning('ansible-doc not found, skipping loading of docstrings')
             return docs
 
-        for plugin_type in ANSIBLE_DOC_SUPPORTED_TYPES:
-            plugin_dir_name = ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
+        for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
+            plugin_dir_name = constants.ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
 
             plugins = self._get_plugins(os.path.join(self.path, 'plugins', plugin_dir_name))
 

@@ -18,9 +18,20 @@
 import enum
 import re
 
+ANSIBLE_DOC_SUPPORTED_TYPES = [
+    'become', 'cache', 'callback', 'cliconf', 'connection',
+    'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
+ANSIBLE_DOC_PLUGIN_MAP = {'module': 'modules'}
+ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
+ANSIBLE_LINT_ERROR_PREFIXES = ('CRITICAL', 'ERROR')
+CONTENT_NAME_REGEXP = re.compile(r'^(?!.*__)[a-z_]+[0-9a-z_]*$')
+ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
+FLAKE8_MAX_LINE_LENGTH = 160
+FLAKE8_IGNORE_ERRORS = 'E402'
+FLAKE8_SELECT_ERRORS = 'E,F,W'
+MAX_LENGTH_REQUIRES_ANSIBLE = 255
 MAX_TAGS_COUNT = 20
 NAME_REGEXP = re.compile(r'^(?!.*__)[a-z]+[0-9a-z_]*$')
-CONTENT_NAME_REGEXP = re.compile(r'^(?!.*__)[a-z_]+[0-9a-z_]*$')
 
 
 class ContentCategory(enum.Enum):

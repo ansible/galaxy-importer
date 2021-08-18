@@ -20,12 +20,10 @@ import os
 import semantic_version
 import yaml
 
+from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
 
-
 default_logger = logging.getLogger(__name__)
-
-MAX_LENGTH_REQUIRES_ANSIBLE = 255
 
 
 class RuntimeFileLoader():
@@ -56,10 +54,10 @@ class RuntimeFileLoader():
                 "'requires_ansible' in meta/runtime.yml is mandatory, "
                 "but 'requires_ansible' not found"
             )
-        if len(requires_ansible) > MAX_LENGTH_REQUIRES_ANSIBLE:
+        if len(requires_ansible) > constants.MAX_LENGTH_REQUIRES_ANSIBLE:
             raise exc.RuntimeFileError(
                 f"'requires_ansible' must not be greater than "
-                f"{MAX_LENGTH_REQUIRES_ANSIBLE} characters")
+                f"{constants.MAX_LENGTH_REQUIRES_ANSIBLE} characters")
         try:
             semantic_version.SimpleSpec(requires_ansible)
             return requires_ansible

@@ -29,14 +29,7 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
 
-
 default_logger = logging.getLogger(__name__)
-
-ANSIBLE_LINT_ERROR_PREFIXES = ('CRITICAL', 'ERROR')
-ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
-FLAKE8_MAX_LINE_LENGTH = 160
-FLAKE8_IGNORE_ERRORS = 'E402'
-FLAKE8_SELECT_ERRORS = 'E,F,W'
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
@@ -139,9 +132,9 @@ class PluginLoader(ContentLoader):
 
         cmd = [
             'flake8', '--exit-zero', '--isolated',
-            '--extend-ignore', FLAKE8_IGNORE_ERRORS,
-            '--select', FLAKE8_SELECT_ERRORS,
-            '--max-line-length', str(FLAKE8_MAX_LINE_LENGTH),
+            '--extend-ignore', constants.FLAKE8_IGNORE_ERRORS,
+            '--select', constants.FLAKE8_SELECT_ERRORS,
+            '--max-line-length', str(constants.FLAKE8_MAX_LINE_LENGTH),
             '--', self.rel_path,
         ]
 
@@ -228,7 +221,7 @@ class RoleLoader(ContentLoader):
             self.log.warning(line.strip())
 
         for line in proc.stderr:
-            if line.startswith(ANSIBLE_LINT_ERROR_PREFIXES):
+            if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
                 self.log.error(line.rstrip())
 
     def _get_readme(self):
@@ -260,7 +253,7 @@ class RoleLoader(ContentLoader):
     @staticmethod
     def _find_metadata_file_path(root, rel_path):
         """Gets path to role metadata file."""
-        for file in ROLE_META_FILES:
+        for file in constants.ROLE_META_FILES:
             meta_path = os.path.join(root, rel_path, file)
             if os.path.exists(meta_path):
                 return meta_path
