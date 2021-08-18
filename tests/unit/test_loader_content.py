@@ -176,7 +176,7 @@ def test_get_fq_name(loader_module):
     assert res == 'my_ns.my_collection.subdir.my_module'
 
 
-@mock.patch('galaxy_importer.loaders.Popen')
+@mock.patch('galaxy_importer.loaders.content.Popen')
 def test_plugin_loader_annotated_type(mocked_popen, loader_module):
     mocked_popen.return_value.stdout = ['my flake8 warning']
     assert loader_module.name == 'my_module'
@@ -185,7 +185,7 @@ def test_plugin_loader_annotated_type(mocked_popen, loader_module):
     assert isinstance(res.content_type, attr.fields(schema.Content).content_type.type)
 
 
-@mock.patch('galaxy_importer.loaders.Popen')
+@mock.patch('galaxy_importer.loaders.content.Popen')
 def test_load(mocked_popen, loader_module):
     mocked_popen.return_value.stdout = ''
     assert loader_module.name == 'my_module'
@@ -223,7 +223,7 @@ def test_load_doc_fragment_no_doc_strings(loader_doc_fragment):
     assert res.readme_html is None
 
 
-@mock.patch('galaxy_importer.loaders.Popen')
+@mock.patch('galaxy_importer.loaders.content.Popen')
 def test_flake8_output(mocked_popen, loader_module):
     mocked_popen.return_value.stdout = ['my flake8 warning']
     res = list(loader_module._run_flake8('.'))
@@ -305,7 +305,7 @@ def test_ansiblelint_role_no_warn(temp_root, loader_role, caplog):
     assert len(caplog.records) == 0
 
 
-@mock.patch('galaxy_importer.loaders.Popen')
+@mock.patch('galaxy_importer.loaders.content.Popen')
 def test_ansiblelint_stderr_filter(mocked_popen, loader_role, caplog):
     mocked_popen.return_value.stdout = ["some ansible-lint violation output"]
     mocked_popen.return_value.stderr = [
