@@ -24,13 +24,13 @@ import pytest
 
 from galaxy_importer.utils import markup as markup_utils
 
-TEXT_SIMPLE = 'A simple description'
-TEXT_BAD_TAG = 'hello <script>cruel</script> world'
-TEXT_BAD_HTML_IN_MD = '''
+TEXT_SIMPLE = "A simple description"
+TEXT_BAD_TAG = "hello <script>cruel</script> world"
+TEXT_BAD_HTML_IN_MD = """
 > hello <a name="n"
 > href="javascript:something_bad()">*you*</a>
-'''
-TEXT_FORMATTING = '''
+"""
+TEXT_FORMATTING = """
 # Role
 
 [Tool](https://www.example.com) installed in `$PATH`
@@ -43,30 +43,30 @@ TEXT_FORMATTING = '''
 
 * Item1
 * Item2
-'''
+"""
 
-DocFile = collections.namedtuple('DocFile', ['text', 'mimetype'])
+DocFile = collections.namedtuple("DocFile", ["text", "mimetype"])
 
 
 class TestFindGetFiles(TestCase):
     def setUp(self):
         self.setUpPyfakefs()
-        self.directory = '/tmp'
+        self.directory = "/tmp"
 
     def test_find_readme(self):
         assert not markup_utils._find_readme(self.directory)
-        file_path = os.path.join(self.directory, 'README.md')
+        file_path = os.path.join(self.directory, "README.md")
         self.fs.create_file(file_path)
         res = markup_utils._find_readme(self.directory)
-        assert res == '/tmp/README.md'
+        assert res == "/tmp/README.md"
 
     def test_cannot_find_invalid_readmes(self):
         for invalid_name in [
-            'readme.md',
-            'README',
-            'README.rst',
-            'readme',
-            'INTRO.md',
+            "readme.md",
+            "README",
+            "README.rst",
+            "readme",
+            "INTRO.md",
         ]:
             self.fs.create_file(os.path.join(self.directory, invalid_name))
 
@@ -76,26 +76,26 @@ class TestFindGetFiles(TestCase):
         res = markup_utils.get_readme_doc_file(self.directory)
         assert res is None
 
-        file_path = os.path.join(self.directory, 'README.md')
-        self.fs.create_file(file_path, contents='## My Collection')
+        file_path = os.path.join(self.directory, "README.md")
+        self.fs.create_file(file_path, contents="## My Collection")
         res = markup_utils.get_readme_doc_file(self.directory)
-        assert res.name == 'README.md'
-        assert res.text == '## My Collection'
+        assert res.name == "README.md"
+        assert res.text == "## My Collection"
 
     def test_get_file(self):
-        filename = 'README.md'
+        filename = "README.md"
         res = markup_utils._get_file(self.directory, filename)
         assert res is None
 
         file_path = os.path.join(self.directory, filename)
         self.fs.create_file(file_path)
         res = markup_utils._get_file(self.directory, file_path)
-        assert res.name == 'README.md'
+        assert res.name == "README.md"
 
-    @mock.patch('os.path.getsize')
+    @mock.patch("os.path.getsize")
     def test_get_file_with_file_size_error(self, getsize):
         getsize.return_value = markup_utils.DOCFILE_MAX_SIZE + 1
-        filename = 'README.md'
+        filename = "README.md"
         file_path = os.path.join(self.directory, filename)
         self.fs.create_file(file_path)
         with pytest.raises(markup_utils.FileSizeError):
@@ -106,24 +106,24 @@ class TestFindGetFiles(TestCase):
         assert res is None
 
         for doc_file in [
-            'GETTING_STARTED.md',
-            'DEEP_DIVE.md',
-            'WHOOPS.txt',
-            'EXAMPLES.md',
+            "GETTING_STARTED.md",
+            "DEEP_DIVE.md",
+            "WHOOPS.txt",
+            "EXAMPLES.md",
         ]:
             self.fs.create_file(os.path.join(self.directory, doc_file))
 
-        self.fs.create_dir(os.path.join(self.directory, 'sub_dir_to_ignore'))
+        self.fs.create_dir(os.path.join(self.directory, "sub_dir_to_ignore"))
         res = markup_utils.get_doc_files(self.directory)
         assert len(res) == 3
         names = [d.name for d in res]
-        assert 'GETTING_STARTED.md' in names
-        assert 'DEEP_DIVE.md' in names
-        assert 'EXAMPLES.md' in names
-        assert 'WHOOPS.txt' not in names
+        assert "GETTING_STARTED.md" in names
+        assert "DEEP_DIVE.md" in names
+        assert "EXAMPLES.md" in names
+        assert "WHOOPS.txt" not in names
 
     def test_find_doc_files_no_dir(self):
-        res = markup_utils._find_doc_files(directory='/does_not_exist')
+        res = markup_utils._find_doc_files(directory="/does_not_exist")
         assert res == []
 
 
@@ -133,33 +133,33 @@ class TestHtmlRender(TestCase):
         return markup_utils._render_from_markdown(doc_file)
 
     def test_get_html(self):
-        doc_file = DocFile(text=TEXT_SIMPLE, mimetype='text/markdown')
+        doc_file = DocFile(text=TEXT_SIMPLE, mimetype="text/markdown")
         html = markup_utils.get_html(doc_file)
-        assert html == '<p>{}</p>'.format(TEXT_SIMPLE)
+        assert html == "<p>{}</p>".format(TEXT_SIMPLE)
 
-        doc_file = DocFile(text=TEXT_SIMPLE, mimetype='text/rst')
+        doc_file = DocFile(text=TEXT_SIMPLE, mimetype="text/rst")
         html = markup_utils.get_html(doc_file)
         assert html is None
 
     def test_render_simple(self):
-        html = self.call_render(TEXT_SIMPLE, 'text/markdown')
-        assert html == '<p>{}</p>'.format(TEXT_SIMPLE)
+        html = self.call_render(TEXT_SIMPLE, "text/markdown")
+        assert html == "<p>{}</p>".format(TEXT_SIMPLE)
 
     def test_render_bad_tag(self):
-        html = self.call_render(TEXT_BAD_TAG, 'text/markdown')
-        assert '<script>' not in html
+        html = self.call_render(TEXT_BAD_TAG, "text/markdown")
+        assert "<script>" not in html
 
     def test_render_bad_html_hidden_in_md(self):
-        html = self.call_render(TEXT_BAD_HTML_IN_MD, 'text/markdown')
-        assert 'javascript' not in html
+        html = self.call_render(TEXT_BAD_HTML_IN_MD, "text/markdown")
+        assert "javascript" not in html
 
     def test_render_formatting(self):
-        html = self.call_render(TEXT_FORMATTING, 'text/markdown')
-        assert '<h1>Role</h1>' in html
+        html = self.call_render(TEXT_FORMATTING, "text/markdown")
+        assert "<h1>Role</h1>" in html
         assert '<a href="https://www.example.com">Tool</a>' in html
-        assert '<code>$PATH</code>' in html
-        assert '<h3>Installation</h3>' in html
+        assert "<code>$PATH</code>" in html
+        assert "<h3>Installation</h3>" in html
         assert '<code>package_version: "1.2.0"' in html
-        assert '<blockquote>\n<p>NOTE:' in html
-        assert 'Tool \'feature\' is <em>beta</em>' in html
-        assert '<ul>\n<li>Item1</li>' in html
+        assert "<blockquote>\n<p>NOTE:" in html
+        assert "Tool 'feature' is <em>beta</em>" in html
+        assert "<ul>\n<li>Item1</li>" in html

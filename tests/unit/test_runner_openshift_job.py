@@ -27,22 +27,29 @@ from galaxy_importer.ansible_test.runners import openshift_job
 @pytest.fixture
 def job():
     return openshift_job.Job(
-        'my_domain', 'my_ns', 'session_token', 'ca_path', 'image', 'job_template', logger=None)
+        "my_domain",
+        "my_ns",
+        "session_token",
+        "ca_path",
+        "image",
+        "job_template",
+        logger=None,
+    )
 
 
 def test_runner_run(mocker, monkeypatch):
-    mocker.patch.object(openshift_job.OpenshiftJobTestRunner, '_get_token')
-    mocker.patch.object(openshift_job.OpenshiftJobTestRunner, '_get_job_template')
-    mocker.patch.object(openshift_job.OpenshiftJobTestRunner, '_get_pulp_archive_url')
-    mocker.patch.object(openshift_job.Job, 'create')
-    mocker.patch.object(openshift_job.Job, 'wait_on_pod_ready')
-    mocker.patch.object(openshift_job.Job, 'get_logs')
-    mocker.patch.object(openshift_job.Job, 'cleanup')
+    mocker.patch.object(openshift_job.OpenshiftJobTestRunner, "_get_token")
+    mocker.patch.object(openshift_job.OpenshiftJobTestRunner, "_get_job_template")
+    mocker.patch.object(openshift_job.OpenshiftJobTestRunner, "_get_pulp_archive_url")
+    mocker.patch.object(openshift_job.Job, "create")
+    mocker.patch.object(openshift_job.Job, "wait_on_pod_ready")
+    mocker.patch.object(openshift_job.Job, "get_logs")
+    mocker.patch.object(openshift_job.Job, "cleanup")
 
-    openshift_job.Job.get_logs.return_value = ['log_entry', b'bytes_log_entry']
-    openshift_job.OpenshiftJobTestRunner._get_pulp_archive_url.return_value = 'image_link'
-    monkeypatch.setenv('IMPORTER_API_DOMAIN', 'my_host')
-    monkeypatch.setenv('IMPORTER_JOB_NAMESPACE', 'my_project')
+    openshift_job.Job.get_logs.return_value = ["log_entry", b"bytes_log_entry"]
+    openshift_job.OpenshiftJobTestRunner._get_pulp_archive_url.return_value = "image_link"
+    monkeypatch.setenv("IMPORTER_API_DOMAIN", "my_host")
+    monkeypatch.setenv("IMPORTER_JOB_NAMESPACE", "my_project")
     runner = openshift_job.OpenshiftJobTestRunner()
     runner.run()
 
@@ -53,42 +60,42 @@ def test_runner_run(mocker, monkeypatch):
 
 
 def test_runner_get_token(mocker, tmp_path):
-    mocker.patch.object(openshift_job, 'OCP_SERVICEACCOUNT_PATH')
-    p = tmp_path / 'token'
-    p.write_text('my_session_token_1234')
-    openshift_job.OCP_SERVICEACCOUNT_PATH = str(tmp_path) + '/'
-    assert openshift_job.OpenshiftJobTestRunner._get_token() == 'my_session_token_1234'
+    mocker.patch.object(openshift_job, "OCP_SERVICEACCOUNT_PATH")
+    p = tmp_path / "token"
+    p.write_text("my_session_token_1234")
+    openshift_job.OCP_SERVICEACCOUNT_PATH = str(tmp_path) + "/"
+    assert openshift_job.OpenshiftJobTestRunner._get_token() == "my_session_token_1234"
 
 
 def test_runner_get_job_template(mocker, tmp_path):
     job_template = openshift_job.OpenshiftJobTestRunner._get_job_template()
-    assert job_template.startswith('apiVersion: batch/v1\nkind: Job')
+    assert job_template.startswith("apiVersion: batch/v1\nkind: Job")
 
 
 def test_job_init(job):
-    assert job.jobs_url == 'my_domain/apis/batch/v1/namespaces/my_ns/jobs'
-    assert job.pods_url == 'my_domain/api/v1/namespaces/my_ns/pods'
+    assert job.jobs_url == "my_domain/apis/batch/v1/namespaces/my_ns/jobs"
+    assert job.pods_url == "my_domain/api/v1/namespaces/my_ns/pods"
 
 
 def test_job_create(mocker, job):
-    mocker.patch.object(requests, 'post')
+    mocker.patch.object(requests, "post")
 
     requests.post.return_value = SimpleNamespace(status_code=201)
     job.create()
     assert requests.post.called
 
-    requests.post.return_value = SimpleNamespace(status_code=500, reason='', text='')
+    requests.post.return_value = SimpleNamespace(status_code=500, reason="", text="")
     with pytest.raises(exc.AnsibleTestError):
         job.create()
 
 
 def test_job_wait_on_pod_ready(mocker, job):
-    mocker.patch.object(openshift_job.Job, 'get_pods')
-    mocker.patch.object(openshift_job.Job, 'cleanup')
-    mocker.patch.object(openshift_job, 'API_CHECK_RETRIES')
+    mocker.patch.object(openshift_job.Job, "get_pods")
+    mocker.patch.object(openshift_job.Job, "cleanup")
+    mocker.patch.object(openshift_job, "API_CHECK_RETRIES")
     openshift_job.API_CHECK_RETRIES = 1
 
-    openshift_job.Job.get_pods.return_value = [{'status': {'phase': 'Running'}}]
+    openshift_job.Job.get_pods.return_value = [{"status": {"phase": "Running"}}]
     job.wait_on_pod_ready()
     assert openshift_job.Job.get_pods.called
 
@@ -97,67 +104,69 @@ def test_job_wait_on_pod_ready(mocker, job):
         job.wait_on_pod_ready()
     assert openshift_job.Job.cleanup.called
 
-    openshift_job.Job.get_pods.return_value = [{'status': {'phase': 'Pending'}}]
+    openshift_job.Job.get_pods.return_value = [{"status": {"phase": "Pending"}}]
     with pytest.raises(exc.AnsibleTestError):
         job.wait_on_pod_ready()
     assert openshift_job.Job.cleanup.called
 
 
 def test_job_get_pods(mocker, job):
-    mocker.patch.object(requests, 'get')
-    requests.get.return_value.json.return_value = {'items': []}
+    mocker.patch.object(requests, "get")
+    requests.get.return_value.json.return_value = {"items": []}
     job.get_pods()
     assert requests.get.called
 
 
 def test_job_get_pods_fail(mocker, job):
-    mocker.patch.object(requests, 'get')
+    mocker.patch.object(requests, "get")
     requests.get.return_value.json.return_value = {}
-    with pytest.raises(exc.AnsibleTestError, match=r'Could not access pod assocated with job'):
+    with pytest.raises(exc.AnsibleTestError, match=r"Could not access pod assocated with job"):
         job.get_pods()
     assert requests.get.called
 
 
 def test_job_get_pod_name():
-    pod = {'metadata': {'name': 'my_pod_name'}}
-    assert openshift_job.Job.get_pod_name(pod) == 'my_pod_name'
+    pod = {"metadata": {"name": "my_pod_name"}}
+    assert openshift_job.Job.get_pod_name(pod) == "my_pod_name"
 
 
 def test_job_get_logs(mocker, job):
-    mocker.patch.object(openshift_job.Job, 'get_pods')
-    mocker.patch.object(requests, 'get')
-    openshift_job.Job.get_pods.return_value = [{'metadata': {'name': 'my_pod_name'}}]
+    mocker.patch.object(openshift_job.Job, "get_pods")
+    mocker.patch.object(requests, "get")
+    openshift_job.Job.get_pods.return_value = [{"metadata": {"name": "my_pod_name"}}]
     requests.get.iter_lines.return_value = {}
     job.get_logs()
     assert requests.get.called
 
 
 def test_job_cleanup(mocker, job):
-    mocker.patch.object(openshift_job.Job, 'get_pods')
-    mocker.patch.object(requests, 'delete')
-    openshift_job.Job.get_pods.return_value = [{
-        'metadata': {'name': 'my_pod_name'},
-        'status': {'phase': 'Succeeded'},
-    }]
+    mocker.patch.object(openshift_job.Job, "get_pods")
+    mocker.patch.object(requests, "delete")
+    openshift_job.Job.get_pods.return_value = [
+        {
+            "metadata": {"name": "my_pod_name"},
+            "status": {"phase": "Succeeded"},
+        }
+    ]
     job.cleanup()
     assert requests.delete.called
 
 
 def test_job_cleanup_fail(mocker, job):
-    mocker.patch.object(openshift_job.Job, 'get_pods')
-    mocker.patch.object(requests, 'delete')
-    openshift_job.Job.get_pods.return_value = [{
-        'metadata': {'name': 'my_pod_name'},
-        'status': {
-            'phase': 'Failed',
-            'containerStatuses': [
-                {'state': {'terminated': {'reason': 'internal_error_123'}}}
-            ]
-        },
-    }]
+    mocker.patch.object(openshift_job.Job, "get_pods")
+    mocker.patch.object(requests, "delete")
+    openshift_job.Job.get_pods.return_value = [
+        {
+            "metadata": {"name": "my_pod_name"},
+            "status": {
+                "phase": "Failed",
+                "containerStatuses": [{"state": {"terminated": {"reason": "internal_error_123"}}}],
+            },
+        }
+    ]
     with pytest.raises(
         exc.AnsibleTestError,
-        match=r'Pod terminated with status: "Failed" and reason: "internal_error_123"'
+        match=r'Pod terminated with status: "Failed" and reason: "internal_error_123"',
     ):
         job.cleanup()
     assert requests.delete.called

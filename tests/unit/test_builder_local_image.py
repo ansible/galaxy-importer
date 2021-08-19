@@ -29,67 +29,59 @@ from unittest import mock
 @pytest.fixture
 def build():
     cfg = config.Config(config_data=config.ConfigFile.load())
-    return Build('/file/path/to/archive.tar.gz', 'name', cfg)
+    return Build("/file/path/to/archive.tar.gz", "name", cfg)
 
 
 @pytest.fixture
 def tmp_file():
     try:
         dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        tmp_file = os.path.join(dir, 'galaxy_importer', 'namespace-name-0.0.1.tar.gz')
+        tmp_file = os.path.join(dir, "galaxy_importer", "namespace-name-0.0.1.tar.gz")
         yield tmp_file
     finally:
         os.remove(tmp_file)
 
 
 def test_build_image(mocker, tmp_file, temp_config_file, caplog):
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nLOCAL_IMAGE_DOCKER = False')
+    with open(temp_config_file, "w") as f:
+        f.write("[galaxy-importer]\nLOCAL_IMAGE_DOCKER = False")
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
         caplog.set_level(logging.INFO)
-        with open(tmp_file, 'w') as f:
-            f.write('file contents go here')
+        with open(tmp_file, "w") as f:
+            f.write("file contents go here")
             f.flush()
-            build = Build(
-                filepath=tmp_file,
-                collection_name='namespace-name-version',
-                cfg=cfg
-            )
-            mocker.patch.object(Build, '_build_dockerfile')
-            mocker.patch.object(Build, '_copy_collection_file')
-            mocker.patch.object(Build, '_build_image_with_artifact')
+            build = Build(filepath=tmp_file, collection_name="namespace-name-version", cfg=cfg)
+            mocker.patch.object(Build, "_build_dockerfile")
+            mocker.patch.object(Build, "_copy_collection_file")
+            mocker.patch.object(Build, "_build_image_with_artifact")
             _ = build.build_image()
     assert build._build_dockerfile.called
     assert build._copy_collection_file.called
     assert build._build_image_with_artifact.called
-    assert 'Building ContainerFile' in [r.message for r in caplog.records]
+    assert "Building ContainerFile" in [r.message for r in caplog.records]
 
 
 def test_build_image_dockerfile(mocker, tmp_file, temp_config_file, caplog):
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nLOCAL_IMAGE_DOCKER = True')
+    with open(temp_config_file, "w") as f:
+        f.write("[galaxy-importer]\nLOCAL_IMAGE_DOCKER = True")
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
         caplog.set_level(logging.INFO)
-        with open(tmp_file, 'w') as f:
-            f.write('file contents go here')
+        with open(tmp_file, "w") as f:
+            f.write("file contents go here")
             f.flush()
-            build = Build(
-                filepath=tmp_file,
-                collection_name='namespace-name-version',
-                cfg=cfg
-            )
-            mocker.patch.object(Build, '_build_dockerfile')
-            mocker.patch.object(Build, '_copy_collection_file')
-            mocker.patch.object(Build, '_build_image_with_artifact')
+            build = Build(filepath=tmp_file, collection_name="namespace-name-version", cfg=cfg)
+            mocker.patch.object(Build, "_build_dockerfile")
+            mocker.patch.object(Build, "_copy_collection_file")
+            mocker.patch.object(Build, "_build_image_with_artifact")
             _ = build.build_image()
-    assert 'Building Dockerfile' in [r.message for r in caplog.records]
+    assert "Building Dockerfile" in [r.message for r in caplog.records]
 
 
-@mock.patch('galaxy_importer.ansible_test.builders.local_image_build.run')
+@mock.patch("galaxy_importer.ansible_test.builders.local_image_build.run")
 def test_cleanup(mocked_run, build):
     build.cleanup()
     assert mocked_run.called
@@ -98,27 +90,27 @@ def test_cleanup(mocked_run, build):
 def test_build_dockerfile(mocker):
     with tempfile.TemporaryDirectory() as dir:
         Build._build_dockerfile(dir)
-        with open(f'{dir}/Dockerfile') as f:
-            assert 'COPY archive.tar.gz /archive/archive.tar.gz' in f.read()
+        with open(f"{dir}/Dockerfile") as f:
+            assert "COPY archive.tar.gz /archive/archive.tar.gz" in f.read()
 
 
-@mock.patch('galaxy_importer.ansible_test.builders.local_image_build.Popen')
+@mock.patch("galaxy_importer.ansible_test.builders.local_image_build.Popen")
 def test_build_image_with_artifact(mocked_popen, mocker):
     with tempfile.TemporaryDirectory() as dir:
-        mocked_popen.return_value.stdout = ['sha256:1234', 'sha256:5678']
+        mocked_popen.return_value.stdout = ["sha256:1234", "sha256:5678"]
         mocked_popen.return_value.wait.return_value = 0
-        result = Build._build_image_with_artifact(dir=dir, container_engine='podman')
+        result = Build._build_image_with_artifact(dir=dir, container_engine="podman")
         assert mocked_popen.called
-        assert '5678' in result
+        assert "5678" in result
 
 
-@mock.patch('galaxy_importer.ansible_test.builders.local_image_build.Popen')
+@mock.patch("galaxy_importer.ansible_test.builders.local_image_build.Popen")
 def test_build_image_with_artifact_exception(mocked_popen, mocker):
     with tempfile.TemporaryDirectory() as dir:
-        mocked_popen.return_value.stdout = ['sha256:1234', 'sha256:5678']
+        mocked_popen.return_value.stdout = ["sha256:1234", "sha256:5678"]
         mocked_popen.return_value.wait.return_value = 1
         with pytest.raises(exc.AnsibleTestError):
-            Build._build_image_with_artifact(dir=dir, container_engine='podman')
+            Build._build_image_with_artifact(dir=dir, container_engine="podman")
 
 
 def test_copy_collection_file():
@@ -126,7 +118,7 @@ def test_copy_collection_file():
         f = tempfile.NamedTemporaryFile(delete=False)
         filepath = f.name
         Build._copy_collection_file(dir, filepath)
-        assert os.path.exists(os.path.join(dir, 'archive.tar.gz'))
+        assert os.path.exists(os.path.join(dir, "archive.tar.gz"))
         os.remove(f.name)
 
 
@@ -134,25 +126,25 @@ def test_copy_collection_file():
 def temp_config_file():
     try:
         dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        config_file = os.path.join(dir, 'galaxy_importer', 'galaxy-importer.cfg')
+        config_file = os.path.join(dir, "galaxy_importer", "galaxy-importer.cfg")
         yield config_file
     finally:
         os.remove(config_file)
 
 
 def test_get_container_image_podman(temp_config_file):
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nLOCAL_IMAGE_DOCKER = False')
+    with open(temp_config_file, "w") as f:
+        f.write("[galaxy-importer]\nLOCAL_IMAGE_DOCKER = False")
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
-        assert Build.get_container_engine(cfg) == 'podman'
+        assert Build.get_container_engine(cfg) == "podman"
 
 
 def test_get_container_image_docker(temp_config_file):
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nLOCAL_IMAGE_DOCKER = True')
+    with open(temp_config_file, "w") as f:
+        f.write("[galaxy-importer]\nLOCAL_IMAGE_DOCKER = True")
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
-        assert Build.get_container_engine(cfg) == 'docker'
+        assert Build.get_container_engine(cfg) == "docker"

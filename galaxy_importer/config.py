@@ -19,29 +19,29 @@ import configparser
 import os
 
 
-FILENAME = 'galaxy-importer.cfg'
+FILENAME = "galaxy-importer.cfg"
 FILE_LOCATIONS = [
-    f'/etc/galaxy-importer/{FILENAME}',
+    f"/etc/galaxy-importer/{FILENAME}",
     os.path.join(os.path.dirname(__file__), FILENAME),
 ]
-IMPORTER_INI_SECTION = 'galaxy-importer'
+IMPORTER_INI_SECTION = "galaxy-importer"
 
 
 class Config(object):
     """Configuration for galaxy-importer."""
 
     DEFAULTS = {
-        'log_level_main': 'INFO',
-        'run_flake8': False,
-        'run_ansible_test': False,
-        'ansible_test_local_image': False,
-        'local_image_docker': False,
-        'run_ansible_lint': True,
-        'run_ansible_doc': True,
-        'infra_osd': False,
-        'check_required_tags': False,
-        'tmp_root_dir': None,
-        'ansible_local_tmp': '~/.ansible/tmp'
+        "log_level_main": "INFO",
+        "run_flake8": False,
+        "run_ansible_test": False,
+        "ansible_test_local_image": False,
+        "local_image_docker": False,
+        "run_ansible_lint": True,
+        "run_ansible_doc": True,
+        "infra_osd": False,
+        "check_required_tags": False,
+        "tmp_root_dir": None,
+        "ansible_local_tmp": "~/.ansible/tmp",
     }
 
     def __init__(self, config_data=None):
@@ -57,7 +57,7 @@ class ConfigFile(object):
 
     @staticmethod
     def load():
-        env_config = os.getenv('GALAXY_IMPORTER_CONFIG')
+        env_config = os.getenv("GALAXY_IMPORTER_CONFIG")
         if env_config:
             FILE_LOCATIONS.insert(0, env_config)
         config_parser_data = ConfigFile._load_file(FILE_LOCATIONS)

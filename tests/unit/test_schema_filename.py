@@ -20,19 +20,19 @@ import semantic_version
 
 from galaxy_importer import schema
 
-NAMESPACE = 'my_namespace'
-NAME = 'my_collection'
-VERSION_STR = '4.3.0'
+NAMESPACE = "my_namespace"
+NAME = "my_collection"
+VERSION_STR = "4.3.0"
 
 FILENAME_DATA = {
-    'namespace': NAMESPACE,
-    'name': NAME,
-    'version': VERSION_STR,
+    "namespace": NAMESPACE,
+    "name": NAME,
+    "version": VERSION_STR,
 }
 
 
 def test_filename_parse():
-    filename_str = f'{NAMESPACE}-{NAME}-{VERSION_STR}.tar.gz'
+    filename_str = f"{NAMESPACE}-{NAME}-{VERSION_STR}.tar.gz"
     filename_from_str = schema.CollectionFilename.parse(filename_str)
 
     filename_from_dict = schema.CollectionFilename(**FILENAME_DATA)
@@ -45,16 +45,13 @@ def test_filename_parse():
 
 
 @pytest.mark.parametrize(
-    'filename_str',
+    "filename_str",
     [
-        f'{NAMESPACE}-{NAME}-{VERSION_STR}.tar.gz',
-        f'{NAMESPACE}-{NAME}-0.1.1-alpha+build.2012-05-15.tar.gz',
-        pytest.param(f'{NAMESPACE}{NAME}{VERSION_STR}.tar.gz',
-                     marks=pytest.mark.xfail),  # 0 dashes
-        pytest.param(f'{NAMESPACE}-{NAME}{VERSION_STR}.tar.gz',
-                     marks=pytest.mark.xfail),  # 1 dash
-        pytest.param(f'{NAMESPACE}-{NAME}-{VERSION_STR}!.tar.gz',
-                     marks=pytest.mark.xfail),  # bang
+        f"{NAMESPACE}-{NAME}-{VERSION_STR}.tar.gz",
+        f"{NAMESPACE}-{NAME}-0.1.1-alpha+build.2012-05-15.tar.gz",
+        pytest.param(f"{NAMESPACE}{NAME}{VERSION_STR}.tar.gz", marks=pytest.mark.xfail),  # 0 dashes
+        pytest.param(f"{NAMESPACE}-{NAME}{VERSION_STR}.tar.gz", marks=pytest.mark.xfail),  # 1 dash
+        pytest.param(f"{NAMESPACE}-{NAME}-{VERSION_STR}!.tar.gz", marks=pytest.mark.xfail),  # bang
     ],
 )
 def test_filename_format(filename_str):
@@ -63,11 +60,11 @@ def test_filename_format(filename_str):
 
 
 @pytest.mark.parametrize(
-    'filename_str,error_subset',
+    "filename_str,error_subset",
     [
-        (f'no__dunder-{NAME}-{VERSION_STR}.tar.gz', 'Invalid namespace:'),
-        (f'{NAMESPACE}-0startswithnum-{VERSION_STR}.tar.gz', 'Invalid name:'),
-    ]
+        (f"no__dunder-{NAME}-{VERSION_STR}.tar.gz", "Invalid namespace:"),
+        (f"{NAMESPACE}-0startswithnum-{VERSION_STR}.tar.gz", "Invalid name:"),
+    ],
 )
 def test_bad_name_error(filename_str, error_subset):
     with pytest.raises(ValueError) as excinfo:

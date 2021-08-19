@@ -26,14 +26,16 @@ from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 
 class LocalImageTestRunner(BaseTestRunner):
     """Run image locally with docker or podman."""
+
     def run(self):
         cfg = config.Config(config_data=config.ConfigFile.load())
 
         build = Build(
             self.filepath,
-            f'{self.metadata.namespace}-{self.metadata.name}-{self.metadata.version}',
+            f"{self.metadata.namespace}-{self.metadata.name}-{self.metadata.version}",
             cfg,
-            self.log)
+            self.log,
+        )
 
         container_engine = build.get_container_engine(cfg)
 
@@ -43,21 +45,18 @@ class LocalImageTestRunner(BaseTestRunner):
 
         image_id = build.build_image()
 
-        self.log.info('Running image...')
-        self._run_image(
-            image_id=image_id,
-            container_engine=container_engine
-        )
+        self.log.info("Running image...")
+        self._run_image(image_id=image_id, container_engine=container_engine)
 
         build.cleanup()
 
     def _run_image(self, image_id, container_engine):
-        cmd = [container_engine, 'run', image_id, 'LOCAL_IMAGE_RUNNER']
+        cmd = [container_engine, "run", image_id, "LOCAL_IMAGE_RUNNER"]
         proc = Popen(
             cmd,
             stdout=PIPE,
             stderr=STDOUT,
-            encoding='utf-8',
+            encoding="utf-8",
         )
 
         for line in proc.stdout:
@@ -66,5 +65,5 @@ class LocalImageTestRunner(BaseTestRunner):
         return_code = proc.wait()
         if return_code != 0:
             raise exceptions.AnsibleTestError(
-                'An exception occurred in {}, returncode={}'
-                .format(' '.join(cmd), return_code))
+                "An exception occurred in {}, returncode={}".format(" ".join(cmd), return_code)
+            )

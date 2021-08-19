@@ -21,17 +21,17 @@ from galaxy_importer import main
 
 
 def test_parser():
-    parser = main.parse_args(['path/to/my_file.tar.gz'])
-    assert parser.file == 'path/to/my_file.tar.gz'
+    parser = main.parse_args(["path/to/my_file.tar.gz"])
+    assert parser.file == "path/to/my_file.tar.gz"
     assert not parser.print_result
 
-    parser = main.parse_args(['my_file.tar.gz', '--print-result'])
-    assert parser.file == 'my_file.tar.gz'
+    parser = main.parse_args(["my_file.tar.gz", "--print-result"])
+    assert parser.file == "my_file.tar.gz"
     assert parser.print_result
 
     # SystemExit with missing required positional file argument
     with pytest.raises(SystemExit):
-        main.parse_args(['--print-result'])
+        main.parse_args(["--print-result"])
 
 
 def test_main_no_args():

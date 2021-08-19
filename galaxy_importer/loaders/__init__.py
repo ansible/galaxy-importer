@@ -18,11 +18,11 @@ from .runtime_file import (
 )
 
 __all__ = (
-    'CollectionLoader',
-    'ContentLoader',
-    'PluginLoader',
-    'RoleLoader',
-    'get_loader_cls',
-    'DocStringLoader',
-    'RuntimeFileLoader',
+    "CollectionLoader",
+    "ContentLoader",
+    "PluginLoader",
+    "RoleLoader",
+    "get_loader_cls",
+    "DocStringLoader",
+    "RuntimeFileLoader",
 )

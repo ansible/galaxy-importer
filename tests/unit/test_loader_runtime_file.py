@@ -48,8 +48,8 @@ def test_no_runtime_file(tmpdir):
 
 
 def test_runtime_file_bad_yaml(tmpdir):
-    tmpdir.mkdir('meta').join('runtime.yml').write(BAD_YAML)
-    with pytest.raises(exc.RuntimeFileError, match='Error during parsing of runtime.yml'):
+    tmpdir.mkdir("meta").join("runtime.yml").write(BAD_YAML)
+    with pytest.raises(exc.RuntimeFileError, match="Error during parsing of runtime.yml"):
         loaders.RuntimeFileLoader(collection_path=tmpdir)
 
 
@@ -57,43 +57,43 @@ def test_runtime_no_meta_runtime(tmpdir):
     loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
     with pytest.raises(
         exc.RuntimeFileError,
-        match=r"'requires_ansible' in meta/runtime.yml is mandatory"
+        match=r"'requires_ansible' in meta/runtime.yml is mandatory",
     ):
         loader.get_requires_ansible()
 
 
 def test_no_requires_ansible(tmpdir):
-    tmpdir.mkdir('meta').join('runtime.yml').write(RUNTIME_PLUGIN_ROUTING)
+    tmpdir.mkdir("meta").join("runtime.yml").write(RUNTIME_PLUGIN_ROUTING)
     loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
     with pytest.raises(
         exc.RuntimeFileError,
-        match=r"'requires_ansible' in meta/runtime.yml is mandatory"
+        match=r"'requires_ansible' in meta/runtime.yml is mandatory",
     ):
         loader.get_requires_ansible()
 
 
 def test_get_requires_ansible(tmpdir):
-    tmpdir.mkdir('meta').join('runtime.yml').write(RUNTIME_FULL_YAML)
+    tmpdir.mkdir("meta").join("runtime.yml").write(RUNTIME_FULL_YAML)
     loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
     requires_ansible = loader.get_requires_ansible()
-    assert requires_ansible == '>=2.9.10,<2.11.5'
+    assert requires_ansible == ">=2.9.10,<2.11.5"
 
 
 def test_too_long_requires_ansible(tmpdir):
-    tmpdir.mkdir('meta').join('runtime.yml').write(TOO_LONG_REQUIRES_ANSIBLE)
+    tmpdir.mkdir("meta").join("runtime.yml").write(TOO_LONG_REQUIRES_ANSIBLE)
     with pytest.raises(
         exc.RuntimeFileError,
-        match="'requires_ansible' must not be greater than 255 characters"
+        match="'requires_ansible' must not be greater than 255 characters",
     ):
         loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
         loader.get_requires_ansible()
 
 
 def test_bad_version_spec(tmpdir):
-    tmpdir.mkdir('meta').join('runtime.yml').write(BAD_VERSION_SPEC)
+    tmpdir.mkdir("meta").join("runtime.yml").write(BAD_VERSION_SPEC)
     with pytest.raises(
         exc.RuntimeFileError,
-        match="not a valid semantic_version requirement specification"
+        match="not a valid semantic_version requirement specification",
     ):
         loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
         loader.get_requires_ansible()

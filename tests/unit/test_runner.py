@@ -31,7 +31,7 @@ from galaxy_importer.ansible_test import runners
 def temp_config_file():
     try:
         dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        config_file = os.path.join(dir, 'galaxy_importer', 'galaxy-importer.cfg')
+        config_file = os.path.join(dir, "galaxy_importer", "galaxy-importer.cfg")
         yield config_file
     finally:
         os.remove(config_file)
@@ -44,8 +44,8 @@ def test_get_runner_no_config_file():
 
 
 def test_get_runner_ansible_test_local(temp_config_file):
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True')
+    with open(temp_config_file, "w") as f:
+        f.write("[galaxy-importer]\nRUN_ANSIBLE_TEST = True")
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
@@ -53,9 +53,8 @@ def test_get_runner_ansible_test_local(temp_config_file):
 
 
 def test_get_runner_local_image(temp_config_file):
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
-                'ANSIBLE_TEST_LOCAL_IMAGE = True')
+    with open(temp_config_file, "w") as f:
+        f.write("[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n" "ANSIBLE_TEST_LOCAL_IMAGE = True")
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
@@ -63,9 +62,11 @@ def test_get_runner_local_image(temp_config_file):
 
 
 def test_osd_config_wins_over_local_image(temp_config_file):
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
-                'ANSIBLE_TEST_LOCAL_IMAGE = True\nINFRA_OSD = True')
+    with open(temp_config_file, "w") as f:
+        f.write(
+            "[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n"
+            "ANSIBLE_TEST_LOCAL_IMAGE = True\nINFRA_OSD = True"
+        )
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
@@ -73,11 +74,13 @@ def test_osd_config_wins_over_local_image(temp_config_file):
 
 
 def test_ansible_test_runner_run(mocker, temp_config_file):
-    mocker.patch.object(runners, 'LocalAnsibleTestRunner')
-    mocker.patch.object(runners, 'OpenshiftJobTestRunner')
-    with open(temp_config_file, 'w') as f:
-        f.write('[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n'
-                'ANSIBLE_TEST_LOCAL_IMAGE = True\nINFRA_OSD = True')
+    mocker.patch.object(runners, "LocalAnsibleTestRunner")
+    mocker.patch.object(runners, "OpenshiftJobTestRunner")
+    with open(temp_config_file, "w") as f:
+        f.write(
+            "[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n"
+            "ANSIBLE_TEST_LOCAL_IMAGE = True\nINFRA_OSD = True"
+        )
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
@@ -89,48 +92,44 @@ def test_ansible_test_runner_run(mocker, temp_config_file):
 
 
 def test_local_run(mocker, caplog):
-    mocker.patch.object(subprocess, 'Popen')
-    subprocess.Popen.return_value.stdout = ['stdout_result']
+    mocker.patch.object(subprocess, "Popen")
+    subprocess.Popen.return_value.stdout = ["stdout_result"]
     subprocess.Popen.return_value.wait.return_value = 0
     caplog.set_level(logging.INFO)
 
-    metadata = SimpleNamespace(
-        namespace='test_ns', name='test_name', version='test_version')
+    metadata = SimpleNamespace(namespace="test_ns", name="test_name", version="test_version")
     runner = runners.local_ansible_test.LocalAnsibleTestRunner(metadata=metadata)
     runner.run()
 
     assert len(caplog.records) == 4
     assert subprocess.Popen.called
-    assert 'stdout_result' in str(caplog.records[0])
-    assert 'Running ansible-test sanity on test_ns-test_name-test_version' in \
-        str(caplog.records[1])
-    assert 'stdout_result' in str(caplog.records[3])
+    assert "stdout_result" in str(caplog.records[0])
+    assert "Running ansible-test sanity on test_ns-test_name-test_version" in str(caplog.records[1])
+    assert "stdout_result" in str(caplog.records[3])
 
 
 def test_local_run_rc_error(mocker, caplog):
-    mocker.patch.object(subprocess, 'Popen')
-    subprocess.Popen.return_value.stdout = ['stdout_result']
+    mocker.patch.object(subprocess, "Popen")
+    subprocess.Popen.return_value.stdout = ["stdout_result"]
     subprocess.Popen.return_value.wait.return_value = 1
     caplog.set_level(logging.INFO)
 
-    metadata = SimpleNamespace(
-        namespace='test_ns', name='test_name', version='test_version')
+    metadata = SimpleNamespace(namespace="test_ns", name="test_name", version="test_version")
     runner = runners.local_ansible_test.LocalAnsibleTestRunner(metadata=metadata)
     runner.run()
 
-    cmd = '/usr/bin/env ANSIBLE_LOCAL_TEMP=~/.ansible/tmp ansible-test sanity'
+    cmd = "/usr/bin/env ANSIBLE_LOCAL_TEMP=~/.ansible/tmp ansible-test sanity"
 
     assert subprocess.Popen.called
     assert len(caplog.records) == 5
-    assert caplog.records[4].levelname == 'ERROR'
-    assert f'An exception occurred in {cmd}' in str(caplog.records[4])
+    assert caplog.records[4].levelname == "ERROR"
+    assert f"An exception occurred in {cmd}" in str(caplog.records[4])
 
 
-@mock.patch('shutil.which')
+@mock.patch("shutil.which")
 def test_local_no_ansible_bin(mocked_shutil_which, caplog):
     mocked_shutil_which.return_value = False
-    metadata = SimpleNamespace(
-        namespace='test_ns', name='test_name', version='test_version')
+    metadata = SimpleNamespace(namespace="test_ns", name="test_name", version="test_version")
     runner = runners.local_ansible_test.LocalAnsibleTestRunner(metadata=metadata)
     runner.run()
-    assert 'ansible not found, skipping ansible-test' in [r.message for r in caplog.records]
+    assert "ansible not found, skipping ansible-test" in [r.message for r in caplog.records]

@@ -19,49 +19,60 @@ import enum
 import re
 
 ANSIBLE_DOC_SUPPORTED_TYPES = [
-    'become', 'cache', 'callback', 'cliconf', 'connection',
-    'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
-ANSIBLE_DOC_PLUGIN_MAP = {'module': 'modules'}
-ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
-ANSIBLE_LINT_ERROR_PREFIXES = ('CRITICAL', 'ERROR')
-CONTENT_NAME_REGEXP = re.compile(r'^(?!.*__)[a-z_]+[0-9a-z_]*$')
-ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
+    "become",
+    "cache",
+    "callback",
+    "cliconf",
+    "connection",
+    "httpapi",
+    "inventory",
+    "lookup",
+    "shell",
+    "module",
+    "strategy",
+    "vars",
+]
+ANSIBLE_DOC_PLUGIN_MAP = {"module": "modules"}
+ANSIBLE_DOC_KEYS = ["doc", "metadata", "examples", "return"]
+ANSIBLE_LINT_ERROR_PREFIXES = ("CRITICAL", "ERROR")
+CONTENT_NAME_REGEXP = re.compile(r"^(?!.*__)[a-z_]+[0-9a-z_]*$")
+ROLE_META_FILES = ["meta/main.yml", "meta/main.yaml", "meta.yml", "meta.yaml"]
 FLAKE8_MAX_LINE_LENGTH = 160
-FLAKE8_IGNORE_ERRORS = 'E402'
-FLAKE8_SELECT_ERRORS = 'E,F,W'
+FLAKE8_IGNORE_ERRORS = "E402"
+FLAKE8_SELECT_ERRORS = "E,F,W"
 MAX_LENGTH_REQUIRES_ANSIBLE = 255
 MAX_TAGS_COUNT = 20
-NAME_REGEXP = re.compile(r'^(?!.*__)[a-z]+[0-9a-z_]*$')
+NAME_REGEXP = re.compile(r"^(?!.*__)[a-z]+[0-9a-z_]*$")
 
 
 class ContentCategory(enum.Enum):
-    MODULE = 'module'
-    ROLE = 'role'
-    PLUGIN = 'plugin'
-    PLAYBOOK = 'playbook'
+    MODULE = "module"
+    ROLE = "role"
+    PLUGIN = "plugin"
+    PLAYBOOK = "playbook"
 
 
 class ContentType(enum.Enum):
-    ROLE = 'role'
-    MODULE = 'module'
-    MODULE_UTILS = 'module_utils'
-    ACTION_PLUGIN = 'action'
-    BECOME_PLUGIN = 'become'
-    CACHE_PLUGIN = 'cache'
-    CALLBACK_PLUGIN = 'callback'
-    CLICONF_PLUGIN = 'cliconf'
-    CONNECTION_PLUGIN = 'connection'
-    DOC_FRAGMENTS_PLUGIN = 'doc_fragments'
-    FILTER_PLUGIN = 'filter'
-    HTTPAPI_PLUGIN = 'httpapi'
-    INVENTORY_PLUGIN = 'inventory'
-    LOOKUP_PLUGIN = 'lookup'
-    NETCONF_PLUGIN = 'netconf'
-    SHELL_PLUGIN = 'shell'
-    STRATEGY_PLUGIN = 'strategy'
-    TERMINAL_PLUGIN = 'terminal'
-    TEST_PLUGIN = 'test'
-    VARS_PLUGIN = 'vars'
+    ROLE = "role"
+    MODULE = "module"
+    MODULE_UTILS = "module_utils"
+    ACTION_PLUGIN = "action"
+    BECOME_PLUGIN = "become"
+    CACHE_PLUGIN = "cache"
+    CALLBACK_PLUGIN = "callback"
+    CLICONF_PLUGIN = "cliconf"
+    CONNECTION_PLUGIN = "connection"
+    DOC_FRAGMENTS_PLUGIN = "doc_fragments"
+    FILTER_PLUGIN = "filter"
+    HTTPAPI_PLUGIN = "httpapi"
+    INVENTORY_PLUGIN = "inventory"
+    LOOKUP_PLUGIN = "lookup"
+    NETCONF_PLUGIN = "netconf"
+    SHELL_PLUGIN = "shell"
+    STRATEGY_PLUGIN = "strategy"
+    TERMINAL_PLUGIN = "terminal"
+    TEST_PLUGIN = "test"
+    VARS_PLUGIN = "vars"
 
     @property
     def category(self):

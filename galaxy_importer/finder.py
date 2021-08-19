@@ -27,10 +27,9 @@ from galaxy_importer import constants
 
 default_logger = logging.getLogger(__name__)
 
-Result = collections.namedtuple(
-    'Result', ['content_type', 'path'])
+Result = collections.namedtuple("Result", ["content_type", "path"])
 
-ROLE_SUBDIRS = ['tasks', 'vars', 'handlers', 'meta']
+ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 
 
 class ContentFinder(object):
@@ -46,7 +45,7 @@ class ContentFinder(object):
         self.path = path
         self.log = logger or default_logger
 
-        self.log.info('Finding content inside collection')
+        self.log.info("Finding content inside collection")
         contents = self._find_content()
 
         try:
@@ -67,7 +66,7 @@ class ContentFinder(object):
         """Find all python files anywhere inside content_dir."""
         for path, _, files in os.walk(content_dir):
             for file in files:
-                if not file.endswith('.py') or file == '__init__.py':
+                if not file.endswith(".py") or file == "__init__.py":
                     continue
                 file_path = os.path.join(path, file)
                 rel_path = os.path.relpath(file_path, self.path)
@@ -98,12 +97,15 @@ class ContentFinder(object):
     def _content_type_dirs(self):
         for content_type in constants.ContentType:
             if content_type == constants.ContentType.ROLE:
-                yield content_type, 'roles', self._find_roles
+                yield content_type, "roles", self._find_roles
             elif content_type == constants.ContentType.MODULE:
-                yield content_type, 'plugins/modules', self._find_plugins
+                yield content_type, "plugins/modules", self._find_plugins
             else:
-                yield (content_type, 'plugins/' + content_type.value,
-                       self._find_plugins)
+                yield (
+                    content_type,
+                    "plugins/" + content_type.value,
+                    self._find_plugins,
+                )
 
 
 @attr.s
@@ -114,9 +116,9 @@ class FileWalker(object):
     def walk(self):
         full_collection_path = os.path.abspath(self.collection_path)
 
-        for dirpath, dirnames, filenames in os.walk(full_collection_path,
-                                                    onerror=self.on_walk_error,
-                                                    followlinks=False):
+        for dirpath, dirnames, filenames in os.walk(
+            full_collection_path, onerror=self.on_walk_error, followlinks=False
+        ):
             for dirname in dirnames:
                 dir_full_path = os.path.join(dirpath, dirname)
                 yield dir_full_path
@@ -126,5 +128,5 @@ class FileWalker(object):
                 yield full_path
 
     def on_walk_error(self, walk_error):
-        default_logger.warning('walk error on %s: %s', walk_error.filename, walk_error)
+        default_logger.warning("walk error on %s: %s", walk_error.filename, walk_error)
         self.file_errors.append(walk_error)
