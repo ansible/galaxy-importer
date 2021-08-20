@@ -33,7 +33,6 @@ default_logger = logging.getLogger(__name__)
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
-
     def __init__(self, content_type, rel_path, root, doc_strings=None, cfg=None, logger=None):
         """
         :param content_type: Content type.
@@ -83,10 +82,10 @@ class ContentLoader(metaclass=abc.ABCMeta):
     @staticmethod
     def _get_fq_collection_name(root):
         root_parts = Path(root).parts
-        return '{}.{}'.format(*root_parts[-2:])
+        return "{}.{}".format(*root_parts[-2:])
 
     def _get_fq_name(self, root, path_name):
-        return '{}.{}'.format(
+        return "{}.{}".format(
             self._get_fq_collection_name(root),
             path_name,
         )
@@ -94,10 +93,11 @@ class ContentLoader(metaclass=abc.ABCMeta):
     def _validate_name(self):
         if not re.match(constants.CONTENT_NAME_REGEXP, self.name):
             raise exc.ContentNameError(
-                f'{self.content_type.value} name invalid format: {self.name}')
+                f"{self.content_type.value} name invalid format: {self.name}"
+            )
 
     def _log_loading(self):
-        self.log.info(f'Loading {self.content_type.value} {self.path_name}')
+        self.log.info(f"Loading {self.content_type.value} {self.path_name}")
 
 
 class PluginLoader(ContentLoader):
@@ -124,25 +124,31 @@ class PluginLoader(ContentLoader):
             return None
 
     def _run_flake8(self, path):
-        self.log.info(f'Linting {self.content_type.value} {self.path_name} via flake8...')
+        self.log.info(f"Linting {self.content_type.value} {self.path_name} via flake8...")
 
-        if not shutil.which('flake8'):
-            self.log.warning('flake8 not found, skipping')
+        if not shutil.which("flake8"):
+            self.log.warning("flake8 not found, skipping")
             return
 
         cmd = [
-            'flake8', '--exit-zero', '--isolated',
-            '--extend-ignore', constants.FLAKE8_IGNORE_ERRORS,
-            '--select', constants.FLAKE8_SELECT_ERRORS,
-            '--max-line-length', str(constants.FLAKE8_MAX_LINE_LENGTH),
-            '--', self.rel_path,
+            "flake8",
+            "--exit-zero",
+            "--isolated",
+            "--extend-ignore",
+            constants.FLAKE8_IGNORE_ERRORS,
+            "--select",
+            constants.FLAKE8_SELECT_ERRORS,
+            "--max-line-length",
+            str(constants.FLAKE8_MAX_LINE_LENGTH),
+            "--",
+            self.rel_path,
         ]
 
-        self.log.debug('CMD: ' + ' '.join(cmd))
+        self.log.debug("CMD: " + " ".join(cmd))
         proc = Popen(
             cmd,
             cwd=self.root,
-            encoding='utf-8',
+            encoding="utf-8",
             stdout=PIPE,
         )
 
@@ -156,7 +162,7 @@ class PluginLoader(ContentLoader):
     @staticmethod
     def _make_path_name(rel_path, name):
         dirname_parts = Path(os.path.dirname(rel_path)).parts[2:]
-        return '.'.join(list(dirname_parts) + [name])
+        return ".".join(list(dirname_parts) + [name])
 
 
 class RoleLoader(ContentLoader):
@@ -183,7 +189,7 @@ class RoleLoader(ContentLoader):
     @staticmethod
     def _make_path_name(rel_path, name):
         dirname_parts = Path(os.path.dirname(rel_path)).parts[1:]
-        return '.'.join(list(dirname_parts) + [name])
+        return ".".join(list(dirname_parts) + [name])
 
     def _lint_role(self, path):
         """Log ansible-lint output.
@@ -195,23 +201,26 @@ class RoleLoader(ContentLoader):
         Only raised errors are logged, they are logged as errors.
         """
 
-        self.log.info(f'Linting role {self.path_name} via ansible-lint...')
+        self.log.info(f"Linting role {self.path_name} via ansible-lint...")
 
-        if not shutil.which('ansible-lint'):
-            self.log.warning('ansible-lint not found, skipping lint of role')
+        if not shutil.which("ansible-lint"):
+            self.log.warning("ansible-lint not found, skipping lint of role")
             return
 
         cmd = [
-            '/usr/bin/env', f'ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}',
-            'ansible-lint', path,
-            '-p',
-            '-x', 'metadata',
+            "/usr/bin/env",
+            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            "ansible-lint",
+            path,
+            "-p",
+            "-x",
+            "metadata",
         ]
-        self.log.debug('CMD: ' + ' '.join(cmd))
+        self.log.debug("CMD: " + " ".join(cmd))
         proc = Popen(
             cmd,
             cwd=self.root,
-            encoding='utf-8',
+            encoding="utf-8",
             stdout=PIPE,
             stderr=PIPE,
         )
@@ -225,10 +234,9 @@ class RoleLoader(ContentLoader):
                 self.log.error(line.rstrip())
 
     def _get_readme(self):
-        readme = markup_utils.get_readme_doc_file(
-            os.path.join(self.root, self.rel_path))
+        readme = markup_utils.get_readme_doc_file(os.path.join(self.root, self.rel_path))
         if not readme:
-            raise exc.ContentLoadError('No role readme found.')
+            raise exc.ContentLoadError("No role readme found.")
         return readme
 
     def _get_metadata_description(self):
@@ -236,18 +244,18 @@ class RoleLoader(ContentLoader):
         meta_path = self._find_metadata_file_path(self.root, self.rel_path)
 
         if not meta_path:
-            self.log.warning('Could not get role description, no role metadata found')
+            self.log.warning("Could not get role description, no role metadata found")
             return description
 
         with open(meta_path) as fp:
             try:
                 role_metadata = yaml.safe_load(fp)
             except Exception:
-                self.log.error('Error during parsing of role metadata')
+                self.log.error("Error during parsing of role metadata")
         try:
-            description = role_metadata['galaxy_info']['description']
+            description = role_metadata["galaxy_info"]["description"]
         except KeyError:
-            self.log.warning('No role description found in role metadata')
+            self.log.warning("No role description found in role metadata")
         return description
 
     @staticmethod
@@ -263,7 +271,9 @@ class RoleLoader(ContentLoader):
 def get_loader_cls(content_type):
     if content_type.category == constants.ContentCategory.ROLE:
         return RoleLoader
-    elif content_type.category in [constants.ContentCategory.PLUGIN,
-                                   constants.ContentCategory.MODULE]:
+    elif content_type.category in [
+        constants.ContentCategory.PLUGIN,
+        constants.ContentCategory.MODULE,
+    ]:
         return PluginLoader
     return None

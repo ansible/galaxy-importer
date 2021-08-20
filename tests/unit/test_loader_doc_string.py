@@ -28,50 +28,52 @@ from galaxy_importer import loaders
 def doc_string_loader():
     cfg = config.Config(config_data=config.ConfigFile.load())
     return loaders.DocStringLoader(
-        path='/tmp_dir/tmp123/ansible_collections/my_namespace/my_collection',
-        fq_collection_name='my_namespace.my_collection',
-        cfg=cfg)
+        path="/tmp_dir/tmp123/ansible_collections/my_namespace/my_collection",
+        fq_collection_name="my_namespace.my_collection",
+        cfg=cfg,
+    )
 
 
 def test_init_loader(doc_string_loader):
-    assert doc_string_loader.fq_collection_name == 'my_namespace.my_collection'
+    assert doc_string_loader.fq_collection_name == "my_namespace.my_collection"
 
 
 def test_get_plugins(doc_string_loader, tmpdir):
-    tmpdir.join('__init__.py').write('')
-    tmpdir.join('should_be_ignored.txt').write('')
-    tmpdir.join('my_module.py').write('')
+    tmpdir.join("__init__.py").write("")
+    tmpdir.join("should_be_ignored.txt").write("")
+    tmpdir.join("my_module.py").write("")
     plugins = doc_string_loader._get_plugins(str(tmpdir))
-    assert plugins == ['my_namespace.my_collection.my_module']
+    assert plugins == ["my_namespace.my_collection.my_module"]
 
 
 def test_get_plugins_subdirs(doc_string_loader, tmpdir):
-    tmpdir.mkdir('subdir1').mkdir('subdir2').join('nested_plugin.py').write('')
+    tmpdir.mkdir("subdir1").mkdir("subdir2").join("nested_plugin.py").write("")
     plugins = doc_string_loader._get_plugins(str(tmpdir))
-    assert plugins == ['my_namespace.my_collection.subdir1.subdir2.nested_plugin']
+    assert plugins == ["my_namespace.my_collection.subdir1.subdir2.nested_plugin"]
 
 
-@mock.patch('galaxy_importer.loaders.doc_string.Popen')
+@mock.patch("galaxy_importer.loaders.doc_string.Popen")
 def test_run_ansible_doc(mocked_popen, doc_string_loader):
-    mocked_popen.return_value.communicate.return_value = (
-        '"expected output"', '')
+    mocked_popen.return_value.communicate.return_value = ('"expected output"', "")
     mocked_popen.return_value.returncode = 0
-    res = doc_string_loader._run_ansible_doc(plugin_type='', plugins=[])
-    assert res == 'expected output'
+    res = doc_string_loader._run_ansible_doc(plugin_type="", plugins=[])
+    assert res == "expected output"
 
 
-@mock.patch('galaxy_importer.loaders.doc_string.Popen')
+@mock.patch("galaxy_importer.loaders.doc_string.Popen")
 def test_run_ansible_doc_exception(mocked_popen, doc_string_loader):
     mocked_popen.return_value.communicate.return_value = (
-        'output', 'error that causes exception')
+        "output",
+        "error that causes exception",
+    )
     mocked_popen.return_value.returncode = 1
-    res = doc_string_loader._run_ansible_doc(plugin_type='', plugins=[])
+    res = doc_string_loader._run_ansible_doc(plugin_type="", plugins=[])
     assert not res
 
 
-@mock.patch.object(loaders.DocStringLoader, '_run_ansible_doc')
+@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc")
 def test_ansible_doc_no_output(mocked_run_ansible_doc, doc_string_loader):
-    mocked_run_ansible_doc.return_value = ''
+    mocked_run_ansible_doc.return_value = ""
     assert doc_string_loader.load() == {}
 
 
@@ -94,16 +96,16 @@ def test_process_doc_strings_not_dict(doc_string_loader):
 
     data = json.loads(ansible_doc_output)
     res = doc_string_loader._process_doc_strings(data)
-    assert res['my_sample_module']['return'] == [
+    assert res["my_sample_module"]["return"] == [
         {
-            'name': 'message',
-            'description': ['The output message the sample module generates']
+            "name": "message",
+            "description": ["The output message the sample module generates"],
         },
         {
-            'name': 'original_message',
-            'description': ['The original name param that was passed in'],
-            'type': 'str'
-        }
+            "name": "original_message",
+            "description": ["The original name param that was passed in"],
+            "type": "str",
+        },
     ]
 
 
@@ -127,16 +129,16 @@ def test_transform_doc_strings_return(doc_string_loader):
     data = json.loads(ansible_doc_output)
     data = list(data.values())[0]
     transformed_data = doc_string_loader._transform_doc_strings(data)
-    assert transformed_data['return'] == [
+    assert transformed_data["return"] == [
         {
-            'name': 'message',
-            'description': ['The output message the sample module generates']
+            "name": "message",
+            "description": ["The output message the sample module generates"],
         },
         {
-            'name': 'original_message',
-            'description': ['The original name param that was passed in'],
-            'type': 'str'
-        }
+            "name": "original_message",
+            "description": ["The original name param that was passed in"],
+            "type": "str",
+        },
     ]
 
 
@@ -166,18 +168,18 @@ def test_transform_doc_strings_options(doc_string_loader):
     data = json.loads(ansible_doc_output)
     data = list(data.values())[0]
     transformed_data = doc_string_loader._transform_doc_strings(data)
-    assert transformed_data['doc']['options'] == [
+    assert transformed_data["doc"]["options"] == [
         {
-            'name': 'exclude',
-            'description': ['This is the message to send...'],
-            'required': 'true',
+            "name": "exclude",
+            "description": ["This is the message to send..."],
+            "required": "true",
         },
         {
-            'name': 'use_new',
-            'description': ['Control is passed...'],
-            'version_added': '2.7',
-            'default': 'auto'
-        }
+            "name": "use_new",
+            "description": ["Control is passed..."],
+            "version_added": "2.7",
+            "default": "auto",
+        },
     ]
 
 
@@ -214,31 +216,31 @@ def test_transform_doc_strings_nested_contains(doc_string_loader):
     data = json.loads(ansible_doc_output)
     data = list(data.values())[0]
     transformed_data = doc_string_loader._transform_doc_strings(data)
-    assert transformed_data['return'] == [
+    assert transformed_data["return"] == [
         {
-            'name': 'resources',
-            'contains': [
+            "name": "resources",
+            "contains": [
                 {
-                    'name': 'acceleratorType',
-                    'description': ['The type of...'],
-                    'returned': 'success',
+                    "name": "acceleratorType",
+                    "description": ["The type of..."],
+                    "returned": "success",
                 },
                 {
-                    'name': 'networkEndpoints',
-                    'contains': [
+                    "name": "networkEndpoints",
+                    "contains": [
                         {
-                            'name': 'ipAddress',
-                            'description': ['The IP address.'],
-                            'type': 'str',
+                            "name": "ipAddress",
+                            "description": ["The IP address."],
+                            "type": "str",
                         },
                         {
-                            'name': 'port',
-                            'description': ['The port'],
-                            'type': 'int',
+                            "name": "port",
+                            "description": ["The port"],
+                            "type": "int",
                         },
-                    ]
-                }
-            ]
+                    ],
+                },
+            ],
         },
     ]
 
@@ -262,12 +264,8 @@ def test_transform_doc_strings_nested_contains_dict_of_list(doc_string_loader):
     data = json.loads(ansible_doc_output)
     data = list(data.values())[0]
     transformed_data = doc_string_loader._transform_doc_strings(data)
-    assert transformed_data['return'] == [
-        {
-            'name': 'output',
-            'contains': [
-            ]
-        },
+    assert transformed_data["return"] == [
+        {"name": "output", "contains": []},
     ]
 
 
@@ -312,41 +310,41 @@ def test_transform_doc_strings_nested_suboptions(doc_string_loader):
     data = json.loads(ansible_doc_output)
     data = list(data.values())[0]
     transformed_data = doc_string_loader._transform_doc_strings(data)
-    assert transformed_data['doc']['options'] == [
+    assert transformed_data["doc"]["options"] == [
         {
-            'name': 'exclude',
-            'description': ['This is the message to send...'],
-            'required': 'true',
+            "name": "exclude",
+            "description": ["This is the message to send..."],
+            "required": "true",
         },
         {
-            'name': 'lan2_port_setting',
-            'description': ['Control is passed...'],
-            'suboptions': [
+            "name": "lan2_port_setting",
+            "description": ["Control is passed..."],
+            "suboptions": [
                 {
-                    'name': 'enabled',
-                    'description': ['If set to True...'],
-                    'type': 'bool',
+                    "name": "enabled",
+                    "description": ["If set to True..."],
+                    "type": "bool",
                 },
                 {
-                    'name': 'network_setting',
-                    'description': ['If the enable field...'],
-                    'suboptions': [
+                    "name": "network_setting",
+                    "description": ["If the enable field..."],
+                    "suboptions": [
                         {
-                            'name': 'address',
-                            'description': ['The IPv4 Address of LAN2'],
+                            "name": "address",
+                            "description": ["The IPv4 Address of LAN2"],
                         },
                         {
-                            'name': 'gateway',
-                            'description': ['The default gateway of LAN2'],
-                        }
-                    ]
-                }
-            ]
-        }
+                            "name": "gateway",
+                            "description": ["The default gateway of LAN2"],
+                        },
+                    ],
+                },
+            ],
+        },
     ]
 
 
-@mock.patch.object(loaders.DocStringLoader, '_run_ansible_doc')
+@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc")
 def test_load(mocked_run_ansible_doc, doc_string_loader, tmpdir):
     ansible_doc_output = """
         {
@@ -366,46 +364,51 @@ def test_load(mocked_run_ansible_doc, doc_string_loader, tmpdir):
     mocked_run_ansible_doc.return_value = json.loads(ansible_doc_output)
 
     doc_string_loader.path = str(tmpdir)
-    tmpdir.mkdir('plugins').mkdir('modules').join('my_module.py').write('')
+    tmpdir.mkdir("plugins").mkdir("modules").join("my_module.py").write("")
 
     res = doc_string_loader.load()
     assert res == {
-        'module': {
-            'my_module': {
-                'return': [
+        "module": {
+            "my_module": {
+                "return": [
                     {
-                        'description': ['The output message the sample module generates'],
-                        'name': 'message'
+                        "description": ["The output message the sample module generates"],
+                        "name": "message",
                     },
                     {
-                        'description': ['The original name param that was passed in'],
-                        'name': 'original_message', 'type': 'str'}
+                        "description": ["The original name param that was passed in"],
+                        "name": "original_message",
+                        "type": "str",
+                    },
                 ]
             }
         }
     }
 
 
-@mock.patch('galaxy_importer.loaders.doc_string.Popen')
+@mock.patch("galaxy_importer.loaders.doc_string.Popen")
 def test_load_ansible_doc_error(mocked_popen, doc_string_loader, tmpdir):
     mocked_popen.return_value.communicate.return_value = (
-        'output', 'error that causes exception')
+        "output",
+        "error that causes exception",
+    )
     mocked_popen.return_value.returncode = 1
 
     doc_string_loader.path = str(tmpdir)
-    tmpdir.mkdir('plugins').mkdir('inventory').join('my_plugin.py').write('')
+    tmpdir.mkdir("plugins").mkdir("inventory").join("my_plugin.py").write("")
 
     res = doc_string_loader.load()
-    assert res == {'inventory': {}}
+    assert res == {"inventory": {}}
 
 
-@mock.patch('shutil.which')
+@mock.patch("shutil.which")
 def test_no_ansible_doc_bin(mocked_shutil_which, doc_string_loader, tmpdir, caplog):
     mocked_shutil_which.return_value = False
 
     doc_string_loader.path = str(tmpdir)
-    tmpdir.mkdir('plugins').mkdir('inventory').join('my_plugin.py').write('')
+    tmpdir.mkdir("plugins").mkdir("inventory").join("my_plugin.py").write("")
 
     doc_string_loader.load()
-    assert 'ansible-doc not found, skipping loading of docstrings' in \
-        [r.message for r in caplog.records]
+    assert "ansible-doc not found, skipping loading of docstrings" in [
+        r.message for r in caplog.records
+    ]

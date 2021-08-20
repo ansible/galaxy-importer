@@ -7,7 +7,7 @@ from pkg_resources import resource_stream
 log = logging.getLogger(__name__)
 
 _SPDX_LICENSES = None
-_SPDX_LICENSES_FILE = 'spdx_licenses.json'
+_SPDX_LICENSES_FILE = "spdx_licenses.json"
 
 
 def _load_spdx():
@@ -15,8 +15,11 @@ def _load_spdx():
         with resource_stream(__name__, _SPDX_LICENSES_FILE) as stream:
             return json.load(stream)
     except EnvironmentError as exc:
-        log.warning('Unable to open %s to load the list of acceptable '
-                    'open source licenses: %s', _SPDX_LICENSES_FILE, exc)
+        log.warning(
+            "Unable to open %s to load the list of acceptable open source licenses: %s",
+            _SPDX_LICENSES_FILE,
+            exc,
+        )
         log.exception(exc)
         return {}
 
@@ -42,7 +45,7 @@ def is_valid_license_id(license_id):
         return False
 
     # license was in list, but is deprecated
-    if valid and valid.get('deprecated', None):
+    if valid and valid.get("deprecated", None):
         return False
 
     return True

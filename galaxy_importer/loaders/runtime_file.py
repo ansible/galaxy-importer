@@ -26,10 +26,11 @@ from galaxy_importer import exceptions as exc
 default_logger = logging.getLogger(__name__)
 
 
-class RuntimeFileLoader():
+class RuntimeFileLoader:
     """Load meta/runtime.yml."""
+
     def __init__(self, collection_path):
-        self.path = os.path.join(collection_path, 'meta/runtime.yml')
+        self.path = os.path.join(collection_path, "meta/runtime.yml")
         self.data = None
         self._load()
 
@@ -40,7 +41,7 @@ class RuntimeFileLoader():
             try:
                 self.data = yaml.safe_load(fp)
             except Exception:
-                raise exc.RuntimeFileError('Error during parsing of runtime.yml')
+                raise exc.RuntimeFileError("Error during parsing of runtime.yml")
 
     def get_requires_ansible(self):
         if not self.data:
@@ -48,7 +49,7 @@ class RuntimeFileLoader():
                 "'requires_ansible' in meta/runtime.yml is mandatory, "
                 "but no meta/runtime.yml found"
             )
-        requires_ansible = self.data.get('requires_ansible')
+        requires_ansible = self.data.get("requires_ansible")
         if not requires_ansible:
             raise exc.RuntimeFileError(
                 "'requires_ansible' in meta/runtime.yml is mandatory, "
@@ -57,10 +58,12 @@ class RuntimeFileLoader():
         if len(requires_ansible) > constants.MAX_LENGTH_REQUIRES_ANSIBLE:
             raise exc.RuntimeFileError(
                 f"'requires_ansible' must not be greater than "
-                f"{constants.MAX_LENGTH_REQUIRES_ANSIBLE} characters")
+                f"{constants.MAX_LENGTH_REQUIRES_ANSIBLE} characters"
+            )
         try:
             semantic_version.SimpleSpec(requires_ansible)
             return requires_ansible
         except ValueError:
             raise exc.RuntimeFileError(
-                "'requires_ansible' is not a valid semantic_version requirement specification")
+                "'requires_ansible' is not a valid semantic_version requirement specification"
+            )

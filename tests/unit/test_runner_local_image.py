@@ -28,23 +28,23 @@ from unittest import mock
 
 @pytest.fixture
 def build():
-    return Build('/file/path/to/archive.tar.gz', 'namespace-name-0.0.1', logger=None)
+    return Build("/file/path/to/archive.tar.gz", "namespace-name-0.0.1", logger=None)
 
 
 @pytest.fixture
 def metadata():
-    return SimpleNamespace(namespace='test_ns', name='test_name', version='test_version')
+    return SimpleNamespace(namespace="test_ns", name="test_name", version="test_version")
 
 
-@mock.patch('shutil.which')
+@mock.patch("shutil.which")
 def test_runner_run(mocked_shutil_which, metadata, mocker):
     runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
 
-    mocker.patch.object(Build, 'build_image')
-    mocker.patch.object(Build, 'cleanup')
-    mocker.patch.object(Build, 'get_container_engine')
-    mocker.patch.object(runner, '_run_image')
-    Build.get_container_engine.return_value = 'podman'
+    mocker.patch.object(Build, "build_image")
+    mocker.patch.object(Build, "cleanup")
+    mocker.patch.object(Build, "get_container_engine")
+    mocker.patch.object(runner, "_run_image")
+    Build.get_container_engine.return_value = "podman"
     shutil.which.return_value = True
 
     runner.run()
@@ -55,16 +55,16 @@ def test_runner_run(mocked_shutil_which, metadata, mocker):
     assert Build.get_container_engine.called
 
 
-@mock.patch('shutil.which')
+@mock.patch("shutil.which")
 def test_runner_run_exits(mocked_shutil_which, metadata, mocker, caplog):
     caplog.set_level(logging.WARNING)
     runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
 
-    mocker.patch.object(Build, 'build_image')
-    mocker.patch.object(Build, 'cleanup')
-    mocker.patch.object(Build, 'get_container_engine')
-    mocker.patch.object(runner, '_run_image')
-    Build.get_container_engine.return_value = 'random_container_engine'
+    mocker.patch.object(Build, "build_image")
+    mocker.patch.object(Build, "cleanup")
+    mocker.patch.object(Build, "get_container_engine")
+    mocker.patch.object(runner, "_run_image")
+    Build.get_container_engine.return_value = "random_container_engine"
     shutil.which.return_value = False
 
     runner.run()
@@ -78,22 +78,22 @@ def test_runner_run_exits(mocked_shutil_which, metadata, mocker, caplog):
     ]
 
 
-@mock.patch('galaxy_importer.ansible_test.runners.local_image.Popen')
+@mock.patch("galaxy_importer.ansible_test.runners.local_image.Popen")
 def test_run_image(mocked_popen, metadata):
     runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
-    mocked_popen.return_value.stdout = ['test 1 ran', 'test2 ran']
+    mocked_popen.return_value.stdout = ["test 1 ran", "test2 ran"]
     mocked_popen.return_value.wait.return_value = 0
 
-    runner._run_image('1234', 'podman')
+    runner._run_image("1234", "podman")
 
     assert mocked_popen.called
 
 
-@mock.patch('galaxy_importer.ansible_test.runners.local_image.Popen')
+@mock.patch("galaxy_importer.ansible_test.runners.local_image.Popen")
 def test_run_image_exception(mocked_popen, metadata):
     runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
-    mocked_popen.return_value.stdout = ['test1 ran', 'test2 ran']
+    mocked_popen.return_value.stdout = ["test1 ran", "test2 ran"]
     mocked_popen.return_value.wait.return_value = 1
 
     with pytest.raises(exc.AnsibleTestError):
-        runner._run_image('1234', 'podman')
+        runner._run_image("1234", "podman")

@@ -37,6 +37,10 @@ jobs:
       run: |
         flake8 .
 
+    - name: Lint with black
+      run: |
+        black . --extend-exclude .github/ --line-length 100 --check
+
     - name: Pytest unit tests
       run: |
         make test

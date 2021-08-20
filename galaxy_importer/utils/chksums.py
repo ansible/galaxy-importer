@@ -11,13 +11,13 @@ log = logging.getLogger(__name__)
 def sha256sum_from_fo(fo):
     block_size = 65536
     sha256 = hashlib.sha256()
-    for block in iter(lambda: fo.read(block_size), b''):
+    for block in iter(lambda: fo.read(block_size), b""):
         sha256.update(block)
     return sha256.hexdigest()
 
 
 def sha256sum_from_path(filename):
-    with open(filename, 'rb') as fo:
+    with open(filename, "rb") as fo:
         return sha256sum_from_fo(fo)
 
 
@@ -39,7 +39,7 @@ def check_artifact_file(path_prefix, artifact_file):
     Returns:
         bool: True if artifact_file check is ok, otherwise should raise exception
     """
-    log.debug('artifact_file: %s', artifact_file)
+    log.debug("artifact_file: %s", artifact_file)
 
     artifact_file_path = os.path.join(path_prefix, artifact_file.name)
     if not os.path.exists(artifact_file_path):
@@ -49,9 +49,10 @@ def check_artifact_file(path_prefix, artifact_file):
     actual_chksum = sha256sum_from_path(artifact_file_path)
 
     if actual_chksum != artifact_file.chksum_sha256:
-        err_msg = "".join([f"File {artifact_file.name} sha256sum should be ",
-                           f"{artifact_file.chksum_sha256} but the actual sha256sum ",
-                           f"was {actual_chksum}"])
+        err_msg = (
+            f"File {artifact_file.name} sha256sum should be "
+            f"{artifact_file.chksum_sha256} but the actual sha256sum was {actual_chksum}"
+        )
         log.error(err_msg)
         raise exc.CollectionArtifactFileChecksumError(err_msg)
 

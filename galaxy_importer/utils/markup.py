@@ -24,18 +24,16 @@ import markdown
 import bleach
 from bleach_allowlist import markdown_tags, markdown_attrs
 
-README_NAME = 'README'
+README_NAME = "README"
 DOCFILE_EXTENSIONS = [
-    '.md',
+    ".md",
 ]
 DOCFILE_MIMETYPES = {
-    '.md': 'text/markdown',
+    ".md": "text/markdown",
 }
 DOCFILE_MAX_SIZE = 512 * 1024  # 512 KiB
 
-DocFile = collections.namedtuple(
-    'DocFile', ['name', 'text', 'mimetype', 'hash']
-)
+DocFile = collections.namedtuple("DocFile", ["name", "text", "mimetype", "hash"])
 
 for _ext, _type in DOCFILE_MIMETYPES.items():
     mimetypes.add_type(_type, _ext)
@@ -72,7 +70,7 @@ def get_html(doc_file):
 
     :param doc_file: DocFile
     """
-    if doc_file.mimetype == 'text/markdown':
+    if doc_file.mimetype == "text/markdown":
         return _render_from_markdown(doc_file)
     return None
 
@@ -125,15 +123,15 @@ def _get_file(directory, filename):
 
     mimetype, encoding = mimetypes.guess_type(filename)
 
-    with open(filename, 'rb') as fp:
+    with open(filename, "rb") as fp:
         raw_text = fp.read()
     hash_ = hashlib.sha256(raw_text).hexdigest()
 
     return DocFile(
         name=os.path.basename(filename),
-        text=raw_text.decode('utf-8'),
+        text=raw_text.decode("utf-8"),
         mimetype=mimetype,
-        hash=hash_
+        hash=hash_,
     )
 
 
@@ -143,11 +141,11 @@ def _render_from_markdown(doc_file):
     :param doc_file: DocFile"""
     # notes on bleach coming after markdown, and bleach_allowlist pkg:
     # https://github.com/Python-Markdown/markdown/issues/225
-    unsafe_html = markdown.markdown(doc_file.text, extensions=['extra'])
+    unsafe_html = markdown.markdown(doc_file.text, extensions=["extra"])
     return bleach.clean(
         unsafe_html,
-        tags=markdown_tags + ['pre', 'table', 'thead', 'th', 'tr', 'td'],
+        tags=markdown_tags + ["pre", "table", "thead", "th", "tr", "td"],
         attributes=markdown_attrs,
         styles=[],
-        strip=True
+        strip=True,
     )

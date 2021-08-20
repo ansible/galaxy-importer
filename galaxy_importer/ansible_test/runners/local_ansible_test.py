@@ -29,34 +29,40 @@ cfg = config.Config(config_data=config_data)
 
 class LocalAnsibleTestRunner(BaseTestRunner):
     """Run ansible-test locally with --docker or using venv."""
+
     def run(self):
-        if not shutil.which('ansible'):
-            self.log.error('ansible not found, skipping ansible-test')
+        if not shutil.which("ansible"):
+            self.log.error("ansible not found, skipping ansible-test")
             return
 
         version_proc = subprocess.Popen(
             [
-                '/usr/bin/env', f'ANSIBLE_LOCAL_TEMP={cfg.ansible_local_tmp}',
-                'ansible', '--version'
+                "/usr/bin/env",
+                f"ANSIBLE_LOCAL_TEMP={cfg.ansible_local_tmp}",
+                "ansible",
+                "--version",
             ],
             stdout=subprocess.PIPE,
-            encoding='utf-8',
+            encoding="utf-8",
         )
-        self.log.info(f'Using {list(version_proc.stdout)[0].rstrip()}')
+        self.log.info(f"Using {list(version_proc.stdout)[0].rstrip()}")
 
-        suffix = f'ansible_collections/{self.metadata.namespace}/{self.metadata.name}/'
+        suffix = f"ansible_collections/{self.metadata.namespace}/{self.metadata.name}/"
         collection_dir = os.path.join(self.dir, suffix)
 
         cmd = [
-            '/usr/bin/env', f'ANSIBLE_LOCAL_TEMP={cfg.ansible_local_tmp}',
-            'ansible-test', 'sanity',
-            '--docker',
-            '--color', 'yes',
-            '--failure-ok',
+            "/usr/bin/env",
+            f"ANSIBLE_LOCAL_TEMP={cfg.ansible_local_tmp}",
+            "ansible-test",
+            "sanity",
+            "--docker",
+            "--color",
+            "yes",
+            "--failure-ok",
         ]
 
-        collection_name = f'{self.metadata.namespace}-{self.metadata.name}-{self.metadata.version}'
-        self.log.info(f'Running ansible-test sanity on {collection_name} ...')
+        collection_name = f"{self.metadata.namespace}-{self.metadata.name}-{self.metadata.version}"
+        self.log.info(f"Running ansible-test sanity on {collection_name} ...")
         self.log.info(f'{" ".join(cmd)}')
 
         proc = subprocess.Popen(
@@ -64,7 +70,7 @@ class LocalAnsibleTestRunner(BaseTestRunner):
             cwd=collection_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            encoding='utf-8',
+            encoding="utf-8",
         )
 
         for line in proc.stdout:
@@ -72,5 +78,8 @@ class LocalAnsibleTestRunner(BaseTestRunner):
 
         return_code = proc.wait()
         if return_code != 0:
-            self.log.error('An exception occurred in {}, returncode={}, collection={}'.format(
-                ' '.join(cmd), return_code, collection_name))
+            self.log.error(
+                "An exception occurred in {}, returncode={}, collection={}".format(
+                    " ".join(cmd), return_code, collection_name
+                )
+            )

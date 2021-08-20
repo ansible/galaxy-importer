@@ -29,7 +29,7 @@ from galaxy_importer.utils import string_utils
 
 default_logger = logging.getLogger(__name__)
 
-DOCUMENTATION_DIR = 'docs'
+DOCUMENTATION_DIR = "docs"
 
 
 class CollectionLoader(object):
@@ -57,9 +57,9 @@ class CollectionLoader(object):
         self.file_manifest_file = self.manifest.file_manifest_file
 
         # load data from FILES.json
-        self.file_manifest = \
-            self._load_file_manifest(path_prefix=self.path,
-                                     file_manifest_file=self.file_manifest_file)
+        self.file_manifest = self._load_file_manifest(
+            path_prefix=self.path, file_manifest_file=self.file_manifest_file
+        )
 
         # check chksum for each file in FILES.json
         # Note: Will raise exceptions on file_manifest / FILES.json errors
@@ -73,7 +73,7 @@ class CollectionLoader(object):
         if self.cfg.run_ansible_doc:
             self.doc_strings = loaders.DocStringLoader(
                 path=self.path,
-                fq_collection_name='{}.{}'.format(self.metadata.namespace, self.metadata.name),
+                fq_collection_name="{}.{}".format(self.metadata.namespace, self.metadata.name),
                 logger=self.log,
                 cfg=self.cfg,
             ).load()
@@ -96,10 +96,11 @@ class CollectionLoader(object):
         """Log a warning when ansible test sanity ignore files are present.
         Method excluded from pytest coverage, test exist outside repo via iqe.
         """
-        IGNORE_FILE_REGEXP = re.compile(r'^ignore-.+\.txt$')
+        IGNORE_FILE_REGEXP = re.compile(r"^ignore-.+\.txt$")
         IGNORE_WARNING = (
             "Ignore files skip ansible-test sanity tests, "
-            "found {file} with {line_count} statement(s)")
+            "found {file} with {line_count} statement(s)"
+        )
 
         sanity_path = os.path.join(self.path, "tests", "sanity")
         if not os.path.exists(sanity_path):
@@ -107,25 +108,25 @@ class CollectionLoader(object):
 
         listdir = os.listdir(sanity_path)
         for ignore_file in filter(IGNORE_FILE_REGEXP.match, listdir):
-            with open(os.path.join(sanity_path, ignore_file), 'r+') as f:
+            with open(os.path.join(sanity_path, ignore_file), "r+") as f:
                 line_count = len(f.readlines())
             self.log.warning(IGNORE_WARNING.format(file=ignore_file, line_count=line_count))
 
     def _load_manifest(self):
-        manifest_file = os.path.join(self.path, 'MANIFEST.json')
+        manifest_file = os.path.join(self.path, "MANIFEST.json")
         if not os.path.exists(manifest_file):
-            raise exc.ManifestNotFound('No manifest found in collection')
+            raise exc.ManifestNotFound("No manifest found in collection")
 
-        default_logger.debug('manifest_file: %s', manifest_file)
+        default_logger.debug("manifest_file: %s", manifest_file)
 
-        with open(manifest_file, 'r') as f:
+        with open(manifest_file, "r") as f:
             try:
                 data = schema.CollectionArtifactManifest.parse(f.read())
             except ValueError as e:
                 raise exc.ManifestValidationError(str(e)) from e
 
-            default_logger.debug('data: %s', data)
-            default_logger.debug('data.file_manifest_file: %s', data.file_manifest_file)
+            default_logger.debug("data: %s", data)
+            default_logger.debug("data.file_manifest_file: %s", data.file_manifest_file)
             return data
 
     def _load_file_manifest(self, path_prefix, file_manifest_file):
@@ -146,14 +147,14 @@ class CollectionLoader(object):
             CollectionArtifactFileManifest: The data from file_manifest_file
 
         """
-        default_logger.debug('file_manifest_file: %s', file_manifest_file)
+        default_logger.debug("file_manifest_file: %s", file_manifest_file)
 
         chksums.check_artifact_file(path_prefix=path_prefix, artifact_file=file_manifest_file)
 
         files_manifest_file = os.path.join(path_prefix, file_manifest_file.name)
-        default_logger.debug('files_manifest_file: %s', files_manifest_file)
+        default_logger.debug("files_manifest_file: %s", files_manifest_file)
 
-        with open(files_manifest_file, 'r') as f:
+        with open(files_manifest_file, "r") as f:
             try:
                 file_manifest = schema.CollectionArtifactFileManifest.parse(f.read())
             except ValueError as e:
@@ -186,30 +187,27 @@ class CollectionLoader(object):
         """
 
         for artifact_file in file_manifest.files:
-            if artifact_file.ftype != 'file':
+            if artifact_file.ftype != "file":
                 continue
 
-            chksums.check_artifact_file(path_prefix=path_prefix,
-                                        artifact_file=artifact_file)
+            chksums.check_artifact_file(path_prefix=path_prefix, artifact_file=artifact_file)
 
         # check the extract archive for any extra files.
         filewalker = FileWalker(collection_path=path_prefix)
-        prefix = path_prefix + '/'
+        prefix = path_prefix + "/"
         found_file_set = set([string_utils.removeprefix(fp, prefix) for fp in filewalker.walk()])
 
         file_manifest_file_set = set([artifact_file.name for artifact_file in file_manifest.files])
         # The artifact contains MANIFEST.json and FILES.JSON, but they aren't
         # in file list in FILES.json so add them so we match expected.
-        file_manifest_file_set.add('MANIFEST.json')
+        file_manifest_file_set.add("MANIFEST.json")
         file_manifest_file_set.add(file_manifest_name)
 
         difference = sorted(list(found_file_set.difference(file_manifest_file_set)))
 
         if difference:
-            err_msg = \
-                f'Files in the artifact but not the file manifest: {difference}'
-            raise exc.FileNotInFileManifestError(unexpected_files=difference,
-                                                 msg=err_msg)
+            err_msg = f"Files in the artifact but not the file manifest: {difference}"
+            raise exc.FileNotInFileManifestError(unexpected_files=difference, msg=err_msg)
 
         return True
 
@@ -223,19 +221,20 @@ class CollectionLoader(object):
         new_name_dir = os.path.join(new_ns_dir, self.metadata.name)
         os.rename(old_name_dir, new_name_dir)
         self.path = new_name_dir
-        self.log.debug(f'Renamed extract dir to: {self.path}')
+        self.log.debug(f"Renamed extract dir to: {self.path}")
 
     def _check_filename_matches_manifest(self):
         if not self.filename:
             return
-        for item in ['namespace', 'name', 'version']:
+        for item in ["namespace", "name", "version"]:
             filename_item = getattr(self.filename, item, None)
             metadata_item = getattr(self.metadata, item, None)
             if not filename_item:
                 continue
             if filename_item != metadata_item:
                 raise exc.ManifestValidationError(
-                    f'Filename {item} "{filename_item}" did not match metadata "{metadata_item}"')
+                    f'Filename {item} "{filename_item}" did not match metadata "{metadata_item}"'
+                )
 
     def _load_contents(self):
         """Find and load data for each content inside the collection."""
@@ -243,7 +242,8 @@ class CollectionLoader(object):
         for content_type, rel_path in found_contents:
             loader_cls = loaders.get_loader_cls(content_type)
             loader = loader_cls(
-                content_type, rel_path, self.path, self.doc_strings, self.cfg, self.log)
+                content_type, rel_path, self.path, self.doc_strings, self.cfg, self.log
+            )
             content_obj = loader.load()
 
             yield content_obj
@@ -286,17 +286,16 @@ class CollectionLoader(object):
 
         readme = markup_utils.get_readme_doc_file(self.path)
         if not readme:
-            raise exc.ImporterError('No collection readme found')
+            raise exc.ImporterError("No collection readme found")
         rendered_readme = schema.RenderedDocFile(
-            name=readme.name, html=markup_utils.get_html(readme))
+            name=readme.name, html=markup_utils.get_html(readme)
+        )
 
         rendered_doc_files = []
-        doc_files = markup_utils.get_doc_files(
-            os.path.join(self.path, DOCUMENTATION_DIR))
+        doc_files = markup_utils.get_doc_files(os.path.join(self.path, DOCUMENTATION_DIR))
         if doc_files:
             rendered_doc_files = [
-                schema.RenderedDocFile(
-                    name=f.name, html=markup_utils.get_html(f))
+                schema.RenderedDocFile(name=f.name, html=markup_utils.get_html(f))
                 for f in doc_files
             ]
 
@@ -314,5 +313,4 @@ class CollectionLoader(object):
             paths.append(os.path.join(self.path, self.metadata.license_file))
         for path in paths:
             if not os.path.exists(path):
-                raise exc.ManifestValidationError(
-                    f'Could not find file {os.path.basename(path)}')
+                raise exc.ManifestValidationError(f"Could not find file {os.path.basename(path)}")

@@ -32,35 +32,35 @@ class TestContentFinder(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
 
-        os.mkdir(os.path.join(self.temp_dir, 'plugins'))
-        self.module_dir = os.path.join(self.temp_dir, 'plugins', 'modules')
+        os.mkdir(os.path.join(self.temp_dir, "plugins"))
+        self.module_dir = os.path.join(self.temp_dir, "plugins", "modules")
         os.mkdir(self.module_dir)
 
-        self.roles_dir = os.path.join(self.temp_dir, 'roles')
+        self.roles_dir = os.path.join(self.temp_dir, "roles")
         os.mkdir(self.roles_dir)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
     def test_find_content(self):
-        with open(os.path.join(self.module_dir, '__init__.py'), 'w'):
+        with open(os.path.join(self.module_dir, "__init__.py"), "w"):
             pass
-        with open(os.path.join(self.module_dir, 'first_module.py'), 'w'):
+        with open(os.path.join(self.module_dir, "first_module.py"), "w"):
             pass
-        with open(os.path.join(self.module_dir, 'second_module.py'), 'w'):
+        with open(os.path.join(self.module_dir, "second_module.py"), "w"):
             pass
 
-        my_roles_dir = os.path.join(self.roles_dir, 'my_role')
+        my_roles_dir = os.path.join(self.roles_dir, "my_role")
         os.mkdir(my_roles_dir)
-        os.mkdir(os.path.join(my_roles_dir, 'tasks'))
+        os.mkdir(os.path.join(my_roles_dir, "tasks"))
 
         contents = ContentFinder().find_contents(self.temp_dir)
 
         content_items = [os.path.basename(c.path) for c in contents]
-        assert 'first_module.py' in content_items
-        assert 'second_module.py' in content_items
-        assert '__init__.py' not in content_items
-        assert 'my_role' in content_items
+        assert "first_module.py" in content_items
+        assert "second_module.py" in content_items
+        assert "__init__.py" not in content_items
+        assert "my_role" in content_items
         assert len(content_items) == 3
 
     def test_find_no_content(self):
@@ -68,51 +68,49 @@ class TestContentFinder(unittest.TestCase):
         assert not any(True for _ in contents)
 
     def test_skip_plugin_files(self):
-        with open(os.path.join(self.module_dir, '__init__.py'), 'w'):
+        with open(os.path.join(self.module_dir, "__init__.py"), "w"):
             pass
-        with open(os.path.join(self.module_dir, 'main.go'), 'w'):
+        with open(os.path.join(self.module_dir, "main.go"), "w"):
             pass
         contents = ContentFinder().find_contents(self.temp_dir)
         assert not any(True for _ in contents)
 
     def test_nested_plugin(self):
-        subdir1 = os.path.join(self.module_dir, 'subdir1')
+        subdir1 = os.path.join(self.module_dir, "subdir1")
         os.mkdir(subdir1)
-        subdir2 = os.path.join(subdir1, 'subdir2')
+        subdir2 = os.path.join(subdir1, "subdir2")
         os.mkdir(subdir2)
-        with open(os.path.join(subdir2, 'nested_module.py'), 'w'):
+        with open(os.path.join(subdir2, "nested_module.py"), "w"):
             pass
 
         contents = ContentFinder().find_contents(self.temp_dir)
-        assert list(contents)[0].path == \
-            'plugins/modules/subdir1/subdir2/nested_module.py'
+        assert list(contents)[0].path == "plugins/modules/subdir1/subdir2/nested_module.py"
 
     def test_nested_role(self):
-        subdir1 = os.path.join(self.roles_dir, 'subdir1')
+        subdir1 = os.path.join(self.roles_dir, "subdir1")
         os.mkdir(subdir1)
-        role_dir = os.path.join(subdir1, 'my_role')
+        role_dir = os.path.join(subdir1, "my_role")
         os.mkdir(role_dir)
 
         contents = ContentFinder().find_contents(self.temp_dir)
         assert len(contents) == 0
 
-        dir_in_role = os.path.join(role_dir, 'tasks')
+        dir_in_role = os.path.join(role_dir, "tasks")
         os.mkdir(dir_in_role)
 
         contents = ContentFinder().find_contents(self.temp_dir)
-        assert list(contents)[0].path == \
-            'roles/subdir1/my_role'
+        assert list(contents)[0].path == "roles/subdir1/my_role"
 
     def test_error_file_in_roles_dir(self):
-        with open(os.path.join(self.roles_dir, 'main.yml'), 'w'):
+        with open(os.path.join(self.roles_dir, "main.yml"), "w"):
             pass
-        my_roles_dir = os.path.join(self.roles_dir, 'my_role')
+        my_roles_dir = os.path.join(self.roles_dir, "my_role")
         os.mkdir(my_roles_dir)
-        os.mkdir(os.path.join(my_roles_dir, 'tasks'))
+        os.mkdir(os.path.join(my_roles_dir, "tasks"))
 
         contents = ContentFinder().find_contents(self.temp_dir)
         content_items = [os.path.basename(c.path) for c in contents]
-        assert 'my_role' in content_items
+        assert "my_role" in content_items
         assert len(content_items) == 1
 
 
@@ -133,5 +131,5 @@ def test_file_walker(walker_dir):
     file_walker = FileWalker(walker_dir)
     file_name_generator = file_walker.walk()
     for file_name in file_name_generator:
-        log.debug('file_name: %s', file_name)
+        log.debug("file_name: %s", file_name)
         assert os.path.exists(file_name)
