@@ -51,7 +51,7 @@ def test_get_plugins_subdirs(doc_string_loader, tmpdir):
     assert plugins == ['my_namespace.my_collection.subdir1.subdir2.nested_plugin']
 
 
-@mock.patch('galaxy_importer.loaders.Popen')
+@mock.patch('galaxy_importer.loaders.doc_string.Popen')
 def test_run_ansible_doc(mocked_popen, doc_string_loader):
     mocked_popen.return_value.communicate.return_value = (
         '"expected output"', '')
@@ -60,7 +60,7 @@ def test_run_ansible_doc(mocked_popen, doc_string_loader):
     assert res == 'expected output'
 
 
-@mock.patch('galaxy_importer.loaders.Popen')
+@mock.patch('galaxy_importer.loaders.doc_string.Popen')
 def test_run_ansible_doc_exception(mocked_popen, doc_string_loader):
     mocked_popen.return_value.communicate.return_value = (
         'output', 'error that causes exception')
@@ -386,7 +386,7 @@ def test_load(mocked_run_ansible_doc, doc_string_loader, tmpdir):
     }
 
 
-@mock.patch('galaxy_importer.loaders.Popen')
+@mock.patch('galaxy_importer.loaders.doc_string.Popen')
 def test_load_ansible_doc_error(mocked_popen, doc_string_loader, tmpdir):
     mocked_popen.return_value.communicate.return_value = (
         'output', 'error that causes exception')

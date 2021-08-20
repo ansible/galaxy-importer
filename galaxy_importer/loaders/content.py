@@ -16,13 +16,10 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import abc
-from copy import deepcopy
-import json
 import logging
 import os
 from pathlib import Path
 import re
-import semantic_version
 import shutil
 from subprocess import Popen, PIPE
 import yaml
@@ -32,20 +29,7 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
 
-
 default_logger = logging.getLogger(__name__)
-
-ANSIBLE_DOC_SUPPORTED_TYPES = [
-    'become', 'cache', 'callback', 'cliconf', 'connection',
-    'httpapi', 'inventory', 'lookup', 'shell', 'module', 'strategy', 'vars']
-ANSIBLE_DOC_PLUGIN_MAP = {'module': 'modules'}
-ANSIBLE_DOC_KEYS = ['doc', 'metadata', 'examples', 'return']
-ANSIBLE_LINT_ERROR_PREFIXES = ('CRITICAL', 'ERROR')
-ROLE_META_FILES = ['meta/main.yml', 'meta/main.yaml', 'meta.yml', 'meta.yaml']
-FLAKE8_MAX_LINE_LENGTH = 160
-FLAKE8_IGNORE_ERRORS = 'E402'
-FLAKE8_SELECT_ERRORS = 'E,F,W'
-MAX_LENGTH_REQUIRES_ANSIBLE = 255
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
@@ -148,9 +132,9 @@ class PluginLoader(ContentLoader):
 
         cmd = [
             'flake8', '--exit-zero', '--isolated',
-            '--extend-ignore', FLAKE8_IGNORE_ERRORS,
-            '--select', FLAKE8_SELECT_ERRORS,
-            '--max-line-length', str(FLAKE8_MAX_LINE_LENGTH),
+            '--extend-ignore', constants.FLAKE8_IGNORE_ERRORS,
+            '--select', constants.FLAKE8_SELECT_ERRORS,
+            '--max-line-length', str(constants.FLAKE8_MAX_LINE_LENGTH),
             '--', self.rel_path,
         ]
 
@@ -173,165 +157,6 @@ class PluginLoader(ContentLoader):
     def _make_path_name(rel_path, name):
         dirname_parts = Path(os.path.dirname(rel_path)).parts[2:]
         return '.'.join(list(dirname_parts) + [name])
-
-
-class RuntimeFileLoader():
-    """Load meta/runtime.yml."""
-    def __init__(self, collection_path):
-        self.path = os.path.join(collection_path, 'meta/runtime.yml')
-        self.data = None
-        self._load()
-
-    def _load(self):
-        if not os.path.exists(self.path):
-            return
-        with open(self.path) as fp:
-            try:
-                self.data = yaml.safe_load(fp)
-            except Exception:
-                raise exc.RuntimeFileError('Error during parsing of runtime.yml')
-
-    def get_requires_ansible(self):
-        if not self.data:
-            raise exc.RuntimeFileError(
-                "'requires_ansible' in meta/runtime.yml is mandatory, "
-                "but no meta/runtime.yml found"
-            )
-        requires_ansible = self.data.get('requires_ansible')
-        if not requires_ansible:
-            raise exc.RuntimeFileError(
-                "'requires_ansible' in meta/runtime.yml is mandatory, "
-                "but 'requires_ansible' not found"
-            )
-        if len(requires_ansible) > MAX_LENGTH_REQUIRES_ANSIBLE:
-            raise exc.RuntimeFileError(
-                f"'requires_ansible' must not be greater than "
-                f"{MAX_LENGTH_REQUIRES_ANSIBLE} characters")
-        try:
-            semantic_version.SimpleSpec(requires_ansible)
-            return requires_ansible
-        except ValueError:
-            raise exc.RuntimeFileError(
-                "'requires_ansible' is not a valid semantic_version requirement specification")
-
-
-class DocStringLoader():
-    """Process ansible-doc doc strings for entire collection.
-
-    Load by calling ansible-doc once in batch for each plugin type."""
-    def __init__(self, path, fq_collection_name, cfg, logger=None):
-        self.path = path
-        self.fq_collection_name = fq_collection_name
-        self.cfg = cfg
-        self.log = logger or default_logger
-
-    def load(self):
-        self.log.info('Getting doc strings via ansible-doc')
-        docs = {}
-
-        if not shutil.which('ansible-doc'):
-            self.log.warning('ansible-doc not found, skipping loading of docstrings')
-            return docs
-
-        for plugin_type in ANSIBLE_DOC_SUPPORTED_TYPES:
-            plugin_dir_name = ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
-
-            plugins = self._get_plugins(os.path.join(self.path, 'plugins', plugin_dir_name))
-
-            if not plugins:
-                continue
-
-            data = self._run_ansible_doc(plugin_type, plugins)
-            data = self._process_doc_strings(data)
-            docs[plugin_type] = data
-
-        return docs
-
-    def _get_plugins(self, plugin_dir):
-        """Get list of fully qualified plugin names inside directory.
-
-        Ex: ['google.gcp.service_facts', 'google.gcp.storage.subdir2.gc_storage']
-        """
-        plugins = []
-        for root, _, files in os.walk(plugin_dir):
-            for filename in files:
-                if not filename.endswith('.py') or filename == '__init__.py':
-                    continue
-                file_path = os.path.join(root, filename)
-                sub_dirs = os.path.relpath(root, plugin_dir)
-
-                fq_name_parts = [self.fq_collection_name]
-                if sub_dirs and sub_dirs != '.':
-                    fq_name_parts.extend(sub_dirs.split('/'))
-                fq_name_parts.append(os.path.basename(file_path)[:-3])
-
-                plugins.append('.'.join(fq_name_parts))
-        return plugins
-
-    def _run_ansible_doc(self, plugin_type, plugins):
-        collections_path = '/'.join(self.path.split('/')[:-3])
-        cmd = [
-            '/usr/bin/env', f'ANSIBLE_COLLECTIONS_PATHS={collections_path}',
-            f'ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}',
-            'ansible-doc',
-            '--type', plugin_type,
-            '--json',
-        ] + plugins
-        self.log.debug('CMD: {}'.format(' '.join(cmd)))
-        proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate()
-        if proc.returncode:
-            self.log.error('Error running ansible-doc: cmd="{cmd}" returncode="{rc}" {err}'.format(
-                cmd=' '.join(cmd), rc=proc.returncode, err=stderr
-            ))
-            return {}
-        return json.loads(stdout)
-
-    def _process_doc_strings(self, doc_strings):
-        processed_doc_strings = {}
-        for plugin_key, value in doc_strings.items():
-            processed_doc_strings[plugin_key] = self._transform_doc_strings(value, self.log)
-        return processed_doc_strings
-
-    @staticmethod
-    def _transform_doc_strings(data, logger=default_logger):
-        """Transform data meant for UI tables into format suitable for UI."""
-
-        def dict_to_named_list(dict_of_dict):
-            """Return new list of dicts for given dict of dicts."""
-            try:
-                return [
-                    {'name': key, **deepcopy(dict_of_dict[key])} for
-                    key in dict_of_dict.keys()
-                ]
-            except TypeError:
-                logger.warning(f'Expected this to be a dictionary of dictionaries: {dict_of_dict}')
-                return [
-                    {'name': key, **deepcopy(dict_of_dict[key])} for
-                    key in dict_of_dict.keys()
-                    if isinstance(key, dict)
-                ]
-
-        def handle_nested_tables(obj, table_key):
-            """Recurse over dict to replace nested tables with updated format."""
-            if table_key in obj.keys() and isinstance(obj[table_key], dict):
-                obj[table_key] = dict_to_named_list(obj[table_key])
-                for row in obj[table_key]:
-                    handle_nested_tables(row, table_key)
-
-        doc = data.get('doc', {})
-        if isinstance(doc.get('options'), dict):
-            doc['options'] = dict_to_named_list(doc['options'])
-            for d in doc['options']:
-                handle_nested_tables(d, table_key='suboptions')
-
-        ret = data.get('return', None)
-        if ret and isinstance(ret, dict):
-            data['return'] = dict_to_named_list(ret)
-            for d in data['return']:
-                handle_nested_tables(d, table_key='contains')
-
-        return data
 
 
 class RoleLoader(ContentLoader):
@@ -396,7 +221,7 @@ class RoleLoader(ContentLoader):
             self.log.warning(line.strip())
 
         for line in proc.stderr:
-            if line.startswith(ANSIBLE_LINT_ERROR_PREFIXES):
+            if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
                 self.log.error(line.rstrip())
 
     def _get_readme(self):
@@ -428,7 +253,7 @@ class RoleLoader(ContentLoader):
     @staticmethod
     def _find_metadata_file_path(root, rel_path):
         """Gets path to role metadata file."""
-        for file in ROLE_META_FILES:
+        for file in constants.ROLE_META_FILES:
             meta_path = os.path.join(root, rel_path, file)
             if os.path.exists(meta_path):
                 return meta_path
