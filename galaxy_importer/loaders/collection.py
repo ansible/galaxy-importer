@@ -19,6 +19,8 @@ import logging
 import os
 import re
 
+import ansible_builder.introspect
+
 from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder, FileWalker
 from galaxy_importer import loaders
@@ -84,6 +86,7 @@ class CollectionLoader(object):
         self.docs_blob = self._build_docs_blob()
         self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
         self._check_ansible_test_ignore_files()
+        self._check_ee_yml_dep_files()
 
         return schema.ImportResult(
             metadata=self.metadata,
@@ -108,9 +111,21 @@ class CollectionLoader(object):
 
         listdir = os.listdir(sanity_path)
         for ignore_file in filter(IGNORE_FILE_REGEXP.match, listdir):
-            with open(os.path.join(sanity_path, ignore_file), "r+") as f:
+            with open(os.path.join(sanity_path, ignore_file), "r") as f:
                 line_count = len(f.readlines())
             self.log.warning(IGNORE_WARNING.format(file=ignore_file, line_count=line_count))
+
+    def _check_ee_yml_dep_files(self):  # pragma: no cover
+        """Check for python deps file and system deps file if they are listed in
+        meta/execution-environment.yml, and log if listed files are not found
+
+        Method excluded from pytest coverage, test exist outside repo via iqe.
+        """
+
+        try:
+            python_deps, system_deps = ansible_builder.introspect.process_collection(self.path)
+        except FileNotFoundError as e:
+            self.log.error(f"Error when checking meta/execution-environment.yml: {e}")
 
     def _load_manifest(self):
         manifest_file = os.path.join(self.path, "MANIFEST.json")
