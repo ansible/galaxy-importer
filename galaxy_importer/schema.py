@@ -155,6 +155,12 @@ class CollectionInfo(object):
         if len(value) > MAX_LENGTH_VERSION:
             self.value_error(f"'version' must not be greater than {MAX_LENGTH_VERSION} characters")
 
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+        if cfg.require_v1_or_greater:
+            if semantic_version.Version(value) < semantic_version.Version("1.0.0"):
+                self.value_error("Config is enabled that requires version to be 1.0.0 or greater.")
+
     @authors.validator
     @tags.validator
     @license.validator

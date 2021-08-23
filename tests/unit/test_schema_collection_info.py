@@ -185,6 +185,64 @@ def test_required_tag_enabled(collection_info, temp_config_file):
 
 
 @pytest.mark.parametrize(
+    "version_pass",
+    [
+        "1.0.0",
+        "4.6.21",
+        "2.0.0-beta",
+        "2.0.0-rc.2",
+        "1.1.1-alpha+build.2012-05-15",
+    ],
+)
+def test_config_require_v1_or_greater_pass(collection_info, temp_config_file, version_pass):
+    with open(temp_config_file, "w") as f:
+        f.write("[galaxy-importer]\nREQUIRE_V1_OR_GREATER = True")
+        f.flush()
+        config_data = config.ConfigFile.load()
+        config.Config(config_data=config_data)
+
+        collection_info["version"] = version_pass
+        res = CollectionInfo(**collection_info)
+        assert version_pass == res.version
+
+
+@pytest.mark.parametrize(
+    "version_fail",
+    [
+        "0.0.0",
+        "0.9.9",
+        "1.0.0-beta",
+        "0.1.1-alpha+build.2012-05-15",
+    ],
+)
+def test_config_require_v1_or_greater_fail(collection_info, temp_config_file, version_fail):
+    with open(temp_config_file, "w") as f:
+        f.write("[galaxy-importer]\nREQUIRE_V1_OR_GREATER = True")
+        f.flush()
+        config_data = config.ConfigFile.load()
+        config.Config(config_data=config_data)
+
+        collection_info["version"] = version_fail
+        with pytest.raises(ValueError, match=r"requires version to be 1.0.0 or greater"):
+            CollectionInfo(**collection_info)
+
+
+@pytest.mark.parametrize(
+    "version_pass",
+    [
+        "0.0.0",
+        "0.9.9",
+        "1.0.0",
+        "2.0.2",
+    ],
+)
+def test_config_require_v1_or_greater_default_off(collection_info, version_pass):
+    collection_info["version"] = version_pass
+    res = CollectionInfo(**collection_info)
+    assert version_pass == res.version
+
+
+@pytest.mark.parametrize(
     "valid_semver",
     [
         "1.2.3",

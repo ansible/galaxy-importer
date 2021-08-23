@@ -46,19 +46,14 @@ You can override the above paths by setting `GALAXY_IMPORTER_CONFIG` in the envi
 $ export GALAXY_IMPORTER_CONFIG=~/galaxy-importer.cfg
 ```
 
-Example configuration file:
+Configuration options and their defaults are defined in `DEFAULTS` at [galaxy_importer/config.py](galaxy_importer/config.py)
+
+Example configuration file with subset of config options:
 
 ```
 [galaxy-importer]
 LOG_LEVEL_MAIN = INFO
-RUN_FLAKE8 = False
-RUN_ANSIBLE_DOC = True
-RUN_ANSIBLE_LINT = True
 RUN_ANSIBLE_TEST = False
-ANSIBLE_TEST_LOCAL_IMAGE = False
-LOCAL_IMAGE_DOCKER = False
-INFRA_OSD = False
-TMP_ROOT_DIR = None
 ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 ```
 
@@ -70,6 +65,6 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 ### Issues and Process
 
-Issues can be reported in the [galaxy_ng](https://github.com/ansible/galaxy_ng) repository
+To file an issue, visit the [Automation Hub Jira project](https://issues.redhat.com/projects/AAH/issues)
 
-Process details for `galaxy-importer`: [PROCESS.md](https://github.com/ansible/galaxy-importer/blob/master/PROCESS.md)
+Process details for `galaxy-importer`: [PROCESS.md](PROCESS.md)
