@@ -125,7 +125,9 @@ class CollectionLoader(object):
         try:
             python_deps, system_deps = ansible_builder.introspect.process_collection(self.path)
         except FileNotFoundError as e:
-            self.log.error(f"Error when checking meta/execution-environment.yml: {e}")
+            self.log.error(
+                f"Error when checking meta/execution-environment.yml for dependency files: {e}"
+            )
 
     def _load_manifest(self):
         manifest_file = os.path.join(self.path, "MANIFEST.json")

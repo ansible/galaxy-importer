@@ -1,3 +1,26 @@
+galaxy-importer 0.4.0 (2021-08-25)
+==================================
+
+Features
+--------
+
+- Check for execution environment dependency files (`AAH-539 <https://issues.redhat.com/browse/AAH-539>`_)
+- Log when tests/sanity/ignore*.txt exists during import (`AAH-540 <https://issues.redhat.com/browse/AAH-540>`_)
+- Add config option to require collection version be at least '1.0.0', defaulted to off (`AAH-667 <https://issues.redhat.com/browse/AAH-667>`_)
+
+
+Deprecations and Removals
+-------------------------
+
+- Remove unused entrypoints and refactor loaders (`AAH-866 <https://issues.redhat.com/browse/AAH-866>`_)
+
+
+Misc
+----
+
+- `AAH-688 <https://issues.redhat.com/browse/AAH-688>`_
+
+
 galaxy-importer 0.3.4 (2021-06-24)
 ==================================
 
