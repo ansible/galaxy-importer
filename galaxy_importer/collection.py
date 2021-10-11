@@ -35,8 +35,13 @@ default_logger = logging.getLogger(__name__)
 CollectionFilename = namedtuple("CollectionFilename", ["namespace", "name", "version"])
 
 
-def import_collection(file, filename=None, file_url=None, logger=None, cfg=None):
+def import_collection(
+    file=None, filename=None, file_url=None, git_clone_path=None, logger=None, cfg=None,
+):
     """Process import on collection artifact file object.
+
+    If `git_clone_path` is provided, return metadata and file,
+    else return metadata.
 
     :raises exc.ImporterError: On errors that fail the import process.
     """
@@ -45,10 +50,66 @@ def import_collection(file, filename=None, file_url=None, logger=None, cfg=None)
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
     logger = logger or default_logger
+
+    if (file and git_clone_path) or not (file or git_clone_path):
+        raise exc.ImporterError(
+            "Expected either 'file' or 'git_clone_path' to be populated"
+        )
+
+    if git_clone_path:
+        # TODO: use cfg.tmp_root_dir plus subdir?
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file, filename = _build_collection(git_clone_path, empty_output_path=tmp_dir, logger=logger)
+            logger.info(f"file={file}")
+            metadata = _import_collection(file, filename, file_url, logger, cfg)
+            return (metadata, file)
+
     return _import_collection(file, filename, file_url, logger, cfg)
 
 
+def sync_collection(git_clone_path=None, logger=None, cfg=None):
+    """Process collection metadata without linting to support pulp-ansible sync.
+
+    Call _import_collection() with an overridden config to
+    process metadata without linting and without running ansible-test.
+    """
+
+    logger = logger or default_logger
+    if not cfg:
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+    logger.info(f"cfg={cfg}")
+
+    # TODO: override cfg so ansible_test does not run
+
+    file, filename = _build_collection(git_clone_path, logger)
+    return _import_collection(file, filename, file_url=None, logger=logger, cfg=cfg)
+
+
+def _build_collection(git_clone_path, empty_output_path, logger=None):
+    """Runs `ansible-galaxy collection build` and returns file obj and filename."""
+
+    logger = logger or default_logger
+    logger.info("Building collection tarball with ansible-galaxy collection build")
+
+    cmd = [
+        "ansible-galaxy",
+        "collection",
+        "build",
+        "--output-path",
+        empty_output_path
+    ]
+    # TODO: better error catching via stdout/stderr, popen?
+    subprocess.run(cmd, cwd=git_clone_path, stdout=subprocess.PIPE, check=True)
+
+    filename = os.listdir(empty_output_path)[0]  # TODO: assumes called by tmpdir
+    file = os.path.join(empty_output_path, filename)
+    return (file, filename)
+
+
 def _import_collection(file, filename, file_url, logger, cfg):
+    """Returns collection version metadata."""
+
     with tempfile.TemporaryDirectory(dir=cfg.tmp_root_dir) as tmp_dir:
         sub_path = "ansible_collections/placeholder_namespace/placeholder_name"
         extract_dir = os.path.join(tmp_dir, sub_path)
@@ -62,7 +123,9 @@ def _import_collection(file, filename, file_url, logger, cfg):
         if not os.path.exists(filepath):
             if not file_url:
                 # TODO(awcrosby): remove after using https://pulp.plan.io/issues/8486
-                parameters = {"ResponseContentDisposition": "attachment;filename=archive.tar.gz"}
+                parameters = {
+                    "ResponseContentDisposition": "attachment;filename=archive.tar.gz"
+                }
                 file_url = file.storage.url(file.name, parameters=parameters)
             filepath = _download_archive(file_url, tmp_dir)
 
