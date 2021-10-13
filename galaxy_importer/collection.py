@@ -36,14 +36,27 @@ CollectionFilename = namedtuple("CollectionFilename", ["namespace", "name", "ver
 
 
 def import_collection(
-    file=None, filename=None, file_url=None, git_clone_path=None, logger=None, cfg=None,
+    file=None,
+    filename=None,
+    file_url=None,
+    git_clone_path=None,
+    output_path=None,
+    logger=None,
+    cfg=None,
 ):
     """Process import on collection artifact file object.
 
-    If `git_clone_path` is provided, return metadata and file,
-    else return metadata.
+    :param file: file handle of type BufferedReader.  # TODO: confirm same w/ pulp-ans caller
+    :param filename: namedtuple of CollectionFilename.  # TODO: confirm same w/ pulp-ans caller
+    :param file_url: .  # TODO: confirm w/ pulp-ans caller
+    :param git_clone_path: path to collection repo dir.  # TODO: should this just be dir to make generic?
+    :param output_path: path where collection build tarball file will be written
+    :param logger: Optional logger instance.
+    :param cfg: Optional config.
 
     :raises exc.ImporterError: On errors that fail the import process.
+
+    :return: metadata if `file`  provided, (metadata, file) if `git_clone_path` provided
     """
     logger.info(f"Importing with galaxy-importer {__version__}")
     if not cfg:
@@ -57,12 +70,12 @@ def import_collection(
         )
 
     if git_clone_path:
-        # TODO: use cfg.tmp_root_dir plus subdir?
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file, filename = _build_collection(git_clone_path, empty_output_path=tmp_dir, logger=logger)
-            logger.info(f"file={file}")
-            metadata = _import_collection(file, filename, file_url, logger, cfg)
-            return (metadata, file)
+        with tempfile.TemporaryDirectory(dir=cfg.tmp_root_dir) as tmp_dir:
+            filepath, filename = _build_collection(git_clone_path, tmp_dir, logger)
+            with open(filepath, "rb") as fh:
+                metadata = _import_collection(fh, filename, file_url, logger, cfg)
+            return (metadata, filepath)
+            # TODO: switch to using output_path instead of tmp_dir
 
     return _import_collection(file, filename, file_url, logger, cfg)
 
@@ -83,10 +96,12 @@ def sync_collection(git_clone_path=None, logger=None, cfg=None):
     # TODO: override cfg so ansible_test does not run
 
     file, filename = _build_collection(git_clone_path, logger)
-    return _import_collection(file, filename, file_url=None, logger=logger, cfg=cfg)
+    metadata = _import_collection(file, filename, file_url=None, logger=logger, cfg=cfg)
+    return (metadata, file)
+    # TODO: accept user param ouput_path
 
 
-def _build_collection(git_clone_path, empty_output_path, logger=None):
+def _build_collection(git_clone_path, output_path, logger=None):
     """Runs `ansible-galaxy collection build` and returns file obj and filename."""
 
     logger = logger or default_logger
@@ -97,18 +112,22 @@ def _build_collection(git_clone_path, empty_output_path, logger=None):
         "collection",
         "build",
         "--output-path",
-        empty_output_path
+        output_path
     ]
-    # TODO: better error catching via stdout/stderr, popen?
-    subprocess.run(cmd, cwd=git_clone_path, stdout=subprocess.PIPE, check=True)
+    result = subprocess.run(cmd, cwd=git_clone_path, capture_output=True)
+    filename = os.listdir(output_path)[0]  # FIXME: get end of stdout, ideally regex then combine with output path
+    file = os.path.join(output_path, filename)
 
-    filename = os.listdir(empty_output_path)[0]  # TODO: assumes called by tmpdir
-    file = os.path.join(empty_output_path, filename)
+    # TODO: switch to using user param output_path, use result.stdout to get collection build filename
+    # TODO: raise ImporterError on result.returncode != 0
+
     return (file, filename)
 
 
 def _import_collection(file, filename, file_url, logger, cfg):
     """Returns collection version metadata."""
+    logger.info(f"type(file)={type(file)}")
+    logger.info(f"type(filename)={type(filename)}")
 
     with tempfile.TemporaryDirectory(dir=cfg.tmp_root_dir) as tmp_dir:
         sub_path = "ansible_collections/placeholder_namespace/placeholder_name"

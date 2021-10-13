@@ -38,7 +38,7 @@ def main(args=None):
     setup_logger(cfg)
     args = parse_args(args)
 
-    data = call_importer(filepath=args.file, cfg=cfg)
+    data = call_importer(args, cfg=cfg)
     if not data:
         return 1
 
@@ -71,7 +71,17 @@ def parse_args(args):
     parser = argparse.ArgumentParser(
         description="Run importer on collection and save result to disk."
     )
-    parser.add_argument("file", help="artifact to import")
+    parser.add_argument("file", nargs="?", help="artifact to import")
+    parser.add_argument(
+        "--git-clone-path",
+        dest="git_clone_path",
+        help="git directory with collection that will get built",
+    )
+    parser.add_argument(
+        "--output-path",
+        dest="output_path",
+        help="path where built collection will be stored",
+    )
     parser.add_argument(
         "--print-result",
         dest="print_result",
@@ -81,23 +91,35 @@ def parse_args(args):
     return parser.parse_args(args=args)
 
 
-def call_importer(filepath, cfg):
+def call_importer(args, cfg):
     """Returns result of galaxy_importer import process.
 
     :param file: Artifact file to import.
     """
-    match = FILENAME_REGEXP.match(os.path.basename(filepath))
+    if not args.file:
+        logger.info("No 'file' found")
+
+        return collection.import_collection(
+            git_clone_path=os.path.abspath(args.git_clone_path),
+            output_path=os.path.abspath(args.output_path),
+            logger=logger,
+            cfg=cfg,
+        )
+
+    logger.info(args.file)
+    match = FILENAME_REGEXP.match(os.path.basename(args.file))
     namespace, name, version = match.groups()
     filename = collection.CollectionFilename(namespace, name, version)
+    logger.info(filename)
 
-    with open(filepath, "rb") as f:
+    with open(args.file, "rb") as fh:
         try:
-            data = collection.import_collection(f, filename, logger=logger, cfg=cfg)
+            data = collection.import_collection(fh, filename, logger=logger, cfg=cfg)
         except ImporterError as e:
             logger.error(f"The import failed for the following reason: {str(e)}")
             return None
-        except Exception:
-            logger.exception("Unexpected error occurred:")
+        except Exception as e:
+            logger.exception(f"Unexpected error occurred: {str(e)}")
             return None
 
     logger.info("Importer processing completed successfully")
