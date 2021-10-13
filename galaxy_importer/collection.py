@@ -70,12 +70,11 @@ def import_collection(
         )
 
     if git_clone_path:
-        with tempfile.TemporaryDirectory(dir=cfg.tmp_root_dir) as tmp_dir:
-            filepath, filename = _build_collection(git_clone_path, tmp_dir, logger)
-            with open(filepath, "rb") as fh:
-                metadata = _import_collection(fh, filename, file_url, logger, cfg)
-            return (metadata, filepath)
-            # TODO: switch to using output_path instead of tmp_dir
+        filepath = _build_collection(git_clone_path, output_path, logger)
+        with open(filepath, "rb") as fh:
+            filename = os.path.basename(fh.name)  # TODO: useful to be passed as param?
+            metadata = _import_collection(fh, filename, file_url, logger, cfg)
+        return (metadata, filepath)
 
     return _import_collection(file, filename, file_url, logger, cfg)
 
@@ -115,13 +114,14 @@ def _build_collection(git_clone_path, output_path, logger=None):
         output_path
     ]
     result = subprocess.run(cmd, cwd=git_clone_path, capture_output=True)
-    filename = os.listdir(output_path)[0]  # FIXME: get end of stdout, ideally regex then combine with output path
-    file = os.path.join(output_path, filename)
 
-    # TODO: switch to using user param output_path, use result.stdout to get collection build filename
-    # TODO: raise ImporterError on result.returncode != 0
+    if result.returncode != 0:
+        raise exc.ImporterError("Error running `ansible-galaxy collection build`: {}".format(result.stderr.decode("utf-8").rstrip()))
 
-    return (file, filename)
+    # TODO: use regex to get filename from stdout, compine with output_path
+    stdout = result.stdout.decode("utf-8").rstrip()
+    filepath = stdout.split(" ")[-1]
+    return filepath
 
 
 def _import_collection(file, filename, file_url, logger, cfg):
