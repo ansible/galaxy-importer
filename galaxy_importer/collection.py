@@ -65,18 +65,14 @@ def import_collection(
     logger = logger or default_logger
 
     if (file and git_clone_path) or not (file or git_clone_path):
-        raise exc.ImporterError(
-            "Expected either 'file' or 'git_clone_path' to be populated"
-        )
+        raise exc.ImporterError("Expected either 'file' or 'git_clone_path' to be populated")
 
     if git_clone_path:
         filepath = _build_collection(git_clone_path, output_path, logger)
         with open(filepath, "rb") as fh:
             # TODO: filename useful? may only be needed when user provides tarball artifact
             filename = os.path.basename(fh.name)
-            metadata = _import_collection(
-                fh, filename, file_url=None, logger=logger, cfg=cfg
-            )
+            metadata = _import_collection(fh, filename, file_url=None, logger=logger, cfg=cfg)
         return (metadata, filepath)
 
     return _import_collection(file, filename, file_url, logger, cfg)
@@ -101,9 +97,7 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
     with open(filepath, "rb") as fh:
         # TODO: filename useful? may only be needed for import_collection() calls
         filename = os.path.basename(fh.name)
-        metadata = _import_collection(
-            fh, filename, file_url=None, logger=logger, cfg=cfg
-        )
+        metadata = _import_collection(fh, filename, file_url=None, logger=logger, cfg=cfg)
     return (metadata, filepath)
 
 
@@ -113,13 +107,7 @@ def _build_collection(git_clone_path, output_path, logger=None):
     logger = logger or default_logger
     logger.info("Building collection tarball with ansible-galaxy collection build")
 
-    cmd = [
-        "ansible-galaxy",
-        "collection",
-        "build",
-        "--output-path",
-        output_path
-    ]
+    cmd = ["ansible-galaxy", "collection", "build", "--output-path", output_path]
     result = subprocess.run(cmd, cwd=git_clone_path, capture_output=True)
 
     if result.returncode != 0:
@@ -153,9 +141,7 @@ def _import_collection(file, filename, file_url, logger, cfg):
         if not os.path.exists(filepath):
             if not file_url:
                 # TODO(awcrosby): remove after using https://pulp.plan.io/issues/8486
-                parameters = {
-                    "ResponseContentDisposition": "attachment;filename=archive.tar.gz"
-                }
+                parameters = {"ResponseContentDisposition": "attachment;filename=archive.tar.gz"}
                 file_url = file.storage.url(file.name, parameters=parameters)
             filepath = _download_archive(file_url, tmp_dir)
 
