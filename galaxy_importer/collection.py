@@ -89,9 +89,13 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
     if not cfg:
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
-    logger.info(f"cfg={cfg}")
 
-    # TODO: override cfg so ansible_test does not run
+    cfg.run_ansible_test = False
+    cfg.run_ansible_lint = False
+    cfg.run_flake8 = False
+
+    # TODO: check peformance and how needed the docs_blob is for metadata sync
+    # cfg.run_ansible_doc = False
 
     filepath = _build_collection(git_clone_path, output_path, logger)
     with open(filepath, "rb") as fh:
