@@ -49,7 +49,7 @@ def import_collection(
     :param file: file handle of type BufferedReader.  # TODO: confirm same w/ pulp-ans caller
     :param filename: namedtuple of CollectionFilename.  # TODO: confirm same w/ pulp-ans caller
     :param file_url: .  # TODO: confirm w/ pulp-ans caller
-    :param git_clone_path: path to collection repo dir.  # TODO: should this just be dir to make generic?
+    :param git_clone_path: path to collection repo dir.  # TODO: make `dir` to be generic?
     :param output_path: path where collection build tarball file will be written
     :param logger: Optional logger instance.
     :param cfg: Optional config.
@@ -116,7 +116,11 @@ def _build_collection(git_clone_path, output_path, logger=None):
     result = subprocess.run(cmd, cwd=git_clone_path, capture_output=True)
 
     if result.returncode != 0:
-        raise exc.ImporterError("Error running `ansible-galaxy collection build`: {}".format(result.stderr.decode("utf-8").rstrip()))
+        raise exc.ImporterError(
+            "Error running `ansible-galaxy collection build`: {}".format(
+                result.stderr.decode("utf-8").rstrip()
+            )
+        )
 
     # TODO: use regex to get filename from stdout, compine with output_path
     stdout = result.stdout.decode("utf-8").rstrip()
