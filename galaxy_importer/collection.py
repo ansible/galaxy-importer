@@ -72,14 +72,17 @@ def import_collection(
     if git_clone_path:
         filepath = _build_collection(git_clone_path, output_path, logger)
         with open(filepath, "rb") as fh:
-            filename = os.path.basename(fh.name)  # TODO: useful to be passed as param?
-            metadata = _import_collection(fh, filename, file_url, logger, cfg)
+            # TODO: filename useful? may only be needed when user provides tarball artifact
+            filename = os.path.basename(fh.name)
+            metadata = _import_collection(
+                fh, filename, file_url=None, logger=logger, cfg=cfg
+            )
         return (metadata, filepath)
 
     return _import_collection(file, filename, file_url, logger, cfg)
 
 
-def sync_collection(git_clone_path=None, logger=None, cfg=None):
+def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
     """Process collection metadata without linting to support pulp-ansible sync.
 
     Call _import_collection() with an overridden config to
@@ -94,10 +97,14 @@ def sync_collection(git_clone_path=None, logger=None, cfg=None):
 
     # TODO: override cfg so ansible_test does not run
 
-    file, filename = _build_collection(git_clone_path, logger)
-    metadata = _import_collection(file, filename, file_url=None, logger=logger, cfg=cfg)
-    return (metadata, file)
-    # TODO: accept user param ouput_path
+    filepath = _build_collection(git_clone_path, output_path, logger)
+    with open(filepath, "rb") as fh:
+        # TODO: filename useful? may only be needed for import_collection() calls
+        filename = os.path.basename(fh.name)
+        metadata = _import_collection(
+            fh, filename, file_url=None, logger=logger, cfg=cfg
+        )
+    return (metadata, filepath)
 
 
 def _build_collection(git_clone_path, output_path, logger=None):

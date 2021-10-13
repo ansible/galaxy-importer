@@ -91,6 +91,9 @@ def parse_args(args):
     return parser.parse_args(args=args)
 
 
+# TODO: add method to call sync_collection for testing
+
+
 def call_importer(args, cfg):
     """Returns result of galaxy_importer import process.
 
