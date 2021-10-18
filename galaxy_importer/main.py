@@ -91,13 +91,12 @@ def parse_args(args):
     return parser.parse_args(args=args)
 
 
-# TODO: add method to call sync_collection for testing
-
-
-def call_importer(args, cfg):
+def call_importer(args, cfg):  # pragma: no cover
     """Returns result of galaxy_importer import process.
 
     :param file: Artifact file to import.
+
+    Method excluded from pytest unit test coverage, tests exist in tests/integration
     """
     if not args.file:
         logger.info("No 'file' found")

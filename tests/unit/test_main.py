@@ -29,11 +29,12 @@ def test_parser():
     assert parser.file == "my_file.tar.gz"
     assert parser.print_result
 
-    # SystemExit with missing required positional file argument
-    with pytest.raises(SystemExit):
-        main.parse_args(["--print-result"])
+    parser = main.parse_args(["--git-clone-path=/my/clone/path", "--output-path=/my/output/path"])
+    assert not parser.file
+    assert parser.git_clone_path == "/my/clone/path"
+    assert parser.output_path == "/my/output/path"
 
 
 def test_main_no_args():
-    with pytest.raises(SystemExit):
+    with pytest.raises(TypeError, match="expected str, bytes or os.PathLike object, not NoneType"):
         main.main(args={})
