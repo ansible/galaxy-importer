@@ -46,18 +46,19 @@ def import_collection(
 ):
     """Process import on collection artifact file object.
 
-    :param file: file handle of type BufferedReader.  # TODO: confirm same w/ pulp-ans caller
-    :param filename: namedtuple of CollectionFilename.  # TODO: confirm same w/ pulp-ans caller
-    :param file_url: .  # TODO: confirm w/ pulp-ans caller
-    :param git_clone_path: path to collection repo dir.  # TODO: make `dir` to be generic?
-    :param output_path: path where collection build tarball file will be written
+    :param file: file handle of collection artifact.
+    :param filename: namedtuple of CollectionFilename.
+    :param file_url: storage url of collection artifact.
+    :param git_clone_path: path to git repo directory of collection pre artifact build.
+    :param output_path: path where collection build tarball file will be written.
     :param logger: Optional logger instance.
     :param cfg: Optional config.
 
     :raises exc.ImporterError: On errors that fail the import process.
 
-    :return: metadata if `file`  provided, (metadata, file) if `git_clone_path` provided
+    :return: metadata if `file`  provided, (metadata, filepath) if `git_clone_path` provided
     """
+
     logger.info(f"Importing with galaxy-importer {__version__}")
     if not cfg:
         config_data = config.ConfigFile.load()
@@ -70,9 +71,8 @@ def import_collection(
     if git_clone_path:
         filepath = _build_collection(git_clone_path, output_path, logger)
         with open(filepath, "rb") as fh:
-            # TODO: filename useful? may only be needed when user provides tarball artifact
-            filename = os.path.basename(fh.name)
-            metadata = _import_collection(fh, filename, file_url=None, logger=logger, cfg=cfg)
+            metadata = _import_collection(fh, filename=None, file_url=None, logger=logger, cfg=cfg)
+            logger.info(f"filepath={filepath}")
         return (metadata, filepath)
 
     return _import_collection(file, filename, file_url, logger, cfg)
@@ -94,19 +94,14 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
     cfg.run_ansible_lint = False
     cfg.run_flake8 = False
 
-    # TODO: check peformance and how needed the docs_blob is for metadata sync
-    # cfg.run_ansible_doc = False
-
     filepath = _build_collection(git_clone_path, output_path, logger)
     with open(filepath, "rb") as fh:
-        # TODO: filename useful? may only be needed for import_collection() calls
-        filename = os.path.basename(fh.name)
-        metadata = _import_collection(fh, filename, file_url=None, logger=logger, cfg=cfg)
+        metadata = _import_collection(fh, filename=None, file_url=None, logger=logger, cfg=cfg)
     return (metadata, filepath)
 
 
 def _build_collection(git_clone_path, output_path, logger=None):
-    """Runs `ansible-galaxy collection build` and returns file obj and filename."""
+    """Runs `ansible-galaxy collection build` and returns artifact filepath."""
 
     logger = logger or default_logger
     logger.info("Building collection tarball with ansible-galaxy collection build")
@@ -121,7 +116,8 @@ def _build_collection(git_clone_path, output_path, logger=None):
             )
         )
 
-    # TODO: use regex to get filename from stdout, compine with output_path
+    # TODO: use regex to get filename from stdout, compine with output_path in case cli output
+    # ever changes from: Created collection for <namespace>.<name> at /<path>/<artifact>.tar.gz
     stdout = result.stdout.decode("utf-8").rstrip()
     filepath = stdout.split(" ")[-1]
     return filepath
@@ -129,8 +125,6 @@ def _build_collection(git_clone_path, output_path, logger=None):
 
 def _import_collection(file, filename, file_url, logger, cfg):
     """Returns collection version metadata."""
-    logger.info(f"type(file)={type(file)}")
-    logger.info(f"type(filename)={type(filename)}")
 
     with tempfile.TemporaryDirectory(dir=cfg.tmp_root_dir) as tmp_dir:
         sub_path = "ansible_collections/placeholder_namespace/placeholder_name"
