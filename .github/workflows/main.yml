@@ -18,6 +18,7 @@ jobs:
       matrix:
         python-version: ['3.6', '3.7', '3.8']
 
+
     steps:
     - name: Checkout pull request HEAD commit instead of merge commit
       uses: actions/checkout@v2
