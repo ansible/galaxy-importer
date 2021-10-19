@@ -1,15 +1,24 @@
 # ---------------------------------------------------------
+# Lint targets
+# ---------------------------------------------------------
+
+.PHONY: lint
+lint:
+	@black . --extend-exclude .github/ --line-length 100 --diff
+	@flake8
+
+.PHONY: lint/black
+lint/black:
+	@black . --extend-exclude .github/ --line-length 100
+
+
+# ---------------------------------------------------------
 # Test targets
 # ---------------------------------------------------------
 
 .PHONY: test
-test: test/lint test/unit test/integration
+test: lint test/unit test/integration
 	@echo "ALL MAKE TARGET TESTS SUCCESSFUL"
-
-.PHONY: test/lint
-test/lint:
-	@flake8
-	@black . --extend-exclude .github/ --line-length 100 --check
 
 .PHONY: test/unit
 test/unit:
