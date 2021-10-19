@@ -21,6 +21,7 @@ import tarfile
 import tempfile
 from types import SimpleNamespace
 
+from git import Repo
 import pytest
 import requests
 
@@ -40,7 +41,6 @@ def tmp_collection_root():
         sub_path = "ansible_collections/placeholder_namespace/placeholder_name"
         collection_root = os.path.join(tmp_dir, sub_path)
         os.makedirs(collection_root)
-        os.makedirs(os.path.join(collection_root, "meta"))
         yield collection_root
     finally:
         shutil.rmtree(tmp_dir)
@@ -49,9 +49,16 @@ def tmp_collection_root():
 def test_import_collection(mocker):
     mocker.patch.object(collection, "_import_collection")
     mocker.patch.object(config.ConfigFile, "load")
-    collection.import_collection(file=None, logger=logging, cfg=None)
+    collection.import_collection(file="file_placeholder", logger=logging, cfg=None)
     assert config.ConfigFile.load.called
     assert collection._import_collection.called
+
+
+def test_sync_collection(tmp_collection_root):
+    git_url = "https://github.com/openshift/community.okd.git"
+    Repo.clone_from(git_url, tmp_collection_root, depth=1)
+    metadata, filepath = collection.sync_collection(tmp_collection_root, tmp_collection_root)
+    assert "community-okd" in filepath
 
 
 @pytest.fixture
@@ -69,6 +76,16 @@ def test__import_collection(mocker, tmp_collection_root, mock__import_collection
     with open(os.path.join(tmp_collection_root, "test_file.tar.gz"), "w") as f:
         collection._import_collection(file=f, filename="", file_url=None, logger=logging, cfg=cfg)
     assert collection.subprocess.run.called
+
+
+def test__build_collection(tmp_collection_root):
+    git_url = "https://github.com/openshift/community.okd.git"
+    Repo.clone_from(git_url, tmp_collection_root, depth=1)
+    filepath = collection._build_collection(tmp_collection_root, tmp_collection_root)
+    assert "community-okd" in filepath
+
+    with pytest.raises(exc.ImporterError, match="file .+ already exists"):
+        collection._build_collection(tmp_collection_root, tmp_collection_root)
 
 
 def test_download_archive(mocker, tmp_collection_root):
