@@ -72,7 +72,6 @@ def import_collection(
         filepath = _build_collection(git_clone_path, output_path, logger)
         with open(filepath, "rb") as fh:
             metadata = _import_collection(fh, filename=None, file_url=None, logger=logger, cfg=cfg)
-            logger.info(f"filepath={filepath}")
         return (metadata, filepath)
 
     return _import_collection(file, filename, file_url, logger, cfg)

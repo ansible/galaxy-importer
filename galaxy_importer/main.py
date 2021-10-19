@@ -99,8 +99,6 @@ def call_importer(args, cfg):  # pragma: no cover
     Method excluded from pytest unit test coverage, tests exist in tests/integration
     """
     if not args.file:
-        logger.info("No 'file' found")
-
         return collection.import_collection(
             git_clone_path=os.path.abspath(args.git_clone_path),
             output_path=os.path.abspath(args.output_path),
@@ -108,11 +106,9 @@ def call_importer(args, cfg):  # pragma: no cover
             cfg=cfg,
         )
 
-    logger.info(args.file)
     match = FILENAME_REGEXP.match(os.path.basename(args.file))
     namespace, name, version = match.groups()
     filename = collection.CollectionFilename(namespace, name, version)
-    logger.info(filename)
 
     with open(args.file, "rb") as fh:
         try:
