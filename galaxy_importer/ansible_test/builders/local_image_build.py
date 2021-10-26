@@ -17,7 +17,8 @@
 
 import logging
 import os
-import requests
+import pkg_resources
+import shutil
 import tempfile
 
 from galaxy_importer import exceptions
@@ -72,12 +73,12 @@ class Build(object):
             return "podman"
 
     def _build_dockerfile(dir):
-        url = "https://raw.githubusercontent.com/ansible/galaxy-importer \
-            /master/docker/ansible-test/Dockerfile"
+        pkg_dockerfile = pkg_resources.resource_filename(
+            "galaxy_importer", "ansible_test/container/Dockerfile"
+        )
         file_location = os.path.join(dir, "Dockerfile")
-        with requests.get(url, allow_redirects=True) as r:
-            with open(file_location, "wb") as f:
-                f.write(r.content)
+        shutil.copyfile(pkg_dockerfile, file_location)
+
         with open(file_location, "r+") as f:
             lines = f.readlines()
             for index, line in enumerate(lines):
@@ -90,6 +91,11 @@ class Build(object):
             f.writelines(lines)
 
     def _build_image_with_artifact(container_engine, dir):
+        pkg_entrypoint = pkg_resources.resource_filename(
+            "galaxy_importer", "ansible_test/container/entrypoint.sh"
+        )
+        shutil.copyfile(pkg_entrypoint, os.path.join(dir, "entrypoint.sh"))
+
         cmd = [container_engine, "build", ".", "--quiet"]
         proc = Popen(
             cmd,
