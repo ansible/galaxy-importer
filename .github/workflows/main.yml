@@ -33,21 +33,17 @@ jobs:
       run: |
         python -m pip install -e .[dev]
 
-    - name: Lint with flake8
+    - name: Run linting
       run: |
-        flake8 .
+        make lint
 
-    - name: Lint with black
+    - name: Run unit tests
       run: |
-        black . --extend-exclude .github/ --line-length 100 --check
+        make test/unit
 
-    - name: Pytest unit tests
+    - name: Run functional tests
       run: |
-        make test
-
-    - name: Integration test
-      run: |
-        make test/integration
+        make test/functional
 
 
   publish:
