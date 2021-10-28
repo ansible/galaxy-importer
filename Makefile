@@ -7,8 +7,8 @@ lint:
 	@black . --extend-exclude .github/ --line-length 100 --diff
 	@flake8
 
-.PHONY: lint/black
-lint/black:
+.PHONY: lint/format/black
+lint/format/black:
 	@black . --extend-exclude .github/ --line-length 100
 
 
@@ -17,7 +17,7 @@ lint/black:
 # ---------------------------------------------------------
 
 .PHONY: test
-test: lint test/unit test/integration
+test: lint test/unit test/functional
 	@echo "ALL MAKE TARGET TESTS SUCCESSFUL"
 
 .PHONY: test/unit
@@ -32,6 +32,6 @@ test/unit/annotate:
 test/unit/annotate/clean:
 	find galaxy_importer -type f -name '*,cover' -delete
 
-.PHONY: test/integration
-test/integration:
-	@sh tests/integration/*
+.PHONY: test/functional
+test/functional:
+	@sh tests/functional/*
