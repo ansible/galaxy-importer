@@ -6,7 +6,7 @@ set -o verbose
 
 
 readonly DOCKER_CONF="${PWD}/.docker"
-readonly DOCKER_CONTEXT="docker/ansible-test"
+readonly DOCKER_CONTEXT="galaxy_importer/ansible_test/container"
 readonly IMAGE='quay.io/cloudservices/automation-hub-ansible-test'
 readonly IMAGE_TAG="$(git rev-parse --short=7 HEAD)"
 
@@ -35,4 +35,3 @@ docker --config="${DOCKER_CONF}" build --tag "${IMAGE}:${IMAGE_TAG}" "${DOCKER_C
 docker --config="${DOCKER_CONF}" push "${IMAGE}:${IMAGE_TAG}"
 docker --config="${DOCKER_CONF}" tag "${IMAGE}:${IMAGE_TAG}" "${IMAGE}:latest"
 docker --config="${DOCKER_CONF}" push "${IMAGE}:latest"
-
