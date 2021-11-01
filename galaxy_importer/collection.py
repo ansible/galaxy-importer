@@ -23,16 +23,25 @@ import tempfile
 
 import attr
 import requests
+import yaml
 
 from galaxy_importer import config
 from galaxy_importer import exceptions as exc
 from galaxy_importer.loaders import CollectionLoader
+from galaxy_importer.loaders import RoleLoader
 from galaxy_importer.ansible_test import runners
 from galaxy_importer import __version__
 
 default_logger = logging.getLogger(__name__)
 
 CollectionFilename = namedtuple("CollectionFilename", ["namespace", "name", "version"])
+
+
+class RoleContent:
+
+    @property
+    def value(self):
+        return 'role'
 
 
 def import_collection(
@@ -43,6 +52,7 @@ def import_collection(
     output_path=None,
     logger=None,
     cfg=None,
+    is_role=False
 ):
     """Process import on collection artifact file object.
 
@@ -69,10 +79,26 @@ def import_collection(
         raise exc.ImporterError("Expected either 'file' or 'git_clone_path' to be populated")
 
     if git_clone_path:
-        filepath = _build_collection(git_clone_path, output_path, logger)
+
+        '''
+        if is_role:
+            #filepath = _build_smuggled_role_collection(git_clone_path, output_path, logger=logger)
+            #with open(filepath, "rb") as fh:
+            metadata = _import_smuggled_role_collection(git_clone_path, logger=logger, cfg=cfg)
+            return (metadata, filepath)
+
+        else:
+            filepath = _build_collection(git_clone_path, output_path, logger=logger)
+            with open(filepath, "rb") as fh:
+                metadata = _import_collection(fh, filename=None, file_url=None, logger=logger, cfg=cfg)
+            return (metadata, filepath)
+        '''
+
+        filepath = _build_collection(git_clone_path, output_path, logger=logger)
         with open(filepath, "rb") as fh:
             metadata = _import_collection(fh, filename=None, file_url=None, logger=logger, cfg=cfg)
         return (metadata, filepath)
+
 
     return _import_collection(file, filename, file_url, logger, cfg)
 
@@ -122,6 +148,43 @@ def _build_collection(git_clone_path, output_path, logger=None):
     return filepath
 
 
+def _build_smuggled_role_collection(git_clone_path, output_path, logger=None):
+
+    # get meta/main.yml
+    with open(os.path.join(git_clone_path, 'meta/main.yml'), 'r') as f:
+        meta = yaml.load(f.read())
+
+    # get the namespace
+    namespace = meta.get('galaxy_info', {}).get('author')
+
+    # get the role name
+    role_name = meta.get('galaxy_info', {}).get('role_name')
+
+    data = RoleLoader(git_clone_path, None, logger=logger).load()
+
+    '''
+    import epdb; epdb.serve(port=8888)
+
+    with tempfile.TemporaryDirectory(dir=cfg.tmp_root_dir) as tmp_dir:
+
+        # make a new collection skeleton init <namespace>.<name>
+
+        # copy the clone path contents to the roles dir with it's name
+
+        # run tests?
+
+        # build the collection
+        topdir = None
+        filename = None
+
+        # run the loader
+        data = RoleLoader(git_clone_path, None, logger=logger).load()
+    '''
+
+    return attr.asdict(data)
+
+
+
 def _import_collection(file, filename, file_url, logger, cfg):
     """Returns collection version metadata."""
 
@@ -156,6 +219,27 @@ def _import_collection(file, filename, file_url, logger, cfg):
                 filepath=filepath,
                 logger=logger,
             ).run()
+
+    return attr.asdict(data)
+
+
+def _import_smuggled_role_collection(git_clone_path, logger=None, cfg=None):
+
+    '''
+     def __init__(self, content_type, rel_path, root, doc_strings=None, cfg=None, logger=None):
+        :param content_type: Content type.
+        :param rel_path: Path to content file or dir, relative to root path.
+        :param root: Collection root path.
+    '''
+
+    #import epdb; epdb.serve(port=8888)
+    e = None
+    try:
+        rdata = RoleLoader(RoleContent(), git_clone_path, '.', cfg=cfg, logger=logger).load()
+    except Exception as e:
+        print(e)
+    #cdata = CollectionLoader(git_clone_path, extract_dir, None, cfg=cfg, logger=logger).load()
+    import epdb; epdb.serve(port=8888)
 
     return attr.asdict(data)
 

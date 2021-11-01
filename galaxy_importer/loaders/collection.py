@@ -221,6 +221,7 @@ class CollectionLoader(object):
         file_manifest_file_set.add(file_manifest_name)
 
         difference = sorted(list(found_file_set.difference(file_manifest_file_set)))
+        #import epdb; epdb.serve(port=8888)
 
         if difference:
             err_msg = f"Files in the artifact but not the file manifest: {difference}"

@@ -38,8 +38,13 @@ export GALAXY_IMPORTER_CONFIG=galaxy-importer.cfg
 echo "Using galaxy-importer.cfg:"
 cat galaxy-importer.cfg
 
-# run the importer
+# run the importer with file artifact tarball
 python3 -m galaxy_importer.main foo/bar/foo-bar-*.tar.gz
+RETURN_CODE=$?
+
+# run the importer with git_clone_path and output_path
+rm foo/bar/foo-bar-*.tar.gz
+python3 -m galaxy_importer.main --git-clone-path=foo/bar/ --output-path=foo/bar/
 RETURN_CODE=$?
 
 # cleanup
