@@ -1,3 +1,13 @@
+galaxy-importer 0.4.1 (2021-11-02)
+==================================
+
+Features
+--------
+
+- Update ansible-test image definition, including use of py3.8 (`AAH-814 <https://issues.redhat.com/browse/AAH-814>`_)
+- Provide binary artifact and add sync_collection() interface (`AAH-979 <https://issues.redhat.com/browse/AAH-979>`_)
+
+
 galaxy-importer 0.4.0 (2021-08-25)
 ==================================
 
