@@ -12,7 +12,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: {job_name}
-        image: quay.io/cloudservices/automation-hub-ansible-test:1e3ff3b
+        image: quay.io/cloudservices/automation-hub-ansible-test:{image_tag}
         resources:
           requests:
             cpu: {cpu_request}
