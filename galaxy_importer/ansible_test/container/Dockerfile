@@ -1,4 +1,4 @@
-FROM quay.io/ansible/default-test-container:3.2.2
+FROM quay.io/ansible/default-test-container:4.1.1
 
 RUN useradd user1 \
         --uid 1000 \
@@ -7,8 +7,8 @@ RUN useradd user1 \
     && mkdir -m 0775 /archive \
     && mkdir -p -m 0775 /ansible_collections \
     && chown user1:root /ansible_collections \
-    && pip install ansible-core==2.11.5  # when updating see below
-# ansible-core version uses specific default-test-container version, the FROM stmt should be updated
+    && pip3.8 install ansible-core==2.12.0  # when updating see below
+# update the FROM statement to match the default-test-container version used by ansible-core version
 # after quay image is built, tag should be updated in ansible_test/job_template.yaml
 
 # Update dir and permissions for where ansible-test sanity writes files
