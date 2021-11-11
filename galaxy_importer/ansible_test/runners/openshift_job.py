@@ -118,6 +118,7 @@ class Job(object):
             cpu_request=os.environ.get("IMPORTER_CPU_REQUEST", "500m"),
             cpu_limit=os.environ.get("IMPORTER_CPU_LIMIT", "500m"),
             job_timeout=os.environ.get("IMPORTER_JOB_TIMEOUT", "900"),
+            image_tag=os.environ.get("IMPORTER_IMAGE_TAG", "0b948de"),
         )
         self.log = logger or default_logger
 
