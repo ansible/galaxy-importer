@@ -1,3 +1,12 @@
+galaxy-importer 0.4.2 (2021-11-11)
+==================================
+
+Features
+--------
+
+- Update ansible-test container definition to ansible-core 2.12 (`AAH-946 <https://issues.redhat.com/browse/AAH-946>`_)
+
+
 galaxy-importer 0.4.1 (2021-11-02)
 ==================================
 
