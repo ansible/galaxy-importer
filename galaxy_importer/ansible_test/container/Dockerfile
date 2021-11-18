@@ -1,30 +1,31 @@
-FROM quay.io/ansible/default-test-container:4.1.1
-
-RUN useradd user1 \
-        --uid 1000 \
-        --no-create-home \
-        --gid root \
-    && mkdir -m 0775 /archive \
-    && mkdir -p -m 0775 /ansible_collections \
-    && chown user1:root /ansible_collections \
-    && pip3.8 install ansible-core==2.12.0  # when updating see below
-# update the FROM statement to match the default-test-container version used by ansible-core version
-# after quay image is built, tag should be updated in ansible_test/job_template.yaml
-
-# Update dir and permissions for where ansible-test sanity writes files
-# NOTE: when container non-privledged, if sanity test writes to new dir, it will fail
-RUN touch /usr/local/lib/python3.8/dist-packages/ansible.egg-info \
-    && chmod 0775 /usr/local/lib/python3.8/dist-packages/ansible.egg-info \
-    && mkdir -m 0775 /.ansible \
-    && mkdir -m 0775 /.pylint.d
+FROM quay.io/ansible/base-test-container:1.1.0
 
 COPY entrypoint.sh /entrypoint
 
-RUN apt-get update -y \
-    && apt-get install -y wget \
-    && chmod +x /entrypoint
+RUN useradd user1 \
+      --uid 1000 \
+      --gid root && \
+    chmod +x /entrypoint && \
+    mkdir -m 0775 /archive && \
+    mkdir -p -m 0775 /ansible_collections/ns/col /home/user1 && \
+    touch /ansible_collections/ns/col/placeholder.txt && \
+    chown -R user1:root /ansible_collections /home/user1 && \
+    # Sets up python2 env since running from base-test-container not default-test-container
+    python2.6 -m pip.__main__ install virtualenv==15.2.0 --index https://d2c8fqinjk13kw.cloudfront.net/simple/ --disable-pip-version-check && \
+    python2.7 -m pip install virtualenv==16.7.12 --disable-pip-version-check && \
+    # On updating ansible-core version, update the FROM statement to the matching base-test-container version
+    # After quay image is built, tag should be updated in ansible_test/job_template.yaml
+    python3.9 -m pip install ansible-core==2.12.0 --disable-pip-version-check && \
+    # The following updates dir and permissions for where ansible-test sanity writes files
+    # NOTE: when container non-privileged, if sanity test writes to new dir, it will fail
+    touch /usr/local/lib/python3.9/dist-packages/ansible.egg-info && \
+    chmod 0775 /usr/local/lib/python3.9/dist-packages/ansible.egg-info && \
+    mkdir -m 0775 /.ansible /.pylint.d
 
-ENV HOME /
-USER 1000
+# ENV HOME /home/user1
+USER user1
+
+RUN cd /ansible_collections/ns/col && \
+    ansible-test sanity --prime-venvs
 
 ENTRYPOINT ["/entrypoint"]

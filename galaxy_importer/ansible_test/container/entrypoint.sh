@@ -46,7 +46,8 @@ cd /ansible_collections/"$NAMESPACE"/"$NAME"
 # Set env var so ansible --version does not error with getpass.getuser()
 export USER=user1
 
-echo "Using $(ansible --version | head -n 1), $(python --version)"
+echo "Running 'ansible --version'..."
+ansible --version
 
 echo "Running ansible-test sanity on $NAMESPACE-$NAME-$VERSION ..."
 # NOTE: skipping some sanity tests
