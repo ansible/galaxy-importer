@@ -7,7 +7,7 @@ RUN useradd user1 \
       --gid root && \
     chmod +x /entrypoint && \
     mkdir -m 0775 /archive && \
-    mkdir -p -m 0775 /ansible_collections/ns/col /home/user1 && \
+    mkdir -p -m 0775 /ansible_collections /ansible_collections/ns/col /home/user1 && \
     touch /ansible_collections/ns/col/placeholder.txt && \
     chown -R user1:root /ansible_collections /home/user1 && \
     # Sets up python2 env since running from base-test-container not default-test-container
