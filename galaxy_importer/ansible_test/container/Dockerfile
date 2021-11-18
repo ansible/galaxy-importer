@@ -5,6 +5,8 @@ COPY entrypoint.sh /entrypoint
 RUN useradd user1 \
       --uid 1000 \
       --gid root && \
+    apt-get update -y && \
+    apt-get install -y wget && \
     chmod +x /entrypoint && \
     mkdir -m 0775 /archive && \
     mkdir -p -m 0775 /ansible_collections /ansible_collections/ns/col /home/user1 && \
