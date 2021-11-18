@@ -16,6 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 from collections import namedtuple
+import glob
 import logging
 import os
 import subprocess
@@ -79,6 +80,18 @@ def import_collection(
         raise exc.ImporterError("Expected either 'file' or 'git_clone_path' to be populated")
 
     if git_clone_path:
+
+        #import epdb; epdb.serve(port=8888)
+
+        '''
+        gfilenames = glob.glob(f'{git_clone_path}/*')
+        gfilenames = subprocess.run(
+            f'find {git_clone_path}/* -type f ',
+            shell=True,
+            stdout=subprocess.PIPE
+        ).stdout.decode('utf-8')
+        raise exc.ImporterError(f"GIT CLONE PATH: {git_clone_path} FILENAMES: {gfilenames}")
+        '''
 
         '''
         if is_role:
