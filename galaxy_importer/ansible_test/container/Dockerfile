@@ -4,12 +4,13 @@ COPY entrypoint.sh /entrypoint
 
 RUN useradd user1 \
       --uid 1000 \
+      --no-create-home \
       --gid root && \
     apt-get update -y && \
     apt-get install -y wget && \
     chmod +x /entrypoint && \
     mkdir -m 0775 /archive && \
-    mkdir -p -m 0775 /ansible_collections /ansible_collections/ns/col /home/user1 && \
+    mkdir -p -m 0775 /ansible_collections /ansible_collections/ns /ansible_collections/ns/col /home/user1 && \
     touch /ansible_collections/ns/col/placeholder.txt && \
     chown -R user1:root /ansible_collections /home/user1 && \
     # Sets up python2 env since running from base-test-container not default-test-container
@@ -24,8 +25,8 @@ RUN useradd user1 \
     chmod 0775 /usr/local/lib/python3.9/dist-packages/ansible.egg-info && \
     mkdir -m 0775 /.ansible /.pylint.d
 
-# ENV HOME /home/user1
-USER user1
+ENV HOME /
+USER 1000
 
 RUN cd /ansible_collections/ns/col && \
     ansible-test sanity --prime-venvs
