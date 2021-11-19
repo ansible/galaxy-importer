@@ -18,8 +18,7 @@ RUN useradd user1 \
     # On updating ansible-core version, update the FROM statement to the matching base-test-container version
     # After quay image is built, tag should be updated in ansible_test/job_template.yaml
     python3.9 -m pip install ansible-core==2.12.0 --disable-pip-version-check && \
-    # The following updates dir and permissions for where ansible-test sanity writes files
-    # NOTE: when container non-privileged, if sanity test writes to new dir, it will fail
+    # Creates dir with correct permissions for where ansible-test sanity writes files, needed for non-privileged containers
     mkdir -m 0775 /.pylint.d
 
 ENV HOME /
