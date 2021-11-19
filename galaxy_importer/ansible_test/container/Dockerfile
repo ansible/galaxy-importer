@@ -4,6 +4,7 @@ COPY entrypoint.sh /entrypoint
 
 RUN useradd user1 \
       --uid 1000 \
+      --no-create-home \
       --gid root && \
     apt-get update -y && \
     apt-get install -y wget && \
@@ -29,5 +30,5 @@ RUN cd /ansible_collections/ns/col && \
 
 ENTRYPOINT ["/entrypoint"]
 
-# Allows for a local run to simulate OpenShift since it runs containers with a non-privileged randomized UID
+# Ensure local runs and testing run the same as OpenShift, which runs containers with a non-privileged randomized UID
 USER 1001
