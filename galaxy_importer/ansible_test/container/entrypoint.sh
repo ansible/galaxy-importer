@@ -54,4 +54,4 @@ echo "Running ansible-test sanity on $NAMESPACE-$NAME-$VERSION ..."
 # "import" and "validate-modules" require sandboxing
 # "pslint" throws ScriptRequiresMissingModules when container is not run as root
 # "ansible-doc" is already called for all plugins in import process
-ansible-test sanity --skip-test import --skip-test validate-modules --skip-test pslint --skip-test ansible-doc --color no --failure-ok
+ansible-test sanity -v --skip-test import --skip-test validate-modules --skip-test pslint --skip-test ansible-doc --color no --failure-ok
