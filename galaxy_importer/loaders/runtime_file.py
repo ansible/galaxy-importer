@@ -44,16 +44,21 @@ class RuntimeFileLoader:
                 raise exc.RuntimeFileError("Error during parsing of runtime.yml")
 
     def get_requires_ansible(self):
+        exists = os.path.exists(self.path)
+        default_logger.info(f'{self.path} exists: {exists}')
+        if not exists:
+            raise exc.RuntimeFileError(f'{self.path} does not exist')
+
         if not self.data:
             raise exc.RuntimeFileError(
                 "'requires_ansible' in meta/runtime.yml is mandatory, "
-                "but no meta/runtime.yml found"
+                "but no meta/runtime.yml found" + f' PATH:{self.path} DATA:{self.data}'
             )
         requires_ansible = self.data.get("requires_ansible")
         if not requires_ansible:
             raise exc.RuntimeFileError(
                 "'requires_ansible' in meta/runtime.yml is mandatory, "
-                "but 'requires_ansible' not found"
+                "but 'requires_ansible' not found" + f' DATA: {self.data}'
             )
         if len(requires_ansible) > constants.MAX_LENGTH_REQUIRES_ANSIBLE:
             raise exc.RuntimeFileError(

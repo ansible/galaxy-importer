@@ -18,6 +18,7 @@
 from collections import namedtuple
 import logging
 import os
+import shutil
 import subprocess
 import tempfile
 
@@ -29,6 +30,12 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer.loaders import CollectionLoader
 from galaxy_importer.ansible_test import runners
 from galaxy_importer import __version__
+from galaxy_importer.utils.roles import get_path_role_name
+from galaxy_importer.utils.roles import get_path_role_namespace
+from galaxy_importer.utils.roles import get_path_role_version
+from galaxy_importer.utils.roles import path_is_role
+from galaxy_importer.utils.roles import make_runtime_yaml
+from galaxy_importer.utils.roles import set_path_galaxy_version
 
 default_logger = logging.getLogger(__name__)
 
@@ -92,10 +99,53 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
     cfg.run_ansible_test = False
     cfg.run_ansible_lint = False
     cfg.run_flake8 = False
+    role_version = None
+
+    if path_is_role(git_clone_path):
+        # make a temporary collection path ...
+        tdir = tempfile.mkdtemp()
+
+        # need the version ...
+        role_version = get_path_role_version(git_clone_path)
+
+        # need the namespace
+        namespace = get_path_role_namespace(git_clone_path)
+
+        # need the name
+        role_name = get_path_role_name(git_clone_path)
+
+        # create a stub collection
+        cmd = f'ansible-galaxy collection init {namespace}.{role_name}'
+        pid = subprocess.run(cmd, cwd=tdir, shell=True)
+
+        col_path = os.path.join(tdir, namespace, role_name)
+        roles_path = os.path.join(col_path, 'roles')
+        if not os.path.exists(roles_path):
+            os.makedirs(roles_path)
+        role_path = os.path.join(roles_path, role_name)
+
+        # copy the role to the collection ...
+        shutil.copytree(git_clone_path, role_path)
+
+        # clean out the git folder ...
+        shutil.rmtree(os.path.join(role_path, '.git'))
+
+        # make sure meta/runtime.yml exists
+        #runtime = os.path.join(col_path, 'meta', 'runtime.yml')
+        #if not os.path.exists(runtime):
+        #    make_runtime_yaml(col_path)
+        make_runtime_yaml(col_path)
+
+        # force the expected version ...
+        set_path_galaxy_version(col_path, role_version)
+
+        # swap in the new path ...
+        git_clone_path = col_path
 
     filepath = _build_collection(git_clone_path, output_path, logger)
     with open(filepath, "rb") as fh:
         metadata = _import_collection(fh, filename=None, file_url=None, logger=logger, cfg=cfg)
+
     return (metadata, filepath)
 
 
