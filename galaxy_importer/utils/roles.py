@@ -21,11 +21,33 @@ def get_path_head_date(path):
     return ts
 
 
+def get_path_role_repository(path):
+    cmd =  "git remote -v | head -1 | awk '{print $2}'"
+    pid = subprocess.run(cmd, cwd=path, shell=True, stdout=subprocess.PIPE)
+    origin = pid.stdout.decode('utf-8').strip()
+    return origin
+
+
 def get_path_role_name(path):
     metaf = os.path.join(path, 'meta', 'main.yml')
     with open(metaf, 'r') as f:
         meta = yaml.load(f.read())
-    return meta['galaxy_info']['role_name']
+
+    if 'role_name' in meta['galaxy_info']:
+        return meta['galaxy_info']['role_name']
+
+    cmd =  "git remote -v | head -1 | awk '{print $2}'"
+    pid = subprocess.run(cmd, cwd=path, shell=True, stdout=subprocess.PIPE)
+    origin = pid.stdout.decode('utf-8').strip()
+    name = origin.replace('https://github.com/', '').split('/')[1]
+    if 'ansible-role-' in name:
+        name = name.replace('ansible-role-', '')
+    if name.startswith('ansible-'):
+        name = name.replace('ansible-', '')
+    if name.endswith('-ansible'):
+        name = name.replace('-ansible', '')
+
+    return name
 
 
 def get_path_role_namespace(path):
@@ -38,9 +60,22 @@ def get_path_role_namespace(path):
 
 def get_path_role_version(path):
     ds = get_path_head_date(path)
+
+    '''
     version = ds.isoformat().replace('T', '').replace(':', '')
     version = version.split('-')
-    version = version[0] + '.' + version[1] + '.' + version[2] + version[3]
+    version = version[0] + '.' + version[1].lstrip('0') + '.' + version[2].lstrip('0') + '-' + version[3].lstrip('0')
+    '''
+
+    parts = ds.isoformat().split('T')
+    ymd = parts[0].split('-')
+    ts = parts[1].replace(':', '')
+    ts = ts.replace('-', '')
+    ts = ts.replace('+', '')
+    #version = ymd[0] + '.' + ymd[1].lstrip('0') + '.' + ymd[2].lstrip('0') + '-' + ts.lstrip('0')
+    #version = ymd[0] + '.' + ymd[1].lstrip('0') + '.' + ymd[2].lstrip('0') + '-T' + ts
+    version = '1.0.0' + '+' + ymd[0] + ymd[1] + ymd[2] + ts
+
     return version
 
 
@@ -81,11 +116,22 @@ def make_runtime_yaml(path):
         yaml.dump(data, f)
 
 
-def set_path_galaxy_version(path, version):
+def set_path_galaxy_key(path, key, value):
+    print(f'SET {key}={value}')
     gfn = os.path.join(path, 'galaxy.yml')
     with open(gfn, 'r') as f:
         ds = yaml.load(f.read())
 
-    ds['version'] = version
+    ds[key] = value
     with open(gfn, 'w') as f:
         yaml.dump(ds, f)
+
+    print(f'GALAXY.YML: {ds}')
+
+
+def set_path_galaxy_version(path, version):
+    set_path_galaxy_key(path, 'version', version)
+
+
+def set_path_galaxy_repository(path, repository):
+    set_path_galaxy_key(path, 'repository', repository)

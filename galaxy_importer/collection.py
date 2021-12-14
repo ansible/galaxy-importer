@@ -33,9 +33,10 @@ from galaxy_importer import __version__
 from galaxy_importer.utils.roles import get_path_role_name
 from galaxy_importer.utils.roles import get_path_role_namespace
 from galaxy_importer.utils.roles import get_path_role_version
+from galaxy_importer.utils.roles import get_path_role_repository
 from galaxy_importer.utils.roles import path_is_role
 from galaxy_importer.utils.roles import make_runtime_yaml
-from galaxy_importer.utils.roles import set_path_galaxy_version
+from galaxy_importer.utils.roles import set_path_galaxy_key
 
 default_logger = logging.getLogger(__name__)
 
@@ -137,7 +138,13 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
         make_runtime_yaml(col_path)
 
         # force the expected version ...
-        set_path_galaxy_version(col_path, role_version)
+        set_path_galaxy_key(col_path, 'version', role_version)
+
+        # force the repo url ...
+        repo = get_path_role_repository(git_clone_path)
+        set_path_galaxy_key(col_path, 'repository', repo)
+
+        #import epdb; epdb.st()
 
         # swap in the new path ...
         git_clone_path = col_path
