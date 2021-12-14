@@ -117,13 +117,29 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
 
         # create a stub collection
         cmd = f'ansible-galaxy collection init {namespace}.{role_name}'
-        pid = subprocess.run(cmd, cwd=tdir, shell=True)
+        pid = subprocess.run(cmd, cwd=tdir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if pid.returncode != 0:
+            error = pid.stdout.decode('utf-8')
+            raise Exception(f'collection init failed: {error}')
 
         col_path = os.path.join(tdir, namespace, role_name)
         roles_path = os.path.join(col_path, 'roles')
         if not os.path.exists(roles_path):
             os.makedirs(roles_path)
         role_path = os.path.join(roles_path, role_name)
+
+        # clean out tests+roles to prevent weird errors ...
+        for tp in ['test', 'tests', 'roles', 'molecule']:
+            tests_dir = os.path.join(git_clone_path, tp)
+            if os.path.exists(tests_dir):
+                try:
+                    shutil.rmtree(tests_dir)
+                except Exception as e:
+                    cmd = f'rm -rf {tests_dir}'
+                    pid = subprocess.run(cmd, shell=True, stdout=subproccess.PIPE, stderr=subprocess.STDOUT)
+                    if pid.returncode != 0:
+                        error = pid.stdout.decode('utf-8')
+                        raise Exception(f'could not delete {tests_dir}: {error}')
 
         # copy the role to the collection ...
         shutil.copytree(git_clone_path, role_path)
@@ -144,7 +160,11 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
         repo = get_path_role_repository(git_clone_path)
         set_path_galaxy_key(col_path, 'repository', repo)
 
-        #import epdb; epdb.st()
+        # allow README.rst instead of README.md
+        md = os.path.join(role_path, 'README.md')
+        rst = os.path.join(role_path, 'README.rst')
+        if not os.path.exists(md) and os.path.exists(rst):
+            shutil.copy(rst, md)
 
         # swap in the new path ...
         git_clone_path = col_path

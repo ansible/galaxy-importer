@@ -28,24 +28,44 @@ def get_path_role_repository(path):
     return origin
 
 
-def get_path_role_name(path):
+def get_path_role_meta(path):
     metaf = os.path.join(path, 'meta', 'main.yml')
     with open(metaf, 'r') as f:
         meta = yaml.load(f.read())
+    return meta
 
-    if 'role_name' in meta['galaxy_info']:
-        return meta['galaxy_info']['role_name']
 
-    cmd =  "git remote -v | head -1 | awk '{print $2}'"
-    pid = subprocess.run(cmd, cwd=path, shell=True, stdout=subprocess.PIPE)
-    origin = pid.stdout.decode('utf-8').strip()
-    name = origin.replace('https://github.com/', '').split('/')[1]
-    if 'ansible-role-' in name:
-        name = name.replace('ansible-role-', '')
-    if name.startswith('ansible-'):
-        name = name.replace('ansible-', '')
-    if name.endswith('-ansible'):
-        name = name.replace('-ansible', '')
+def get_path_role_name(path):
+    metaf = os.path.join(path, 'meta', 'main.yml')
+    meta = None
+    if os.path.exists(metaf):
+        with open(metaf, 'r') as f:
+            meta = yaml.load(f.read())
+
+    if meta and 'role_name' in meta['galaxy_info']:
+        name = meta['galaxy_info']['role_name']
+    else:
+        cmd =  "git remote -v | head -1 | awk '{print $2}'"
+        pid = subprocess.run(cmd, cwd=path, shell=True, stdout=subprocess.PIPE)
+        origin = pid.stdout.decode('utf-8').strip()
+        name = origin.replace('https://github.com/', '').split('/')[1]
+
+        if 'ansible-role-' in name:
+            name = name.replace('ansible-role-', '')
+        if name.startswith('ansible-'):
+            name = name.replace('ansible-', '')
+        if name.endswith('-ansible'):
+            name = name.replace('-ansible', '')
+        if name.startswith('ansible.'):
+            name = name.replace('ansible.', '')
+
+    # https://github.com/angstwad/docker.ubuntu -> docker_ubuntu
+    if '.' in name:
+        name = name.replace('.', '_')
+
+    #  https://github.com/sbaerlocher/ansible.update-management -> update_management
+    if '-' in name:
+        name = name.replace('-', '_')
 
     return name
 
