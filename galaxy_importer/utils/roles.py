@@ -36,6 +36,11 @@ def get_path_role_meta(path):
 
 
 def get_path_role_name(path):
+
+    name = get_path_galaxy_key(path, 'name')
+    if name is not None:
+        return name
+
     metaf = os.path.join(path, 'meta', 'main.yml')
     meta = None
     if os.path.exists(metaf):
@@ -71,14 +76,28 @@ def get_path_role_name(path):
 
 
 def get_path_role_namespace(path):
+
+    namespace = get_path_galaxy_key(path, 'namespace')
+    if namespace is not None:
+        return namespace
+
     cmd =  "git remote -v | head -1 | awk '{print $2}'"
     pid = subprocess.run(cmd, cwd=path, shell=True, stdout=subprocess.PIPE)
     origin = pid.stdout.decode('utf-8').strip()
     namespace = origin.replace('https://github.com/', '').split('/')[0]
+
+    if namespace == 'ansible-collections':
+        namespace = 'ansible'
+
     return namespace
 
 
 def get_path_role_version(path):
+
+    version = get_path_galaxy_key(path, 'version')
+    if version is not None:
+        return version
+
     ds = get_path_head_date(path)
 
     '''
@@ -101,8 +120,16 @@ def get_path_role_version(path):
 
 def path_is_role(path):
 
+    namespace = get_path_galaxy_key(path, 'namespace')
+    name = get_path_galaxy_key(path, 'name')
+    if namespace is not None and name is not None:
+        return False
+
     paths = glob.glob(f'{path}/*')
     paths = [os.path.basename(x) for x in paths]
+
+    if 'plugins' in paths:
+        return False
 
     if 'tasks' in paths:
         return True
@@ -116,8 +143,8 @@ def path_is_role(path):
     if 'defaults' in paths:
         return True
 
-    if 'meta' in paths:
-        return True
+    #if 'meta' in paths:
+    #    return True
 
     return False
 
@@ -134,6 +161,17 @@ def make_runtime_yaml(path):
 
     with open(runtimef, 'w') as f:
         yaml.dump(data, f)
+
+
+def get_path_galaxy_key(path, key):
+    gfn = os.path.join(path, 'galaxy.yml')
+    if not os.path.exists(gfn):
+        return None
+
+    with open(gfn, 'r') as f:
+        ds = yaml.load(f.read())
+
+    return ds.get(key)
 
 
 def set_path_galaxy_key(path, key, value):

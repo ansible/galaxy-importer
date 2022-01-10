@@ -103,6 +103,9 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
     role_version = None
 
     if path_is_role(git_clone_path):
+
+        print('DETECTED A ROLE!!!')
+
         # make a temporary collection path ...
         tdir = tempfile.mkdtemp()
 
@@ -154,6 +157,7 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
         make_runtime_yaml(col_path)
 
         # force the expected version ...
+        print(f'SETTING SMUGGLED ROLE VERSION TO {role_version}')
         set_path_galaxy_key(col_path, 'version', role_version)
 
         # force the repo url ...
