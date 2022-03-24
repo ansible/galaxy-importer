@@ -1,3 +1,18 @@
+galaxy-importer 0.4.3 (2022-03-24)
+==================================
+
+Bugfixes
+--------
+
+- Update base container for ansible-test image to support ansible-core 2.12 (`AAH-1127 <https://issues.redhat.com/browse/AAH-1127>`_)
+
+
+Misc
+----
+
+- `AAH-1106 <https://issues.redhat.com/browse/AAH-1106>`_, `AAH-1429 <https://issues.redhat.com/browse/AAH-1429>`_
+
+
 galaxy-importer 0.4.2 (2021-11-11)
 ==================================
 
