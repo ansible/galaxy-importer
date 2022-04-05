@@ -240,7 +240,7 @@ def test_flake8_output(mocked_popen, loader_module):
 ANSIBLELINT_TASK_OK = """---
 - name: Add mongodb repo apt_key
   become: true
-  apt_key: keyserver=hkp
+  ansible.builtin.apt_key: keyserver=hkp
   until: result.rc == 0
 """
 
@@ -248,14 +248,14 @@ ANSIBLELINT_PLAYBOOK_WARN = """---
 - hosts: all
   tasks:
     - name: edit vimrc
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /etc/vimrc
         line: "{{var_spacing_problem}}"
 """
 
 ANSIBLELINT_TASK_WARN = """---
 - name: edit vimrc
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/vimrc
     line: "{{var_spacing_problem}}"
 """

@@ -7,9 +7,11 @@ Notes about the process surrounding the `galaxy-importer` package, which is a de
 
 #### Issues and pull requests
 
-* Issues for enhancements or fixes are located on [issues.redhat.com JIRA](https://issues.redhat.com/issues/?jql=project=AAH)
+* Issues are located at [issues.redhat.com JIRA](https://issues.redhat.com/issues/?jql=project=AAH)
+* Add a changelog entry to `CHANGES/`. Changelog filename should be the number of the JIRA issue, and the extension of `.feature`, `.bugfix`, `.doc`, `.removal`, or `.misc` - see [towncrier](https://github.com/hawkowl/towncrier#news-fragments) for descriptions of each extension. Example: `CHANGES/56.feature`. File contents should be a one line description of the change.
+* At least one commit must include a reference to a Jira issue on a single line in the format of `Issue: AAH-1111`
+* If Pull Request is small enough not to need a Jira issue, at least one commit must include a single line with `No-Issue`
 * Please run the tests in `Makefile` or install the pre-commit hook in `hooks/pre-commit` and correct any failures prior to submitting a pull request.
-* Pull Requests in `galaxy-importer` should include a changelog file inside `CHANGES/`. Changelog filename should be the number of the JIRA issue, and the extension of `.feature`, `.bugfix`, `.doc`, `.removal`, or `.misc` - see [towncrier](https://github.com/hawkowl/towncrier#news-fragments) for descriptions of each extension. Example: `CHANGES/56.feature`. File contents should be a one line description of the change.
 
 #### Release steps
 
