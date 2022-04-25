@@ -87,6 +87,7 @@ class CollectionLoader(object):
         self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
         self._check_ansible_test_ignore_files()
         self._check_ee_yml_dep_files()
+        self._check_collection_changelog()
 
         return schema.ImportResult(
             metadata=self.metadata,
@@ -114,6 +115,15 @@ class CollectionLoader(object):
             with open(os.path.join(sanity_path, ignore_file), "r") as f:
                 line_count = len(f.readlines())
             self.log.warning(IGNORE_WARNING.format(file=ignore_file, line_count=line_count))
+
+    def _check_collection_changelog(self):
+        """Log an error when a CHANGELOG file is not present in the root of the collection."""
+        CHANGELOG_ERROR = "CHANGELOG.rst file not found at top level of collection."
+
+        changelog_path = os.path.join(self.path, "CHANGELOG.rst")
+
+        if not os.path.exists(changelog_path):
+            self.log.error(CHANGELOG_ERROR)
 
     def _check_ee_yml_dep_files(self):  # pragma: no cover
         """Check for python deps file and system deps file if they are listed in
