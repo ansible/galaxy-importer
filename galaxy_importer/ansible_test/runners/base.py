@@ -28,12 +28,13 @@ class BaseTestRunner(object):
     :param filepath: Path where archive file is located.
     """
 
-    def __init__(self, dir="", metadata="", file=None, filepath=None, logger=None):
+    def __init__(self, dir="", metadata="", file=None, filepath=None, logger=None, file_url=None):
         self.log = logger or default_logger
         self.dir = dir
         self.filepath = filepath
         self.metadata = metadata
         self.file = file
+        self.file_url = file_url
 
     @abc.abstractmethod
     def run():

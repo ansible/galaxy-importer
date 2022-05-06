@@ -40,14 +40,12 @@ def job():
 def test_runner_run(mocker, monkeypatch):
     mocker.patch.object(openshift_job.OpenshiftJobTestRunner, "_get_token")
     mocker.patch.object(openshift_job.OpenshiftJobTestRunner, "_get_job_template")
-    mocker.patch.object(openshift_job.OpenshiftJobTestRunner, "_get_pulp_archive_url")
     mocker.patch.object(openshift_job.Job, "create")
     mocker.patch.object(openshift_job.Job, "wait_on_pod_ready")
     mocker.patch.object(openshift_job.Job, "get_logs")
     mocker.patch.object(openshift_job.Job, "cleanup")
 
     openshift_job.Job.get_logs.return_value = ["log_entry", b"bytes_log_entry"]
-    openshift_job.OpenshiftJobTestRunner._get_pulp_archive_url.return_value = "image_link"
     monkeypatch.setenv("IMPORTER_API_DOMAIN", "my_host")
     monkeypatch.setenv("IMPORTER_JOB_NAMESPACE", "my_project")
     runner = openshift_job.OpenshiftJobTestRunner()
