@@ -1,3 +1,12 @@
+galaxy-importer 0.4.4 (2022-05-09)
+==================================
+
+Features
+--------
+
+- Output an error if no changelog.rst file is present in the root of the collection (`AAH-1460 <https://issues.redhat.com/browse/AAH-1460>`_)
+
+
 galaxy-importer 0.4.3 (2022-03-24)
 ==================================
 
