@@ -17,11 +17,11 @@
 
 import logging
 import os
-import semantic_version
 import yaml
 
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
+from galaxy_importer.utils import requires_ansible_version
 
 default_logger = logging.getLogger(__name__)
 
@@ -61,9 +61,9 @@ class RuntimeFileLoader:
                 f"{constants.MAX_LENGTH_REQUIRES_ANSIBLE} characters"
             )
         try:
-            semantic_version.SimpleSpec(requires_ansible)
+            requires_ansible_version.validate(requires_ansible)
             return requires_ansible
         except ValueError:
             raise exc.RuntimeFileError(
-                "'requires_ansible' is not a valid semantic_version requirement specification"
+                "'requires_ansible' is not a valid requirement specification"
             )

@@ -39,7 +39,7 @@ BAD_YAML = "requires_ansible: : : : : '>=2.9.10,<2.11.5'"
 
 TOO_LONG_REQUIRES_ANSIBLE = "requires_ansible: '>=" + "2" * 256 + "'"
 
-BAD_VERSION_SPEC = "requires_ansible: '>=2,<=3,,,'"
+BAD_VERSION_SPEC = "requires_ansible: '37'"
 
 
 def test_no_runtime_file(tmpdir):
@@ -93,7 +93,7 @@ def test_bad_version_spec(tmpdir):
     tmpdir.mkdir("meta").join("runtime.yml").write(BAD_VERSION_SPEC)
     with pytest.raises(
         exc.RuntimeFileError,
-        match="not a valid semantic_version requirement specification",
+        match="not a valid requirement specification",
     ):
         loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
         loader.get_requires_ansible()
