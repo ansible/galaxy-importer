@@ -50,7 +50,7 @@ class OpenshiftJobTestRunner(BaseTestRunner):
             namespace=os.environ["IMPORTER_JOB_NAMESPACE"],
             session_token=OpenshiftJobTestRunner._get_token(),
             ca_path=OpenshiftJobTestRunner._get_ca_path(),
-            archive_url=self._get_pulp_archive_url(self.file),
+            archive_url=self.file_url,
             job_template=OpenshiftJobTestRunner._get_job_template(),
             logger=self.log,
         )
@@ -82,11 +82,6 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         with open(path, "r") as f:
             job_template = f.read()
         return job_template
-
-    @staticmethod
-    def _get_pulp_archive_url(pulp_artifact_file):
-        parameters = {"ResponseContentDisposition": "attachment;filename=archive.tar.gz"}
-        return pulp_artifact_file.storage.url(pulp_artifact_file.name, parameters=parameters)
 
 
 class Job(object):

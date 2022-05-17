@@ -18,11 +18,12 @@
 from collections import namedtuple
 import logging
 import os
+import shutil
 import subprocess
+import tarfile
 import tempfile
 
 import attr
-import requests
 
 from galaxy_importer import config
 from galaxy_importer import exceptions as exc
@@ -59,11 +60,11 @@ def import_collection(
     :return: metadata if `file`  provided, (metadata, filepath) if `git_clone_path` provided
     """
 
+    logger = logger or default_logger
     logger.info(f"Importing with galaxy-importer {__version__}")
     if not cfg:
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
-    logger = logger or default_logger
 
     if (file and git_clone_path) or not (file or git_clone_path):
         raise exc.ImporterError("Expected either 'file' or 'git_clone_path' to be populated")
@@ -129,66 +130,36 @@ def _import_collection(file, filename, file_url, logger, cfg):
         sub_path = "ansible_collections/placeholder_namespace/placeholder_name"
         extract_dir = os.path.join(tmp_dir, sub_path)
         os.makedirs(extract_dir)
-
-        filepath = file.name
-        if hasattr(file, "file"):
-            # handle a wrapped file object to get absolute filepath
-            filepath = str(file.file.file.name)
-
-        if not os.path.exists(filepath):
-            if not file_url:
-                # TODO(awcrosby): remove after using https://pulp.plan.io/issues/8486
-                parameters = {"ResponseContentDisposition": "attachment;filename=archive.tar.gz"}
-                file_url = file.storage.url(file.name, parameters=parameters)
-            filepath = _download_archive(file_url, tmp_dir)
-
-        _extract_archive(tarfile_path=filepath, extract_dir=extract_dir)
+        _extract_archive(fileobj=file, extract_dir=extract_dir)
 
         data = CollectionLoader(extract_dir, filename, cfg=cfg, logger=logger).load()
         logger.info("Collection loading complete")
 
         ansible_test_runner = runners.get_runner(cfg=cfg)
         if ansible_test_runner:
+            filepath = file.name
+            if not os.path.exists(filepath):
+                filepath = os.path.join(tmp_dir, "archive.tar.gz")
+                file.seek(0)
+                with open(filepath, "wb") as newfile:
+                    shutil.copyfileobj(file, newfile)
+
+            file.seek(0)
             ansible_test_runner(
                 dir=tmp_dir,
                 metadata=data.metadata,
                 file=file,
                 filepath=filepath,
+                file_url=file_url,
                 logger=logger,
             ).run()
 
     return attr.asdict(data)
 
 
-def _download_archive(file_url, download_dir):
-    filepath = os.path.join(download_dir, "archive.tar.gz")
-    r = requests.get(file_url)
-    with open(filepath, "wb") as fh:
-        fh.write(r.content)
-        fh.seek(0)
-    return filepath
-
-
-def _extract_archive(tarfile_path, extract_dir):
-    try:
-        _extract_tar_shell(tarfile_path=tarfile_path, extract_dir=extract_dir)
-    except subprocess.SubprocessError as e:
-        raise exc.ImporterError(
-            f"Error in tar extract subprocess: {str(e)}, filepath={tarfile_path}, stderr={e.stderr}"
-        )
-    except FileNotFoundError as e:
-        raise exc.ImporterError(
-            f"File not found in tar extract subprocess: {str(e)}, filepath={tarfile_path}"
-        )
-
-
-def _extract_tar_shell(tarfile_path, extract_dir):
-    cwd = os.path.dirname(os.path.abspath(tarfile_path))
-    file_name = os.path.basename(tarfile_path)
-    args = [
-        "tar",
-        f"--directory={extract_dir}",
-        "-xf",
-        file_name,
-    ]
-    subprocess.run(args, cwd=cwd, stderr=subprocess.PIPE, check=True)
+def _extract_archive(fileobj, extract_dir):
+    fileobj.seek(0)
+    with tarfile.open(fileobj=fileobj, mode="r") as tf:
+        if any((item.startswith("/") or item.startswith("../")) for item in tf.getnames()):
+            raise exc.ImporterError("Invalid file paths detected.")
+        tf.extractall(extract_dir)
