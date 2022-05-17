@@ -1,3 +1,18 @@
+galaxy-importer 0.4.5 (2022-05-17)
+==================================
+
+Features
+--------
+
+- Changed ``import_collection`` to work off of a fileobject without requiring an filesystem entry. (`AAH-1506 <https://issues.redhat.com/browse/AAH-1506>`_)
+
+
+Bugfixes
+--------
+
+- Change 'requires_ansible' to use custom ansible ver spec instead of semver (`AAH-981 <https://issues.redhat.com/browse/AAH-981>`_)
+
+
 galaxy-importer 0.4.4 (2022-05-09)
 ==================================
 
