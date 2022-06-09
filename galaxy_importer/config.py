@@ -34,6 +34,8 @@ class Config(object):
         "ansible_local_tmp": "~/.ansible/tmp",
         "ansible_test_local_image": False,
         "check_required_tags": False,
+        "check_runtime_yaml": True,
+        "check_changelog": True,
         "infra_osd": False,
         "local_image_docker": False,
         "log_level_main": "INFO",
@@ -45,8 +47,9 @@ class Config(object):
         "tmp_root_dir": None,
     }
 
-    def __init__(self, config_data=None):
+    def __init__(self, config_data=None, filename=None):
         """Set config values to default, updated with any passed config_data."""
+        self._filename = filename
         _data = {}
         _data.update(self.DEFAULTS)
         _data.update(config_data or {})
@@ -89,4 +92,11 @@ class ConfigFile(object):
                 config_data[key] = config_parser_data.getboolean(key)
             except ValueError:
                 config_data[key] = config_parser_data.get(key)
+
+        # workaround for required key with no way to set null value in ini
+        if 'tmp_root_dir' not in config_data:
+            config_data['tmp_root_dir'] = None
+        elif config_data['tmp_root_dir'] == '':
+            config_data['tmp_root_dir'] = None
+
         return config_data

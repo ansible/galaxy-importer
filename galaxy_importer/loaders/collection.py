@@ -48,8 +48,12 @@ class CollectionLoader(object):
         self.file_manifest_file = None
         self.docs_blob = None
         self.contents = None
+        self.requires_ansible = None
 
     def load(self):
+
+        #import epdb; epdb.st()
+
         # NOTE: If we knew the chksum for MANIFEST.json, we could check it here first
         self.manifest = self._load_manifest()
 
@@ -84,10 +88,12 @@ class CollectionLoader(object):
 
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
-        self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
+        if self.cfg.check_runtime_yaml:
+            self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
         self._check_ansible_test_ignore_files()
         self._check_ee_yml_dep_files()
-        self._check_collection_changelog()
+        if self.cfg.check_changelog:
+            self._check_collection_changelog()
 
         return schema.ImportResult(
             metadata=self.metadata,
