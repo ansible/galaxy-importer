@@ -893,6 +893,9 @@
     "PHP-3.01":{
         "deprecated":false
     },
+    "PSF-2.0":{
+        "deprecated":false
+    },
     "Parity-6.0.0":{
         "deprecated":false
     },
