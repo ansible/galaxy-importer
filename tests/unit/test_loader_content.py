@@ -287,7 +287,7 @@ def test_ansiblelint_file(loader_role, caplog):
         fp.write(ANSIBLELINT_PLAYBOOK_WARN)
         fp.flush()
         loader_role._lint_role(fp.name)
-    assert "Variables should have spaces before and after" in str(caplog.records[0])
+    assert "should have spaces before and after" in str(caplog.records[0])
 
 
 def test_ansiblelint_role(temp_root, loader_role, caplog):
@@ -298,7 +298,7 @@ def test_ansiblelint_role(temp_root, loader_role, caplog):
         fp.write(ANSIBLELINT_TASK_WARN)
         fp.flush()
         loader_role._lint_role(temp_root)
-    assert "Variables should have spaces before and after" in str(caplog.records[0])
+    assert "should have spaces before and after" in str(caplog.records[0])
 
 
 def test_ansiblelint_role_no_warn(temp_root, loader_role, caplog):
