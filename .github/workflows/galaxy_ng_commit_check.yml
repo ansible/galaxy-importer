@@ -7,10 +7,10 @@ name: Commit Check used in GalaxyNG
 on:
   pull_request:
     branches:
-      - '*'
+      - master
   push:
     branches:
-      - '*'  # double asterisk would include this workflow on push to a fork
+      - master
 
 # Jobs can run sequentially or in parallel
 jobs:
