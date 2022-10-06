@@ -7,6 +7,9 @@ RUN useradd user1 \
       --no-create-home \
       --gid root && \
     apt-get update -y && \
+    # upgrade all packages except python, as they can conflict with python setup in base image
+    apt-mark hold python* && \
+    apt-get upgrade -y && \
     apt-get install -y wget && \
     chmod +x /entrypoint && \
     mkdir -m 0775 /archive && \
