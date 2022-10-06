@@ -245,7 +245,8 @@ ANSIBLELINT_TASK_OK = """---
 """
 
 ANSIBLELINT_PLAYBOOK_WARN = """---
-- hosts: all
+- name: playbook warn of spacing problem
+  hosts: all
   tasks:
     - name: edit vimrc
       ansible.builtin.lineinfile:
