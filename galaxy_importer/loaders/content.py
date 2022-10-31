@@ -212,9 +212,11 @@ class RoleLoader(ContentLoader):
             f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
             "ansible-lint",
             path,
-            "-p",
-            "-x",
+            "--parseable",
+            "--skip-list",
             "metadata",
+            "--project-dir",
+            os.path.dirname(path),
         ]
         self.log.debug("CMD: " + " ".join(cmd))
         proc = Popen(
