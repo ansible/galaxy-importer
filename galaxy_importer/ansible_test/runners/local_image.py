@@ -49,8 +49,36 @@ class LocalImageTestRunner(BaseTestRunner):
         shutil.copy(self.filepath, archive_path)
         volume = f"{archive_path}:/archive/archive.tar.gz"
 
+        self.log.info("Pulling image...")
+        self._pull_image(container_engine=container_engine)
+
         self.log.info("Running image...")
         self._run_image(container_engine=container_engine, volume=volume)
+
+    def _pull_image(self, container_engine):
+        # TODO: use a separate image repo, repo or org is private
+        cmd = [
+            container_engine,
+            "pull",
+            "quay.io/cloudservices/automation-hub-ansible-test",
+        ]
+        self.log.debug(f"cmd={cmd}")
+
+        proc = Popen(
+            cmd,
+            stdout=PIPE,
+            stderr=STDOUT,
+            encoding="utf-8",
+        )
+
+        for line in proc.stdout:
+            self.log.info(line.strip())
+
+        return_code = proc.wait()
+        if return_code != 0:
+            raise exceptions.AnsibleTestError(
+                "An exception occurred in {}, returncode={}".format(" ".join(cmd), return_code)
+            )
 
     def _run_image(self, container_engine, volume):
         cmd = [
