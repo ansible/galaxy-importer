@@ -18,7 +18,7 @@ RUN useradd user1 \
     # On updating ansible-core version, update the FROM statement to the matching base-test-container version
     python3.9 -m pip install ansible-core==2.14.1 --disable-pip-version-check && \
     # Creates dir with correct permissions for where ansible-test sanity writes files, needed for non-privileged containers
-    mkdir -m 0775 /.pylint.d
+    mkdir -m 0775 -p /.cache/pylint
 
 ENV HOME /
 
