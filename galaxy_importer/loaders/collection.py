@@ -118,11 +118,16 @@ class CollectionLoader(object):
 
     def _check_collection_changelog(self):
         """Log an error when a CHANGELOG file is not present in the root of the collection."""
-        CHANGELOG_ERROR = "CHANGELOG.rst file not found at top level of collection."
+        CHANGELOG_ERROR = "A changelog file was not found in the collection. \
+            Please add a CHANGELOG.rst, CHANGELOG.md, or changelogs/changelog.yaml file."
 
-        changelog_path = os.path.join(self.path, "CHANGELOG.rst")
+        changelog_rst_path = os.path.join(self.path, "CHANGELOG.rst")
+        changelog_md_path = os.path.join(self.path, "CHANGELOG.md")
+        changelog_yaml_path = os.path.join(self.path, "changelogs/changelog.yaml")
 
-        if not os.path.exists(changelog_path):
+        if not os.path.exists(changelog_rst_path) \
+            and not os.path.exists(changelog_md_path) \
+            and not os.path.exists(changelog_yaml_path):
             self.log.error(CHANGELOG_ERROR)
 
     def _check_ee_yml_dep_files(self):  # pragma: no cover

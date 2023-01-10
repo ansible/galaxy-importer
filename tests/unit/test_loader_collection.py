@@ -432,13 +432,14 @@ def test_missing_readme(populated_collection_root):
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
 def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
     _build_docs_blob.return_value = {}
-
+    
     CollectionLoader(
         populated_collection_root,
         filename=None,
         cfg=SimpleNamespace(run_ansible_doc=True),
     ).load()
-    assert "CHANGELOG.rst file not found at top level of collection." in str(caplog.records[0])
+    assert "A changelog file was not found in the collection. \
+            Please add a CHANGELOG.rst, CHANGELOG.md, or changelogs/changelog.yaml file." in str(caplog.records[0])
 
 
 def test_manifest_json_with_no_files_json_info(populated_collection_root):
