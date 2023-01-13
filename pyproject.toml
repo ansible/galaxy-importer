@@ -1,3 +1,8 @@
+[tool.pytest.ini_options]
+markers = [
+    "sha256",
+]
+
 [tool.towncrier]
     package = "galaxy_importer"
     directory = "CHANGES/"
