@@ -1,5 +1,6 @@
 [flake8]
 exclude =
+    ./.tox/*,
     ./galaxy_importer.egg-info/*,
     ./build/*,
     ./dist/*

@@ -32,20 +32,15 @@ jobs:
 
     - name: Install source package and dependencies
       run: |
-        python -m pip install -e .[dev]
+        python -m pip install tox
 
     - name: Run linting
       run: |
-        make lint
+        tox -e lint
 
-    - name: Run unit tests
+    - name: Run tests
       run: |
-        make test/unit
-
-    - name: Run functional tests
-      run: |
-        make test/functional
-
+        tox -e py
 
   publish:
     name: Build and publish to PyPI registry

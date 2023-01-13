@@ -65,7 +65,6 @@ _FILENAME_RE = re.compile(
 
 @attr.s(slots=True)
 class CollectionFilename(object):
-
     namespace = attr.ib()
     name = attr.ib()
     version = attr.ib(converter=semantic_version.Version)
