@@ -10,7 +10,7 @@ Clone repo and go into project directory
 
 Install into environment the local setup.py including its development dependencies:
 
-`pip install -e .[dev]`
+`pip install -e .[dev,lock]`
 
 ### Run importer
 
