@@ -40,6 +40,13 @@ ISSUE_LABEL_REGEX = re.compile(
 JIRA_URL = "https://issues.redhat.com/rest/api/latest/issue/AAH-{issue}"
 
 
+def get_github_api_headers():
+    headers = {}
+    if os.environ.get('GITHUB_TOKEN'):
+        headers['Authorization'] = f'token {os.environ["GITHUB_TOKEN"]}'
+    return headers
+
+
 def git_list_commits(commit_range):
     git_range = "..".join(commit_range)
     cmd = ["git", "rev-list", "--no-merges", git_range]
@@ -85,8 +92,18 @@ def check_commit(commit_sha):
     if not issue_labels:
         no_issue_match = NO_ISSUE_REGEX.search(commit_message)
         if not no_issue_match:
-            LOG.error(f"Commit {commit_sha[:8]} has no issue attached")
+            LOG.error(
+                f"Commit {commit_sha[:8]} has no issue attached. It must contain either 'No-Issue' or something like 'Issue: AAH-1111' which points to https://issues.redhat.com/projects/AAH project."
+            )
             return False
+
+    repo = os.environ.get('GITHUB_REPOSITORY')
+    commit_url = f'https://api.github.com/repos/{repo}/commits/{commit_sha}'
+    rr = requests.get(commit_url, headers=get_github_api_headers())
+    signed = rr.json().get('commit', {}).get('verification', {}).get('verified')
+    if not signed:
+        LOG.error(f"Commit {commit_sha[:8]} is not signed")
+        return False
 
     ok = True
     for label, issue in issue_labels:
@@ -109,7 +126,9 @@ def validate_push_commits(start_commit, end_commit):
 
 
 def validate_pr_commits(github_pr_commits_url):
-    request = requests.get(github_pr_commits_url)
+    request = requests.get(github_pr_commits_url, headers=get_github_api_headers())
+    if not isinstance(request.json(), list):
+        raise Exception(f'malformed api response for commit list: {request.json()}')
     commit_list = [c['sha'] for c in request.json()]
 
     at_least_one_commit_ok = False
@@ -124,11 +143,18 @@ def validate_pr_commits(github_pr_commits_url):
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
+    github_user = os.environ.get("GITHUB_USER")
+    github_actor = os.environ.get("GITHUB_ACTOR")
     github_pr_commits_url = os.environ["GITHUB_PR_COMMITS_URL"]
     start_commit = os.environ["START_COMMIT"]
     end_commit = os.environ["END_COMMIT"]
+    skip_users = ['dependabot[bot]', 'patchback[bot]']
 
-    if github_pr_commits_url:
+    if github_user in skip_users:  ## NOTE: patchback[bot] not included in GITHUB_USER
+        is_valid = True
+    elif github_actor in skip_users:
+        is_valid = True
+    elif github_pr_commits_url:
         is_valid = validate_pr_commits(github_pr_commits_url)
     else:
         is_valid = validate_push_commits(start_commit, end_commit)
