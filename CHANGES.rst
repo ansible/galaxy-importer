@@ -1,3 +1,12 @@
+galaxy-importer 0.4.0-1 (2023-01-20)
+====================================
+
+Misc
+----
+
+- Fork 0.4.0 version for community galaxy and add PSF-2.0 license to allow community uploads (`AAH-2090 <https://issues.redhat.com/browse/AAH-2090>`_)
+
+
 galaxy-importer 0.4.0 (2021-08-25)
 ==================================
 
