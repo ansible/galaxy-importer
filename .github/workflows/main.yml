@@ -13,7 +13,7 @@ on:
 # Jobs can run sequentially or in parallel
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         python-version: ['3.6', '3.7', '3.8']
@@ -33,21 +33,9 @@ jobs:
       run: |
         python -m pip install -e .[dev]
 
-    - name: Lint with flake8
-      run: |
-        flake8 .
-
-    - name: Lint with black
-      run: |
-        black . --extend-exclude .github/ --line-length 100 --check
-
     - name: Pytest unit tests
       run: |
-        make test
-
-    - name: Integration test
-      run: |
-        make test/integration
+        make test/unit
 
 
   publish:

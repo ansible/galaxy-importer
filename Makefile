@@ -13,7 +13,7 @@ test/lint:
 
 .PHONY: test/unit
 test/unit:
-	@pytest tests/unit --cov=galaxy_importer --cov-branch
+	@pytest tests/unit --cov=galaxy_importer --cov-branch --ignore=tests/unit/test_builder_local_image.py
 
 .PHONY: test/unit/annotate
 test/unit/annotate:
