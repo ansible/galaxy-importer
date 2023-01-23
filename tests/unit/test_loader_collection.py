@@ -429,6 +429,23 @@ def test_missing_readme(populated_collection_root):
     assert "README.md" == excinfo.value.missing_file
 
 
+@pytest.mark.parametrize(
+    "changelog_path", ["CHANGELOG.rst", "CHANGELOG.md", "changelogs/changelog.yaml"]
+)
+def test_changelog(changelog_path, tmpdir, caplog):
+    dirname = os.path.dirname(changelog_path)
+    if dirname:
+        os.makedirs(os.path.join(tmpdir, dirname))
+    with open(os.path.join(tmpdir, changelog_path), "w+") as fh:
+        fh.write("Changelog info")
+
+    collection_loader = CollectionLoader(
+        tmpdir, "filename", cfg=SimpleNamespace(run_ansible_doc=False)
+    )
+    collection_loader._check_collection_changelog()
+    assert len(caplog.records) == 0
+
+
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
 def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
     _build_docs_blob.return_value = {}
