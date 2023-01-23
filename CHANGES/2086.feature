@@ -1,0 +1,1 @@
+Modifying the certification changelog check to also check for changelogs under `CHANGELOG.md` and `changelogs/changelog.yaml`.

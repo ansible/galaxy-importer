@@ -438,7 +438,11 @@ def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
         filename=None,
         cfg=SimpleNamespace(run_ansible_doc=True),
     ).load()
-    assert "CHANGELOG.rst file not found at top level of collection." in str(caplog.records[0])
+    assert (
+        "No changelog found. "
+        "Add a CHANGELOG.rst, CHANGELOG.md, or changelogs/changelog.yaml file."
+        in str(caplog.records[0])
+    )
 
 
 def test_manifest_json_with_no_files_json_info(populated_collection_root):
