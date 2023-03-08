@@ -49,7 +49,9 @@ class DocStringLoader:
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
             plugin_dir_name = constants.ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
 
-            plugins = self._get_plugins(os.path.join(self.path, "plugins", plugin_dir_name))
+            plugins = self._get_plugins(
+                os.path.join(self.path, "plugins", plugin_dir_name), plugin_type
+            )
 
             if not plugins:
                 continue
@@ -60,7 +62,7 @@ class DocStringLoader:
 
         return docs
 
-    def _get_plugins(self, plugin_dir):
+    def _get_plugins(self, plugin_dir, plugin_type):
         """Get list of fully qualified plugin names inside directory.
 
         Ex: ['google.gcp.service_facts', 'google.gcp.storage.subdir2.gc_storage']
@@ -68,15 +70,19 @@ class DocStringLoader:
         plugins = []
         for root, _, files in os.walk(plugin_dir):
             for filename in files:
-                if not filename.endswith(".py") or filename == "__init__.py":
-                    continue
+                if plugin_type in ["filter", "test"]:
+                    if not (filename.endswith(".yml") or filename.endswith(".yaml")):
+                        continue
+                else:
+                    if not filename.endswith(".py") or filename == "__init__.py":
+                        continue
                 file_path = os.path.join(root, filename)
                 sub_dirs = os.path.relpath(root, plugin_dir)
 
                 fq_name_parts = [self.fq_collection_name]
                 if sub_dirs and sub_dirs != ".":
                     fq_name_parts.extend(sub_dirs.split("/"))
-                fq_name_parts.append(os.path.basename(file_path)[:-3])
+                fq_name_parts.append(os.path.splitext(os.path.basename(file_path))[0])
 
                 plugins.append(".".join(fq_name_parts))
         return plugins

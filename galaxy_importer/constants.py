@@ -31,6 +31,8 @@ ANSIBLE_DOC_SUPPORTED_TYPES = [
     "module",
     "strategy",
     "vars",
+    "filter",
+    "test",
 ]
 ANSIBLE_DOC_PLUGIN_MAP = {"module": "modules"}
 ANSIBLE_DOC_KEYS = ["doc", "metadata", "examples", "return"]

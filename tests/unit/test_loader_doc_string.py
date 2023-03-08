@@ -42,13 +42,13 @@ def test_get_plugins(doc_string_loader, tmpdir):
     tmpdir.join("__init__.py").write("")
     tmpdir.join("should_be_ignored.txt").write("")
     tmpdir.join("my_module.py").write("")
-    plugins = doc_string_loader._get_plugins(str(tmpdir))
+    plugins = doc_string_loader._get_plugins(str(tmpdir), "dummy")
     assert plugins == ["my_namespace.my_collection.my_module"]
 
 
 def test_get_plugins_subdirs(doc_string_loader, tmpdir):
     tmpdir.mkdir("subdir1").mkdir("subdir2").join("nested_plugin.py").write("")
-    plugins = doc_string_loader._get_plugins(str(tmpdir))
+    plugins = doc_string_loader._get_plugins(str(tmpdir), "dummy")
     assert plugins == ["my_namespace.my_collection.subdir1.subdir2.nested_plugin"]
 
 
