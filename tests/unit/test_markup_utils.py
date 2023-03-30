@@ -92,14 +92,15 @@ class TestFindGetFiles(TestCase):
         res = markup_utils._get_file(self.directory, file_path)
         assert res.name == "README.md"
 
-    @mock.patch("os.path.getsize")
-    def test_get_file_with_file_size_error(self, getsize):
-        getsize.return_value = markup_utils.DOCFILE_MAX_SIZE + 1
+    def test_get_file_with_file_size_error(self):
         filename = "README.md"
         file_path = os.path.join(self.directory, filename)
         self.fs.create_file(file_path)
-        with pytest.raises(markup_utils.FileSizeError):
-            markup_utils._get_file(self.directory, file_path)
+
+        fake_doc_size = markup_utils.DOCFILE_MAX_SIZE + 1
+        with mock.patch.object(os.path, 'getsize', return_value=fake_doc_size):
+            with pytest.raises(markup_utils.FileSizeError):
+                markup_utils._get_file(self.directory, file_path)
 
     def test_get_doc_files(self):
         res = markup_utils.get_doc_files(self.directory)

@@ -246,17 +246,17 @@ ANSIBLELINT_TASK_OK = """---
 """
 
 ANSIBLELINT_PLAYBOOK_WARN = """---
-- name: Playbook that warns of a spacing problem
+- name: Playbook that warns names should be uppercase
   hosts: all
   tasks:
-    - name: edit vimrc
+    - name: edit vimrc (lint says name should be uppercase)
       ansible.builtin.lineinfile:
         path: /etc/vimrc
         line: "{{var_spacing_problem}}"
 """
 
 ANSIBLELINT_TASK_WARN = """---
-- name: edit vimrc
+- name: edit vimrc (lint says name should be uppercase)
   ansible.builtin.lineinfile:
     path: /etc/vimrc
     line: "{{var_spacing_problem}}"
@@ -289,7 +289,7 @@ def test_ansiblelint_file(loader_role, caplog):
         fp.write(ANSIBLELINT_PLAYBOOK_WARN)
         fp.flush()
         loader_role._lint_role(fp.name)
-    assert "spacing could be improved" in str(caplog.records[0])
+    assert "All names should start with an uppercase letter" in str(caplog.records[0])
 
 
 def test_ansiblelint_role(temp_root, loader_role, caplog):
@@ -300,7 +300,7 @@ def test_ansiblelint_role(temp_root, loader_role, caplog):
         fp.write(ANSIBLELINT_TASK_WARN)
         fp.flush()
         loader_role._lint_role(temp_root)
-    assert "spacing could be improved" in str(caplog.records[0])
+    assert "All names should start with an uppercase letter" in str(caplog.records[0])
 
 
 def test_ansiblelint_role_no_warn(temp_root, loader_role, caplog):
