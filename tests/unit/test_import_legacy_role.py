@@ -19,12 +19,18 @@ import os
 import tempfile
 import subprocess
 
+import pytest
+
 from galaxy_importer import legacy_role
+from galaxy_importer.exceptions import ImporterError
 
-from pprint import pprint
+
+def test_import_legacy_role_without_checkout(caplog):
+    with pytest.raises(ImporterError):
+        legacy_role.import_legacy_role(git_clone_path=None, logger=None)
 
 
-def test_import_legacy_role(caplog):
+def test_import_legacy_role_default_config(caplog):
     url = "https://github.com/geerlingguy/ansible-role-docker"
 
     with tempfile.TemporaryDirectory() as tmp_role_root:
@@ -33,5 +39,43 @@ def test_import_legacy_role(caplog):
         dst = os.path.join(tmp_role_root, "geerlingguy", "docker")
         subprocess.run(f"git clone {url} {dst}", shell=True, check=True)
         metadata = legacy_role.import_legacy_role(git_clone_path=dst, logger=None)
-        metadata.pop("readme_html", None)
-        pprint(metadata)
+
+    assert "WARNING" in caplog.text
+    assert sorted(list(metadata.keys())) == [
+        "content_type",
+        "dependencies",
+        "description",
+        "license",
+        "min_ansible_version",
+        "name",
+        "readme_file",
+        "readme_html",
+        "tags",
+    ]
+
+
+def test_import_legacy_role_with_config_no_lint(caplog):
+    url = "https://github.com/geerlingguy/ansible-role-docker"
+
+    class cfg:
+        run_ansible_lint = False
+
+    with tempfile.TemporaryDirectory() as tmp_role_root:
+        dn = os.path.join(tmp_role_root, "geerlingguy")
+        os.makedirs(dn)
+        dst = os.path.join(tmp_role_root, "geerlingguy", "docker")
+        subprocess.run(f"git clone {url} {dst}", shell=True, check=True)
+        metadata = legacy_role.import_legacy_role(git_clone_path=dst, cfg=cfg(), logger=None)
+
+    assert "WARNING" not in caplog.text
+    assert sorted(list(metadata.keys())) == [
+        "content_type",
+        "dependencies",
+        "description",
+        "license",
+        "min_ansible_version",
+        "name",
+        "readme_file",
+        "readme_html",
+        "tags",
+    ]
