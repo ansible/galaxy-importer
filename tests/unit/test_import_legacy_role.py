@@ -15,27 +15,16 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import logging
 import os
 import tempfile
 import subprocess
-import sys
 
 from galaxy_importer import legacy_role
 
 from pprint import pprint
 
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
-log = logging.getLogger(__name__)
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-log.addHandler(handler)
 
-
-def test_import_legacy_role():
+def test_import_legacy_role(caplog):
     url = "https://github.com/geerlingguy/ansible-role-docker"
 
     with tempfile.TemporaryDirectory() as tmp_role_root:
@@ -43,6 +32,6 @@ def test_import_legacy_role():
         os.makedirs(dn)
         dst = os.path.join(tmp_role_root, "geerlingguy", "docker")
         subprocess.run(f"git clone {url} {dst}", shell=True, check=True)
-        metadata = legacy_role.import_legacy_role(git_clone_path=dst, logger=log)
+        metadata = legacy_role.import_legacy_role(git_clone_path=dst, logger=None)
         metadata.pop("readme_html", None)
         pprint(metadata)
