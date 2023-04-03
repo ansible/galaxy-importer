@@ -472,7 +472,6 @@ def test_manifest_json_with_no_files_json_info(populated_collection_root):
     # MANIFEST.json did not contain a 'file_manifest_file' item pointing to FILES.json
     msg_match = "MANIFEST.json did not contain a 'file_manifest_file' item pointing to FILES.json"
     with pytest.raises(exc.ManifestValidationError, match=msg_match) as excinfo:
-
         CollectionLoader(populated_collection_root, filename=None).load()
 
     # pytest.raises ensures the outer exeption is a ManifestValidationError, this
