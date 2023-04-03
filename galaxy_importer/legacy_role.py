@@ -58,11 +58,7 @@ def _import_legacy_role(git_clone_path, logger, cfg):
     """Returns legacy role metadata."""
 
     data = LegacyRoleLoader(
-        ContentType.ROLE,
-        git_clone_path,
-        git_clone_path,
-        cfg=cfg,
-        logger=logger
+        ContentType.ROLE, git_clone_path, git_clone_path, cfg=cfg, logger=logger
     ).load()
     logger.info("Role loading complete")
 

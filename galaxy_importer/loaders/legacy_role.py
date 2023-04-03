@@ -29,16 +29,10 @@ from galaxy_importer.loaders.content import ContentLoader
 default_logger = logging.getLogger(__name__)
 
 
-ROLE_META_FILES = [
-    'meta/main.yml',
-    'meta/main.yaml',
-    'meta.yml',
-    'meta.yaml'
-]
+ROLE_META_FILES = ["meta/main.yml", "meta/main.yaml", "meta.yml", "meta.yaml"]
 
 
 class LegacyRoleLoader(ContentLoader):
-
     _metadata_path = None
     _metadata = None
 
@@ -54,11 +48,11 @@ class LegacyRoleLoader(ContentLoader):
             self._metadata_path = self._find_metadata_file_path(self.root, self.rel_path)
 
         self._metadata = self._get_metadata()
-        galaxy_info = self._metadata.get('galaxy_info', {})
-        min_ansible_version = galaxy_info.get('min_ansible_version')
-        license = galaxy_info.get('license', None)
-        tags = galaxy_info.get('tags', [])
-        dependencies = galaxy_info.get('dependencies', [])
+        galaxy_info = self._metadata.get("galaxy_info", {})
+        min_ansible_version = galaxy_info.get("min_ansible_version")
+        license = galaxy_info.get("license", None)
+        tags = galaxy_info.get("tags", [])
+        dependencies = galaxy_info.get("dependencies", [])
 
         return dict(
             name=self.path_name,
@@ -80,7 +74,7 @@ class LegacyRoleLoader(ContentLoader):
     def _make_path_name(rel_path, name):
         # dirname_parts = Path(os.path.dirname(rel_path)).parts[1:]
         # return ".".join(list(dirname_parts) + [name])
-        return os.path.basename(os.path.dirname(rel_path)) + '.' + name
+        return os.path.basename(os.path.dirname(rel_path)) + "." + name
 
     def _lint_role(self, path):
         """Log ansible-lint output.

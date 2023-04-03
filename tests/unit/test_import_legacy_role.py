@@ -28,29 +28,21 @@ from pprint import pprint
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
 log = logging.getLogger(__name__)
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+log.addHandler(handler)
 
 
 def test_import_legacy_role():
-
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.DEBUG)
-    log = logging.getLogger(__name__)
-    log.setLevel(logging.DEBUG)
-
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
-
-    url = 'https://github.com/geerlingguy/ansible-role-docker'
+    url = "https://github.com/geerlingguy/ansible-role-docker"
 
     with tempfile.TemporaryDirectory() as tmp_role_root:
-        log.info(url)
-        dn = os.path.join(tmp_role_root, 'geerlingguy')
+        dn = os.path.join(tmp_role_root, "geerlingguy")
         os.makedirs(dn)
-        dst = os.path.join(tmp_role_root, 'geerlingguy', 'docker')
-        subprocess.run(f'git clone {url} {dst}', shell=True, check=True)
+        dst = os.path.join(tmp_role_root, "geerlingguy", "docker")
+        subprocess.run(f"git clone {url} {dst}", shell=True, check=True)
         metadata = legacy_role.import_legacy_role(git_clone_path=dst, logger=log)
-        metadata.pop('readme_html', None)
+        metadata.pop("readme_html", None)
         pprint(metadata)
