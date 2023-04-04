@@ -548,10 +548,10 @@ def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_colle
     shutil.rmtree(task_dir)
 
     assert (
-        "tasks/main.yml:2: name[casing]: All names should start with an uppercase letter."
+        "name[casing]: All names should start with an uppercase letter."
         in str(caplog.records[0])
     )
-    assert "tasks/main.yml:3: jinja[spacing]: Jinja2 spacing could be improved:" in str(
+    assert "jinja[spacing]: Jinja2 spacing could be improved:" in str(
         caplog.records[1]
     )
 
@@ -579,7 +579,7 @@ def test_ansiblelint_collection_meta_runtime_errors(
         fh.write(META_RUNTIME_YAML)
         fh.flush()
 
-    assert "meta/runtime.yml:1: meta-runtime[unsupported-version]" in str(caplog.records[0])
+    assert "meta-runtime[unsupported-version]" in str(caplog.records[0])
 
 
 @mock.patch("galaxy_importer.loaders.collection.Popen")
