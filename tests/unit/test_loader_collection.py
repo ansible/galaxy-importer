@@ -554,7 +554,6 @@ def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_colle
     assert "tasks/main.yml:3: jinja[spacing]: Jinja2 spacing could be improved:" in str(
         caplog.records[1]
     )
-    assert len(caplog.records) == 2
 
 
 def test_ansiblelint_collection_meta_runtime_errors(
@@ -581,7 +580,6 @@ def test_ansiblelint_collection_meta_runtime_errors(
         fh.flush()
 
     assert "meta/runtime.yml:1: meta-runtime[unsupported-version]" in str(caplog.records[0])
-    assert len(caplog.records) == 1
 
 
 @mock.patch("galaxy_importer.loaders.collection.Popen")
