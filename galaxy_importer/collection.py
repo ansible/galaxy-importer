@@ -92,6 +92,8 @@ def sync_collection(git_clone_path, output_path, logger=None, cfg=None):
 
     cfg.run_ansible_test = False
     cfg.run_ansible_lint = False
+    cfg.run_ansible_lint_roles = False
+    cfg.run_ansible_lint_collection = False
     cfg.run_flake8 = False
 
     filepath = _build_collection(git_clone_path, output_path, logger)

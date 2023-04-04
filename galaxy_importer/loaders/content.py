@@ -171,7 +171,7 @@ class RoleLoader(ContentLoader):
         description = self._get_metadata_description()
         readme = self._get_readme()
 
-        if self.cfg.run_ansible_lint:
+        if self.cfg.run_ansible_lint and self.cfg.run_ansible_lint_roles:
             self._lint_role(self.rel_path)
 
         return schema.Content(

@@ -25,6 +25,8 @@ from unittest import mock
 
 import attr
 import pytest
+import shutil
+
 
 from galaxy_importer import collection
 from galaxy_importer.collection import CollectionLoader
@@ -70,7 +72,7 @@ MANIFEST_JSON = """
   "name": "FILES.json",
   "ftype": "file",
   "chksum_type": "sha256",
-  "chksum_sha256": "0c2e9514f54aaeda0605d8c9a60e71cab3e577113b58ecc65b839d2d1b86c216",
+  "chksum_sha256": "180adef53c071ed614891944413d684e3e19b5c5a31d8e3b5b8c1621206c4daa",
   "format": 1
  }
 }
@@ -112,7 +114,7 @@ FILES_JSON = """
    "name": "meta/runtime.yml",
    "ftype": "file",
    "chksum_type": "sha256",
-   "chksum_sha256": "2feceaa030f25bd5ff0e44b5935a8ad870d334dcca6c7c7df32eaab10eaea20c",
+   "chksum_sha256": "b712cf98238ae609938aad4838c849c5a492069a328647b9bf991244a33ff942",
    "format": 1
   }
  ]
@@ -123,7 +125,7 @@ LICENSE_FILE = """
 This collection is public domain. No rights Reserved.
 """
 
-META_RUNTIME_YAML = """
+META_RUNTIME_YAML = """---
 requires_ansible: '>=2.9.10,<2.11.5'
 plugin_routing:
   modules:
@@ -137,8 +139,6 @@ plugin_routing:
 
 @pytest.fixture
 def tmp_collection_root():
-    import shutil
-
     try:
         tmp_dir = tempfile.TemporaryDirectory().name
         sub_path = "ansible_collections/placeholder_namespace/placeholder_name"
@@ -204,7 +204,7 @@ def test_manifest_success(_build_docs_blob, populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename,
-        cfg=SimpleNamespace(run_ansible_doc=True),
+        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
     ).load()
     assert data.metadata.namespace == "my_namespace"
     assert data.metadata.name == "my_collection"
@@ -375,7 +375,7 @@ def test_filename_empty_value(_build_docs_blob, populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename,
-        cfg=SimpleNamespace(run_ansible_doc=True),
+        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
     ).load()
     assert data.metadata.namespace == "my_namespace"
     assert data.metadata.name == "my_collection"
@@ -390,7 +390,7 @@ def test_filename_none(_build_docs_blob, populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename,
-        cfg=SimpleNamespace(run_ansible_doc=True),
+        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
     ).load()
     assert data.metadata.namespace == "my_namespace"
     assert data.metadata.name == "my_collection"
@@ -413,7 +413,7 @@ def test_license_file(populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename=None,
-        cfg=SimpleNamespace(run_ansible_doc=True),
+        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
     ).load()
     assert data.metadata.license_file == "LICENSE"
 
@@ -453,7 +453,7 @@ def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
     CollectionLoader(
         populated_collection_root,
         filename=None,
-        cfg=SimpleNamespace(run_ansible_doc=True),
+        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
     ).load()
     assert (
         "No changelog found. "
@@ -472,7 +472,6 @@ def test_manifest_json_with_no_files_json_info(populated_collection_root):
     # MANIFEST.json did not contain a 'file_manifest_file' item pointing to FILES.json
     msg_match = "MANIFEST.json did not contain a 'file_manifest_file' item pointing to FILES.json"
     with pytest.raises(exc.ManifestValidationError, match=msg_match) as excinfo:
-
         CollectionLoader(populated_collection_root, filename=None).load()
 
     # pytest.raises ensures the outer exeption is a ManifestValidationError, this
@@ -498,3 +497,117 @@ def test_unaccounted_for_files(populated_collection_root):
             cfg=SimpleNamespace(run_ansible_doc=True),
         ).load()
     assert "a.out" in excinfo.value.unexpected_files
+
+
+ANSIBLELINT_TASK_WARN = """---
+- name: edit vimrc (lint says name should be uppercase)
+  ansible.builtin.lineinfile:
+    path: /etc/vimrc
+    line: "{{var_spacing_problem}}"
+"""
+
+ANSIBLELINT_META_RUNTIME_YAML_ERROR = """---
+requires_ansible: '>=2.9'
+"""
+
+
+def test_ansiblelint_collection_pass(populated_collection_root, tmp_collection_root, caplog):
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            run_ansible_lint_collection=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader._lint_collection()
+
+    assert len(caplog.records) == 0
+
+
+def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_collection_root, caplog):
+    task_dir = os.path.join(tmp_collection_root, "tasks")
+    os.makedirs(task_dir)
+    with open(os.path.join(task_dir, "main.yml"), "w") as fh:
+        fh.write(ANSIBLELINT_TASK_WARN)
+        fh.flush()
+
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            run_ansible_lint_collection=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader._lint_collection()
+    shutil.rmtree(task_dir)
+
+    assert (
+        "tasks/main.yml:2: name[casing]: All names should start with an uppercase letter."
+        in str(caplog.records[0])
+    )
+    assert "tasks/main.yml:3: jinja[spacing]: Jinja2 spacing could be improved:" in str(
+        caplog.records[1]
+    )
+    assert len(caplog.records) == 2
+
+
+def test_ansiblelint_collection_meta_runtime_errors(
+    populated_collection_root, tmp_collection_root, caplog
+):
+    with open(os.path.join(tmp_collection_root, "meta", "runtime.yml"), "w") as fh:
+        fh.write(ANSIBLELINT_META_RUNTIME_YAML_ERROR)
+        fh.flush()
+
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            run_ansible_lint_collection=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader._lint_collection()
+
+    with open(os.path.join(tmp_collection_root, "meta", "runtime.yml"), "w") as fh:
+        fh.write(META_RUNTIME_YAML)
+        fh.flush()
+
+    assert "meta/runtime.yml:1: meta-runtime[unsupported-version]" in str(caplog.records[0])
+    assert len(caplog.records) == 1
+
+
+@mock.patch("galaxy_importer.loaders.collection.Popen")
+def test_ansiblelint_stderr_filter(mocked_popen, caplog):
+    mocked_popen.return_value.stdout = ["some ansible-lint violation output"]
+    mocked_popen.return_value.stderr = [
+        "Added ANSIBLE_LIBRARY=plugins/modules",
+        "WARNING  Listing 1 violation(s) that are fatal",
+        "warn_list:  # or 'skip_list' to silence them completely",
+        "CRITICAL Couldn't parse task at /tmp/tmpmgx3gkpj",
+        "Finished with 1 failure(s), 0 warning(s) on 5 files.",
+        "ERROR  some_ansiblelint_error",
+    ]
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            run_ansible_lint_collection=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+
+    collection_loader._lint_collection()
+    assert len(caplog.records) == 3
+    assert "some ansible-lint violation output" in str(caplog.records[0])
+    assert "CRITICAL Couldn't parse task" in str(caplog.records[1])
+    assert "ERROR  some_ansiblelint_error" in str(caplog.records[2])

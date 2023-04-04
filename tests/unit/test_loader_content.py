@@ -99,7 +99,9 @@ def loader_role():
     return loaders.RoleLoader(
         content_type=constants.ContentType.ROLE,
         rel_path="roles/my_sample_role",
-        cfg=SimpleNamespace(run_ansible_lint=True, ansible_local_tmp="~/.ansible/tmp"),
+        cfg=SimpleNamespace(
+            run_ansible_lint=True, run_ansible_lint_roles=True, ansible_local_tmp="~/.ansible/tmp"
+        ),
         root="/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection",
     )
 

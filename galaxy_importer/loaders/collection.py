@@ -18,6 +18,9 @@
 import logging
 import os
 import re
+import shutil
+from subprocess import Popen, PIPE
+
 
 import ansible_builder.introspect
 
@@ -25,6 +28,7 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder, FileWalker
 from galaxy_importer import loaders
 from galaxy_importer import schema
+from galaxy_importer import constants
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils import chksums
 from galaxy_importer.utils import string_utils
@@ -85,6 +89,8 @@ class CollectionLoader(object):
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
         self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
+        if self.cfg.run_ansible_lint and self.cfg.run_ansible_lint_collection:
+            self._lint_collection()
         self._check_ansible_test_ignore_files()
         self._check_ee_yml_dep_files()
         self._check_collection_changelog()
@@ -95,6 +101,58 @@ class CollectionLoader(object):
             contents=self.contents,
             requires_ansible=self.requires_ansible,
         )
+
+    def _lint_collection(self):
+        """Log ansible-lint output.
+
+        ansible-lint stdout are linter violations, they are logged as warnings and errors,
+        depending on the rule level.
+
+        ansible-lint stderr includes info about vars, file discovery,
+        summary of linter violations, config suggestions, and raised errors.
+        Only raised errors are logged, they are logged as errors.
+        """
+
+        self.log.info("Linting collection via ansible-lint...")
+
+        if not shutil.which("ansible-lint"):
+            self.log.warning("ansible-lint not found, skipping lint of collection")
+            return
+
+        cmd = [
+            "/usr/bin/env",
+            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            "ansible-lint",
+            "--profile",
+            "production",
+            "--exclude",
+            "tests/integration/",
+            "--exclude",
+            "tests/unit/",
+            "--parseable",
+            "--nocolor",
+        ]
+        self.log.debug("CMD: " + " ".join(cmd))
+        proc = Popen(
+            cmd,
+            cwd=self.path,
+            encoding="utf-8",
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+        proc.wait()
+
+        for line in proc.stdout:
+            if line.endswith("(warning)\n"):
+                self.log.warning(line.strip())
+            else:
+                self.log.error(line.strip())
+
+        for line in proc.stderr:
+            if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
+                self.log.error(line.rstrip())
+
+        self.log.info("...ansible-lint run complete")
 
     def _check_ansible_test_ignore_files(self):  # pragma: no cover
         """Log a warning when ansible test sanity ignore files are present.

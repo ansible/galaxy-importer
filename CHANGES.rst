@@ -1,3 +1,18 @@
+galaxy-importer 0.4.7 (2023-04-03)
+==================================
+
+Features
+--------
+
+- Modifying the certification changelog check to also check for changelogs under `CHANGELOG.md` and `changelogs/changelog.yaml`. (`AAH-2086 <https://issues.redhat.com/browse/AAH-2086>`_)
+
+
+Misc
+----
+
+- `AAH-1880 <https://issues.redhat.com/browse/AAH-1880>`_, `AAH-2040 <https://issues.redhat.com/browse/AAH-2040>`_, `AAH-2049 <https://issues.redhat.com/browse/AAH-2049>`_, `AAH-2214 <https://issues.redhat.com/browse/AAH-2214>`_
+
+
 galaxy-importer 0.4.6 (2022-11-01)
 ==================================
 

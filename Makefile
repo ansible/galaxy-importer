@@ -4,7 +4,7 @@
 
 .PHONY: lint
 lint:
-	@black . --extend-exclude .github/ --line-length 100 --diff
+	@black . --extend-exclude .github/ --line-length 100 --diff --check
 	@flake8
 
 .PHONY: lint/format/black

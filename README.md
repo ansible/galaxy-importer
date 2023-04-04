@@ -63,6 +63,12 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 - `LOCAL_IMAGE_DOCKER` - Set to `True` to run the `ansible-test` container image via Docker; otherwise, Podman will be used. Defaults to `False`.
 
+- `RUN_ANSIBLE_LINT_ROLES` - Set to `True` to run `ansible-lint` on roles (only). Defaults to `False`.
+
+- `RUN_ANSIBLE_LINT_COLLECTION` - Set to `True` to run `ansible-lint` on the entire collection. Defaults to `True`.
+
+
+
 ### Issues and Process
 
 To file an issue, visit the [Automation Hub Jira project](https://issues.redhat.com/projects/AAH/issues)
