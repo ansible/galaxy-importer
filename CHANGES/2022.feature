@@ -1,0 +1,1 @@
+Adding `ansible-lint` collection level call for the `ansible-lint` Production profile, and adding additional configuration options to run `ansible-lint` on only roles or the whole collection. 
