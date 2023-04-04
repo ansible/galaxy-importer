@@ -547,13 +547,10 @@ def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_colle
     collection_loader._lint_collection()
     shutil.rmtree(task_dir)
 
-    assert (
-        "name[casing]: All names should start with an uppercase letter."
-        in str(caplog.records[0])
+    assert "name[casing]: All names should start with an uppercase letter." in str(
+        caplog.records[0]
     )
-    assert "jinja[spacing]: Jinja2 spacing could be improved:" in str(
-        caplog.records[1]
-    )
+    assert "jinja[spacing]: Jinja2 spacing could be improved:" in str(caplog.records[1])
 
 
 def test_ansiblelint_collection_meta_runtime_errors(
