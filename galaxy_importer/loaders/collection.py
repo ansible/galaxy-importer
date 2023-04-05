@@ -19,7 +19,10 @@ import logging
 import os
 import re
 
-import ansible_builder.introspect
+try:
+    import ansible_builder.introspect
+except ImportError:
+    import ansible_builder._target_scripts.introspect
 
 from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder, FileWalker
