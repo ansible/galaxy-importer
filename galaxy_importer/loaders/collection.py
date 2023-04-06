@@ -22,7 +22,10 @@ import shutil
 from subprocess import Popen, PIPE
 
 
-import ansible_builder.introspect
+try:
+    from ansible_builder import introspect
+except ImportError:
+    from ansible_builder._target_scripts import introspect
 
 from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder, FileWalker
@@ -200,7 +203,7 @@ class CollectionLoader(object):
         """
 
         try:
-            python_deps, system_deps = ansible_builder.introspect.process_collection(self.path)
+            python_deps, system_deps = introspect.process_collection(self.path)
         except FileNotFoundError as e:
             self.log.error(
                 f"Error when checking meta/execution-environment.yml for dependency files: {e}"
