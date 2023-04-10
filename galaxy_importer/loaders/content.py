@@ -21,7 +21,7 @@ import os
 from pathlib import Path
 import re
 import shutil
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, TimeoutExpired
 import yaml
 
 from galaxy_importer import constants
@@ -226,12 +226,18 @@ class RoleLoader(ContentLoader):
             stdout=PIPE,
             stderr=PIPE,
         )
-        proc.wait()
 
-        for line in proc.stdout:
+        try:
+            outs, errs = proc.communicate(timeout=120)
+        except TimeoutExpired:
+            self.log.error("Timeout on call to ansible-lint")
+            proc.kill()
+            outs, errs = proc.communicate()
+
+        for line in outs.splitlines():
             self.log.warning(line.strip())
 
-        for line in proc.stderr:
+        for line in errs.splitlines():
             if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
                 self.log.error(line.rstrip())
 
