@@ -229,7 +229,9 @@ class RoleLoader(ContentLoader):
 
         try:
             outs, errs = proc.communicate(timeout=120)
-        except TimeoutExpired:
+        except (
+            TimeoutExpired
+        ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
             self.log.error("Timeout on call to ansible-lint")
             proc.kill()
             outs, errs = proc.communicate()
