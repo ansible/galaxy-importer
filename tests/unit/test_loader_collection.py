@@ -581,15 +581,17 @@ def test_ansiblelint_collection_meta_runtime_errors(
 
 @mock.patch("galaxy_importer.loaders.collection.Popen")
 def test_ansiblelint_stderr_filter(mocked_popen, caplog):
-    mocked_popen.return_value.stdout = ["some ansible-lint violation output"]
-    mocked_popen.return_value.stderr = [
+    stdout = "some ansible-lint violation output"
+    stderr = (
         "Added ANSIBLE_LIBRARY=plugins/modules",
         "WARNING  Listing 1 violation(s) that are fatal",
         "warn_list:  # or 'skip_list' to silence them completely",
         "CRITICAL Couldn't parse task at /tmp/tmpmgx3gkpj",
         "Finished with 1 failure(s), 0 warning(s) on 5 files.",
         "ERROR  some_ansiblelint_error",
-    ]
+    )
+    mocked_popen.return_value.communicate.return_value = (stdout, stderr)
+    
     collection_loader = CollectionLoader(
         populated_collection_root,
         filename=None,

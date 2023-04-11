@@ -19,7 +19,7 @@ import logging
 import os
 import re
 import shutil
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, TimeoutExpired
 
 
 try:
@@ -143,15 +143,23 @@ class CollectionLoader(object):
             stdout=PIPE,
             stderr=PIPE,
         )
-        proc.wait()
 
-        for line in proc.stdout:
+        try:
+            outs, errs = proc.communicate(timeout=120)
+        except (
+            TimeoutExpired
+        ): # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
+            self.log.error("Timeout on call to ansible-lint")
+            proc.kill()
+            outs, errs = proc.communicate()
+            
+        for line in outs.splitlines():
             if line.endswith("(warning)\n"):
                 self.log.warning(line.strip())
             else:
                 self.log.error(line.strip())
 
-        for line in proc.stderr:
+        for line in errs.splitlines():
             if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
                 self.log.error(line.rstrip())
 
