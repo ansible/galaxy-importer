@@ -1,3 +1,12 @@
+galaxy-importer 0.4.8 (2023-04-06)
+==================================
+
+Bugfixes
+--------
+
+- Forward compatibilty with ansible-builder
+
+
 galaxy-importer 0.4.7 (2023-04-03)
 ==================================
 

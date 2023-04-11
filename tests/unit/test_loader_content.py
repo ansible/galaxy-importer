@@ -318,15 +318,17 @@ def test_ansiblelint_role_no_warn(temp_root, loader_role, caplog):
 
 @mock.patch("galaxy_importer.loaders.content.Popen")
 def test_ansiblelint_stderr_filter(mocked_popen, loader_role, caplog):
-    mocked_popen.return_value.stdout = ["some ansible-lint violation output"]
-    mocked_popen.return_value.stderr = [
-        "Added ANSIBLE_LIBRARY=plugins/modules",
-        "WARNING  Listing 1 violation(s) that are fatal",
-        "warn_list:  # or 'skip_list' to silence them completely",
-        "CRITICAL Couldn't parse task at /tmp/tmpmgx3gkpj",
-        "Finished with 1 failure(s), 0 warning(s) on 5 files.",
-        "ERROR  some_ansiblelint_error",
-    ]
+    stdout = "some ansible-lint violation output"
+    stderr = (
+        "Added ANSIBLE_LIBRARY=plugins/modules\n"
+        "WARNING  Listing 1 violation(s) that are fatal\n"
+        "warn_list:  # or 'skip_list' to silence them completely\n"
+        "CRITICAL Couldn't parse task at /tmp/tmpmgx3gkpj\n"
+        "Finished with 1 failure(s), 0 warning(s) on 5 files.\n"
+        "ERROR  some_ansiblelint_error"
+    )
+    mocked_popen.return_value.communicate.return_value = (stdout, stderr)
+
     loader_role._lint_role("")
     assert len(caplog.records) == 3
     assert "some ansible-lint violation output" in str(caplog.records[0])
