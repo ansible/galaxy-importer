@@ -41,8 +41,6 @@ class Config(object):
         "require_v1_or_greater": False,
         "run_ansible_doc": True,
         "run_ansible_lint": True,
-        "run_ansible_lint_roles": False,
-        "run_ansible_lint_collection": True,
         "run_ansible_test": False,
         "run_flake8": False,
         "tmp_root_dir": None,

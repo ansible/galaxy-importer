@@ -99,9 +99,7 @@ def loader_role():
     return loaders.RoleLoader(
         content_type=constants.ContentType.ROLE,
         rel_path="roles/my_sample_role",
-        cfg=SimpleNamespace(
-            run_ansible_lint=True, run_ansible_lint_roles=True, ansible_local_tmp="~/.ansible/tmp"
-        ),
+        cfg=SimpleNamespace(run_ansible_lint=True, ansible_local_tmp="~/.ansible/tmp"),
         root="/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection",
     )
 
@@ -239,31 +237,6 @@ def test_flake8_output(mocked_popen, loader_module):
     assert res[0] == "my flake8 warning"
 
 
-ANSIBLELINT_TASK_OK = """---
-- name: Add mongodb repo apt_key
-  become: true
-  ansible.builtin.apt_key:
-    keyserver: hkp
-  until: result.rc == 0
-"""
-
-ANSIBLELINT_PLAYBOOK_WARN = """---
-- name: Playbook that warns names should be uppercase
-  hosts: all
-  tasks:
-    - name: edit vimrc (lint says name should be uppercase)
-      ansible.builtin.lineinfile:
-        path: /etc/vimrc
-        line: "{{var_spacing_problem}}"
-"""
-
-ANSIBLELINT_TASK_WARN = """---
-- name: edit vimrc (lint says name should be uppercase)
-  ansible.builtin.lineinfile:
-    path: /etc/vimrc
-    line: "{{var_spacing_problem}}"
-"""
-
 ROLE_METADATA = """---
 galaxy_info:
   description: Test description inside metadata
@@ -283,57 +256,6 @@ def temp_root():
         yield tmp
     finally:
         shutil.rmtree(tmp)
-
-
-def test_ansiblelint_file(loader_role, caplog):
-    loader_role.root = None
-    with tempfile.NamedTemporaryFile("w", suffix=".yml") as fp:
-        fp.write(ANSIBLELINT_PLAYBOOK_WARN)
-        fp.flush()
-        loader_role._lint_role(fp.name)
-    assert "All names should start with an uppercase letter" in str(caplog.records[0])
-
-
-def test_ansiblelint_role(temp_root, loader_role, caplog):
-    task_dir = os.path.join(temp_root, "tasks")
-    loader_role.root = None
-    os.makedirs(task_dir)
-    with open(os.path.join(task_dir, "main.yml"), "w") as fp:
-        fp.write(ANSIBLELINT_TASK_WARN)
-        fp.flush()
-        loader_role._lint_role(temp_root)
-    assert "All names should start with an uppercase letter" in str(caplog.records[0])
-
-
-def test_ansiblelint_role_no_warn(temp_root, loader_role, caplog):
-    loader_role.root = None
-    task_dir = os.path.join(temp_root, "tasks")
-    os.makedirs(task_dir)
-    with open(os.path.join(task_dir, "main.yml"), "w") as fp:
-        fp.write(ANSIBLELINT_TASK_OK)
-        fp.flush()
-        loader_role._lint_role(temp_root)
-    assert len(caplog.records) == 0
-
-
-@mock.patch("galaxy_importer.loaders.content.Popen")
-def test_ansiblelint_stderr_filter(mocked_popen, loader_role, caplog):
-    stdout = "some ansible-lint violation output"
-    stderr = (
-        "Added ANSIBLE_LIBRARY=plugins/modules\n"
-        "WARNING  Listing 1 violation(s) that are fatal\n"
-        "warn_list:  # or 'skip_list' to silence them completely\n"
-        "CRITICAL Couldn't parse task at /tmp/tmpmgx3gkpj\n"
-        "Finished with 1 failure(s), 0 warning(s) on 5 files.\n"
-        "ERROR  some_ansiblelint_error"
-    )
-    mocked_popen.return_value.communicate.return_value = (stdout, stderr)
-
-    loader_role._lint_role("")
-    assert len(caplog.records) == 3
-    assert "some ansible-lint violation output" in str(caplog.records[0])
-    assert "CRITICAL Couldn't parse task" in str(caplog.records[1])
-    assert "ERROR  some_ansiblelint_error" in str(caplog.records[2])
 
 
 def test_find_metadata_file_path(temp_root, loader_role):
@@ -386,9 +308,7 @@ def test_get_role_readme_fail(temp_root, loader_role):
         loader_role._get_readme()
 
 
-@mock.patch.object(loaders.RoleLoader, "_lint_role")
-def test_load_role(mocked_lint_role, temp_root, loader_role):
-    mocked_lint_role.return_value = "ANSIBLE_LINT_OUTPUT"
+def test_load_role(temp_root, loader_role):
     loader_role.root = ""
     loader_role.rel_path = temp_root
 
@@ -410,14 +330,3 @@ def test_no_flake8_bin(mocked_shutil_which, loader_module, caplog):
     assert loader_module.name == "my_module"
     loader_module.load()
     assert "flake8 not found, skipping" in [r.message for r in caplog.records]
-
-
-@mock.patch("shutil.which")
-def test_no_ansible_lint_bin(mocked_shutil_which, temp_root, loader_role, caplog):
-    mocked_shutil_which.return_value = False
-    loader_role.root = ""
-    loader_role.rel_path = temp_root
-    with open(os.path.join(temp_root, "README.md"), "w") as fp:
-        fp.write("This is the role readme text")
-    loader_role.load()
-    assert "ansible-lint not found, skipping lint of role" in [r.message for r in caplog.records]

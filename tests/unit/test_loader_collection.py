@@ -506,9 +506,41 @@ ANSIBLELINT_TASK_WARN = """---
     line: "{{var_spacing_problem}}"
 """
 
+ANSIBLELINT_PLAYBOOK_WARN = """---
+- name: Playbook that warns names should be uppercase
+  hosts: all
+  tasks:
+    - name: edit vimrc (lint says name should be uppercase)
+      ansible.builtin.lineinfile:
+        path: /etc/vimrc
+        line: "{{var_spacing_problem}}"
+"""
+
 ANSIBLELINT_META_RUNTIME_YAML_ERROR = """---
 requires_ansible: '>=2.9'
 """
+
+
+def test_ansiblelint_playbook_errors(populated_collection_root, tmp_collection_root, caplog):
+    playbook_dir = os.path.join(tmp_collection_root, "playbooks")
+    os.makedirs(playbook_dir)
+    with open(os.path.join(playbook_dir, "test_playbook.yml"), "w") as fh:
+        fh.write(ANSIBLELINT_PLAYBOOK_WARN)
+        fh.flush()
+
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader._lint_collection()
+    shutil.rmtree(playbook_dir)
+
+    assert "All names should start with an uppercase letter" in str(caplog.records[0])
 
 
 def test_ansiblelint_collection_pass(populated_collection_root, tmp_collection_root, caplog):
@@ -518,7 +550,6 @@ def test_ansiblelint_collection_pass(populated_collection_root, tmp_collection_r
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
-            run_ansible_lint_collection=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
@@ -540,7 +571,6 @@ def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_colle
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
-            run_ansible_lint_collection=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
@@ -566,7 +596,6 @@ def test_ansiblelint_collection_meta_runtime_errors(
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
-            run_ansible_lint_collection=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
@@ -583,28 +612,44 @@ def test_ansiblelint_collection_meta_runtime_errors(
 def test_ansiblelint_stderr_filter(mocked_popen, caplog):
     stdout = "some ansible-lint violation output"
     stderr = (
-        "Added ANSIBLE_LIBRARY=plugins/modules",
-        "WARNING  Listing 1 violation(s) that are fatal",
-        "warn_list:  # or 'skip_list' to silence them completely",
-        "CRITICAL Couldn't parse task at /tmp/tmpmgx3gkpj",
-        "Finished with 1 failure(s), 0 warning(s) on 5 files.",
-        "ERROR  some_ansiblelint_error",
+        "Added ANSIBLE_LIBRARY=plugins/modules\n"
+        "WARNING  Listing 1 violation(s) that are fatal\n"
+        "warn_list:  # or 'skip_list' to silence them completely\n"
+        "CRITICAL Couldn't parse task at /tmp/tmpmgx3gkpj\n"
+        "Finished with 1 failure(s), 0 warning(s) on 5 files\n"
+        "ERROR  some_ansiblelint_error"
     )
     mocked_popen.return_value.communicate.return_value = (stdout, stderr)
-    
+
     collection_loader = CollectionLoader(
         populated_collection_root,
         filename=None,
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
-            run_ansible_lint_collection=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
-
     collection_loader._lint_collection()
     assert len(caplog.records) == 3
     assert "some ansible-lint violation output" in str(caplog.records[0])
     assert "CRITICAL Couldn't parse task" in str(caplog.records[1])
     assert "ERROR  some_ansiblelint_error" in str(caplog.records[2])
+
+
+@mock.patch("shutil.which")
+def test_no_ansible_lint_bin(mocked_shutil_which, tmp_collection_root, caplog):
+    mocked_shutil_which.return_value = False
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader._lint_collection()
+    assert "ansible-lint not found, skipping lint of collection" in [
+        r.message for r in caplog.records
+    ]

@@ -92,7 +92,7 @@ class CollectionLoader(object):
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
         self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
-        if self.cfg.run_ansible_lint and self.cfg.run_ansible_lint_collection:
+        if self.cfg.run_ansible_lint:
             self._lint_collection()
         self._check_ansible_test_ignore_files()
         self._check_ee_yml_dep_files()
@@ -148,13 +148,13 @@ class CollectionLoader(object):
             outs, errs = proc.communicate(timeout=120)
         except (
             TimeoutExpired
-        ): # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
+        ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
             self.log.error("Timeout on call to ansible-lint")
             proc.kill()
             outs, errs = proc.communicate()
-            
+
         for line in outs.splitlines():
-            if line.endswith("(warning)\n"):
+            if line.endswith("(warning)"):
                 self.log.warning(line.strip())
             else:
                 self.log.error(line.strip())

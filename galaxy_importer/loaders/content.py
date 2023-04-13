@@ -21,7 +21,7 @@ import os
 from pathlib import Path
 import re
 import shutil
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE
 import yaml
 
 from galaxy_importer import constants
@@ -171,9 +171,6 @@ class RoleLoader(ContentLoader):
         description = self._get_metadata_description()
         readme = self._get_readme()
 
-        if self.cfg.run_ansible_lint and self.cfg.run_ansible_lint_roles:
-            self._lint_role(self.rel_path)
-
         return schema.Content(
             name=self.path_name,
             content_type=self.content_type,
@@ -190,58 +187,6 @@ class RoleLoader(ContentLoader):
     def _make_path_name(rel_path, name):
         dirname_parts = Path(os.path.dirname(rel_path)).parts[1:]
         return ".".join(list(dirname_parts) + [name])
-
-    def _lint_role(self, path):
-        """Log ansible-lint output.
-
-        ansible-lint stdout are linter violations, they are logged as warnings.
-
-        ansible-lint stderr includes info about vars, file discovery,
-        summary of linter violations, config suggestions, and raised errors.
-        Only raised errors are logged, they are logged as errors.
-        """
-
-        self.log.info(f"Linting role {self.path_name} via ansible-lint...")
-
-        if not shutil.which("ansible-lint"):
-            self.log.warning("ansible-lint not found, skipping lint of role")
-            return
-
-        cmd = [
-            "/usr/bin/env",
-            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
-            "ansible-lint",
-            path,
-            "--parseable",
-            "--skip-list",
-            "metadata",
-            "--project-dir",
-            os.path.dirname(path),
-        ]
-        self.log.debug("CMD: " + " ".join(cmd))
-        proc = Popen(
-            cmd,
-            cwd=self.root,
-            encoding="utf-8",
-            stdout=PIPE,
-            stderr=PIPE,
-        )
-
-        try:
-            outs, errs = proc.communicate(timeout=120)
-        except (
-            TimeoutExpired
-        ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
-            self.log.error("Timeout on call to ansible-lint")
-            proc.kill()
-            outs, errs = proc.communicate()
-
-        for line in outs.splitlines():
-            self.log.warning(line.strip())
-
-        for line in errs.splitlines():
-            if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
-                self.log.error(line.rstrip())
 
     def _get_readme(self):
         readme = markup_utils.get_readme_doc_file(os.path.join(self.root, self.rel_path))
