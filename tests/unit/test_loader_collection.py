@@ -636,6 +636,7 @@ def test_ansiblelint_stderr_filter(mocked_popen, caplog):
     assert "CRITICAL Couldn't parse task" in str(caplog.records[1])
     assert "ERROR  some_ansiblelint_error" in str(caplog.records[2])
 
+
 @mock.patch("galaxy_importer.loaders.collection.Popen")
 def test_ansiblelint_warning_log(mocked_popen, caplog):
     stdout = "some ansible-lint violation output (warning)"
@@ -654,6 +655,7 @@ def test_ansiblelint_warning_log(mocked_popen, caplog):
     collection_loader._lint_collection()
 
     assert caplog.records[0].levelname == "WARNING"
+
 
 @mock.patch("galaxy_importer.loaders.collection.Popen")
 def test_ansiblelint_error_log(mocked_popen, caplog):
