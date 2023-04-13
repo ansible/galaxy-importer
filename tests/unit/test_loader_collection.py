@@ -558,6 +558,21 @@ def test_ansiblelint_collection_pass(populated_collection_root, tmp_collection_r
     assert len(caplog.records) == 0
 
 
+def test_ansiblelint_true_loader(populated_collection_root, tmp_collection_root, caplog):
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader.load()
+
+    assert len(caplog.records) == 1  # Changelog error expected
+
+
 def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_collection_root, caplog):
     task_dir = os.path.join(tmp_collection_root, "tasks")
     os.makedirs(task_dir)
