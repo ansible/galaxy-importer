@@ -636,6 +636,44 @@ def test_ansiblelint_stderr_filter(mocked_popen, caplog):
     assert "CRITICAL Couldn't parse task" in str(caplog.records[1])
     assert "ERROR  some_ansiblelint_error" in str(caplog.records[2])
 
+@mock.patch("galaxy_importer.loaders.collection.Popen")
+def test_ansiblelint_warning_log(mocked_popen, caplog):
+    stdout = "some ansible-lint violation output (warning)"
+    stderr = ""
+    mocked_popen.return_value.communicate.return_value = (stdout, stderr)
+
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader._lint_collection()
+
+    assert caplog.records[0].levelname == "WARNING"
+
+@mock.patch("galaxy_importer.loaders.collection.Popen")
+def test_ansiblelint_error_log(mocked_popen, caplog):
+    stdout = "some ansible-lint violation output"
+    stderr = ""
+    mocked_popen.return_value.communicate.return_value = (stdout, stderr)
+
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader._lint_collection()
+
+    assert caplog.records[0].levelname == "ERROR"
+
 
 @mock.patch("shutil.which")
 def test_no_ansible_lint_bin(mocked_shutil_which, tmp_collection_root, caplog):
