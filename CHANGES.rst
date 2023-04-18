@@ -1,3 +1,16 @@
+galaxy-importer 0.4.9 (2023-04-18)
+==================================
+
+Bugfixes
+--------
+
+- Prevent deadlock in os process call (`AAH-2145 <https://issues.redhat.com/browse/AAH-2145>`_)
+
+Misc
+----
+- Update ansible-builder dependency range
+
+
 galaxy-importer 0.4.8 (2023-04-06)
 ==================================
 
