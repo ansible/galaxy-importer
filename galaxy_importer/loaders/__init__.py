@@ -17,6 +17,10 @@ from .runtime_file import (
     RuntimeFileLoader,
 )
 
+from .extensions_file import (
+    ExtensionsFileLoader,
+)
+
 __all__ = (
     "CollectionLoader",
     "ContentLoader",
@@ -25,4 +29,5 @@ __all__ = (
     "get_loader_cls",
     "DocStringLoader",
     "RuntimeFileLoader",
+    "ExtensionsFileLoader",
 )

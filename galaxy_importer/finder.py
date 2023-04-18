@@ -22,7 +22,7 @@ import os
 
 import attr
 
-from galaxy_importer import constants
+from galaxy_importer import constants, loaders
 
 
 default_logger = logging.getLogger(__name__)
@@ -106,6 +106,27 @@ class ContentFinder(object):
                     "plugins/" + content_type.value,
                     self._find_plugins,
                 )
+
+        for content_type, full_path in self._get_ext_types_and_path():
+            yield content_type, full_path, self._find_plugins
+
+    def _get_ext_types_and_path(self):
+        extension_dirs = loaders.ExtensionsFileLoader(self.path).get_extension_dirs()
+
+        # remove ext_dir not currently allowed in the content list
+        for ext_dir in list(extension_dirs):
+            if ext_dir not in constants.ALLOWED_EXTENSION_DIRS:
+                self.log.warning(
+                    f"The extension type '{ext_dir}' listed in 'meta/extensions.yml' is "
+                    "custom and will not be listed in Galaxy's contents nor documentation"
+                )
+                extension_dirs.remove(ext_dir)
+
+        content_types_and_dirs = [
+            (constants.ContentType(dir), f"extensions/{dir}") for dir in extension_dirs
+        ]
+
+        return content_types_and_dirs
 
 
 @attr.s
