@@ -18,7 +18,7 @@
 import pytest
 
 from galaxy_importer import exceptions as exc
-from galaxy_importer import loaders
+from galaxy_importer import file_parser
 
 
 RUNTIME_REQUIRES_ANSIBLE = "requires_ansible: '>=2.9.10,<2.11.5'"
@@ -43,18 +43,18 @@ BAD_VERSION_SPEC = "requires_ansible: '37'"
 
 
 def test_no_runtime_file(tmpdir):
-    loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
+    loader = file_parser.RuntimeFileParser(collection_path=tmpdir)
     assert loader.data is None
 
 
 def test_runtime_file_bad_yaml(tmpdir):
     tmpdir.mkdir("meta").join("runtime.yml").write(BAD_YAML)
     with pytest.raises(exc.RuntimeFileError, match="Error during parsing of runtime.yml"):
-        loaders.RuntimeFileLoader(collection_path=tmpdir)
+        file_parser.RuntimeFileParser(collection_path=tmpdir)
 
 
 def test_runtime_no_meta_runtime(tmpdir):
-    loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
+    loader = file_parser.RuntimeFileParser(collection_path=tmpdir)
     with pytest.raises(
         exc.RuntimeFileError,
         match=r"'requires_ansible' in meta/runtime.yml is mandatory",
@@ -64,7 +64,7 @@ def test_runtime_no_meta_runtime(tmpdir):
 
 def test_no_requires_ansible(tmpdir):
     tmpdir.mkdir("meta").join("runtime.yml").write(RUNTIME_PLUGIN_ROUTING)
-    loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
+    loader = file_parser.RuntimeFileParser(collection_path=tmpdir)
     with pytest.raises(
         exc.RuntimeFileError,
         match=r"'requires_ansible' in meta/runtime.yml is mandatory",
@@ -74,7 +74,7 @@ def test_no_requires_ansible(tmpdir):
 
 def test_get_requires_ansible(tmpdir):
     tmpdir.mkdir("meta").join("runtime.yml").write(RUNTIME_FULL_YAML)
-    loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
+    loader = file_parser.RuntimeFileParser(collection_path=tmpdir)
     requires_ansible = loader.get_requires_ansible()
     assert requires_ansible == ">=2.9.10,<2.11.5"
 
@@ -85,7 +85,7 @@ def test_too_long_requires_ansible(tmpdir):
         exc.RuntimeFileError,
         match="'requires_ansible' must not be greater than 255 characters",
     ):
-        loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
+        loader = file_parser.RuntimeFileParser(collection_path=tmpdir)
         loader.get_requires_ansible()
 
 
@@ -95,5 +95,5 @@ def test_bad_version_spec(tmpdir):
         exc.RuntimeFileError,
         match="not a valid requirement specification",
     ):
-        loader = loaders.RuntimeFileLoader(collection_path=tmpdir)
+        loader = file_parser.RuntimeFileParser(collection_path=tmpdir)
         loader.get_requires_ansible()

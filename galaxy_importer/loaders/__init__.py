@@ -13,14 +13,6 @@ from .doc_string import (
     DocStringLoader,
 )
 
-from .runtime_file import (
-    RuntimeFileLoader,
-)
-
-from .extensions_file import (
-    ExtensionsFileLoader,
-)
-
 __all__ = (
     "CollectionLoader",
     "ContentLoader",
@@ -28,6 +20,4 @@ __all__ = (
     "RoleLoader",
     "get_loader_cls",
     "DocStringLoader",
-    "RuntimeFileLoader",
-    "ExtensionsFileLoader",
 )

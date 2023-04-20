@@ -22,7 +22,8 @@ import os
 
 import attr
 
-from galaxy_importer import constants, loaders
+from galaxy_importer import constants
+from galaxy_importer.file_parser import ExtensionsFileParser
 
 
 default_logger = logging.getLogger(__name__)
@@ -111,7 +112,7 @@ class ContentFinder(object):
             yield content_type, full_path, self._find_plugins
 
     def _get_ext_types_and_path(self):
-        extension_dirs = loaders.ExtensionsFileLoader(self.path).get_extension_dirs()
+        extension_dirs = ExtensionsFileParser(self.path).get_extension_dirs()
 
         if not extension_dirs:
             return []

@@ -1,4 +1,4 @@
-# (c) 2012-2019, Ansible by Red Hat
+# (c) 2012-2023, Ansible by Red Hat
 #
 # This file is part of Ansible Galaxy
 #
@@ -26,7 +26,7 @@ from galaxy_importer.utils import requires_ansible_version
 default_logger = logging.getLogger(__name__)
 
 
-class RuntimeFileLoader:
+class RuntimeFileParser:
     """Load meta/runtime.yml."""
 
     def __init__(self, collection_path):
@@ -67,3 +67,27 @@ class RuntimeFileLoader:
             raise exc.RuntimeFileError(
                 "'requires_ansible' is not a valid requirement specification"
             )
+
+
+class ExtensionsFileParser:
+    """Load meta/extensions.yml."""
+
+    def __init__(self, collection_path):
+        self.path = os.path.join(collection_path, "meta/extensions.yml")
+        self.data = None
+        self._load()
+
+    def _load(self):
+        if not os.path.exists(self.path):
+            return
+        with open(self.path) as fp:
+            try:
+                self.data = yaml.safe_load(fp)
+            except Exception:
+                raise exc.RuntimeFileError("Error during parsing of extensions.yml")
+
+    def get_extension_dirs(self):
+        if not self.data:
+            return None
+        # TODO: consider check that ext_dir actually exists and fail import if not
+        return [ext["args"]["ext_dir"] for ext in self.data["extensions"]]
