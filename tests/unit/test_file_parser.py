@@ -48,7 +48,7 @@ extensions:
   - args:
       ext_dir: eda/plugins/event_sources
   - args:
-      ext_dir: custom_prod/plugins/custom_type
+      ext_dir: custom/plugins/custom_type
 """
 
 EXTENSIONS_MISSING_EXTENSIONS_KEY = """
@@ -143,7 +143,7 @@ def test_extensions_file_good_yaml(tmpdir):
     assert parser.get_extension_dirs() == [
         "eda/plugins/event_filters",
         "eda/plugins/event_sources",
-        "custom_prod/plugins/custom_type",
+        "custom/plugins/custom_type",
     ]
 
 
@@ -158,3 +158,9 @@ def test_extensions_file_missing_keys(tmpdir, extensions_yaml):
     ):
         parser = file_parser.ExtensionsFileParser(collection_path=tmpdir)
         parser.get_extension_dirs()
+
+
+def test_no_extensions_file(tmpdir):
+    # no error expected if meta/extensions.yml is not present
+    parser = file_parser.ExtensionsFileParser(collection_path=tmpdir)
+    parser.get_extension_dirs()
