@@ -113,6 +113,9 @@ class ContentFinder(object):
     def _get_ext_types_and_path(self):
         extension_dirs = loaders.ExtensionsFileLoader(self.path).get_extension_dirs()
 
+        if not extension_dirs:
+            return []
+
         # remove ext_dir not currently allowed in the content list
         for ext_dir in list(extension_dirs):
             if ext_dir not in constants.ALLOWED_EXTENSION_DIRS:
