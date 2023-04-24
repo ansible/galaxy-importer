@@ -30,7 +30,6 @@ IMPORTER_INI_SECTION = "galaxy-importer"
 class Config(object):
     """Configuration for galaxy-importer."""
 
-    # TODO: remove run_ansible_lint?
     DEFAULTS = {
         "ansible_local_tmp": "~/.ansible/tmp",
         "ansible_test_local_image": False,

@@ -92,11 +92,12 @@ class CollectionLoader(object):
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
         self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
+        self._check_ee_yml_dep_files()
+        self._check_collection_changelog()
+
         if self.cfg.run_ansible_lint:
             self._lint_collection()
         self._check_ansible_test_ignore_files()
-        self._check_ee_yml_dep_files()
-        self._check_collection_changelog()
 
         return schema.ImportResult(
             metadata=self.metadata,
@@ -154,14 +155,11 @@ class CollectionLoader(object):
             outs, errs = proc.communicate()
 
         for line in outs.splitlines():
-            if line.endswith("(warning)"):
-                self.log.warning(line.strip())
-            else:
-                self.log.error(line.strip())
+            self.log.warning(line.strip())
 
         for line in errs.splitlines():
             if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
-                self.log.error(line.rstrip())
+                self.log.warning(line.rstrip())
 
         self.log.info("...ansible-lint run complete")
 
