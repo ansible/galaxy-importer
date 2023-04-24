@@ -5,6 +5,7 @@ from .collection import (
 from .content import (
     ContentLoader,
     PluginLoader,
+    ExtensionLoader,
     RoleLoader,
     get_loader_cls,
 )
@@ -17,6 +18,7 @@ __all__ = (
     "CollectionLoader",
     "ContentLoader",
     "PluginLoader",
+    "ExtensionLoader",
     "RoleLoader",
     "get_loader_cls",
     "DocStringLoader",

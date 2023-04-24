@@ -84,6 +84,17 @@ def loader_module():
 
 
 @pytest.fixture
+def loader_exension():
+    return loaders.ExtensionLoader(
+        content_type=constants.ContentType.EDA_EVENT_SOURCE,
+        rel_path="extensions/eda/plugins/event_sources/my_event_source.py",
+        root="/tmp_placeholder/tmp_placeholder/ansible_collections/my_ns/my_collection",
+        cfg=SimpleNamespace(run_flake8=True),
+        doc_strings={},
+    )
+
+
+@pytest.fixture
 def loader_doc_fragment():
     return loaders.PluginLoader(
         content_type=constants.ContentType.DOC_FRAGMENTS_PLUGIN,
@@ -133,10 +144,18 @@ def test_get_loader_cls():
     assert issubclass(res, loaders.RoleLoader)
     assert not issubclass(res, loaders.PluginLoader)
 
+    res = loaders.get_loader_cls(constants.ContentType.EDA_EVENT_SOURCE)
+    assert issubclass(res, loaders.ExtensionLoader)
+
 
 def test_init_plugin_loader(loader_module):
     assert loader_module.name == "my_module"
     assert loader_module.path_name == "my_module"
+
+
+def test_init_extension_loader(loader_exension):
+    assert loader_exension.name == "my_event_source"
+    assert loader_exension.path_name == "my_event_source"
 
 
 def test_init_role_loader(loader_role):
