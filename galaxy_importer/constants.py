@@ -46,8 +46,8 @@ NAME_REGEXP = re.compile(r"^(?!.*__)[a-z]+[0-9a-z_]*$")
 
 # For these extensions we support listing them in the galaxy contents list
 # In the future we may allow any extension to be listed, and call ansible-doc on it
-EDA_EVENT_SOURCE_NAME = "eda/plugins/event_sources"
-EDA_EVENT_FILTER_NAME = "eda/plugins/event_filters"
+EDA_EVENT_SOURCE_NAME = "eda/plugins/event_source"
+EDA_EVENT_FILTER_NAME = "eda/plugins/event_filter"
 ALLOWED_EXTENSION_DIRS = [
     EDA_EVENT_SOURCE_NAME,
     EDA_EVENT_FILTER_NAME,

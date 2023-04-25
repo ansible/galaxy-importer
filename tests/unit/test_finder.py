@@ -31,9 +31,9 @@ log = logging.getLogger(__name__)
 EXTENSIONS_META = """
 extensions:
   - args:
-      ext_dir: eda/plugins/event_filters
+      ext_dir: eda/plugins/event_filter
   - args:
-      ext_dir: eda/plugins/event_sources
+      ext_dir: eda/plugins/event_source
   - args:
       ext_dir: custom/plugins/custom_type
 """
@@ -129,7 +129,7 @@ class TestContentFinder(unittest.TestCase):
         assert len(content_items) == 1
 
     def test_extensions_metadata_and_path_exist(self):
-        event_sources_path = os.path.join(self.temp_dir, "extensions/eda/plugins/event_sources")
+        event_sources_path = os.path.join(self.temp_dir, "extensions/eda/plugins/event_source")
         os.makedirs(event_sources_path, exist_ok=True)
         with open(os.path.join(event_sources_path, "my_event_source.py"), "w"):
             pass
@@ -143,8 +143,8 @@ class TestContentFinder(unittest.TestCase):
 
         contents = list(ContentFinder().find_contents(self.temp_dir))
         assert len(contents) == 1
-        assert contents[0].content_type.value == "eda/plugins/event_sources"
-        assert contents[0].path == "extensions/eda/plugins/event_sources/my_event_source.py"
+        assert contents[0].content_type.value == "eda/plugins/event_source"
+        assert contents[0].path == "extensions/eda/plugins/event_source/my_event_source.py"
 
         custom_ext_log = (
             "The extension type 'custom/plugins/custom_type' listed in 'meta/extensions.yml' "
@@ -163,7 +163,7 @@ class TestContentFinder(unittest.TestCase):
         assert len(contents) == 0
 
     def test_extensions_path_exists_metadata_not(self):
-        event_sources_path = os.path.join(self.temp_dir, "extensions/eda/plugins/event_sources")
+        event_sources_path = os.path.join(self.temp_dir, "extensions/eda/plugins/event_source")
         os.makedirs(event_sources_path, exist_ok=True)
         with open(os.path.join(event_sources_path, "my_event_source.py"), "w"):
             pass
