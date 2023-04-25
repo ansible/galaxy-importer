@@ -76,5 +76,5 @@ class ContentNameError(ImporterError):
     pass
 
 
-class RuntimeFileError(ImporterError):
+class FileParserError(ImporterError):
     pass

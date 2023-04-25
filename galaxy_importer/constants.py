@@ -44,12 +44,22 @@ MAX_LENGTH_REQUIRES_ANSIBLE = 255
 MAX_TAGS_COUNT = 20
 NAME_REGEXP = re.compile(r"^(?!.*__)[a-z]+[0-9a-z_]*$")
 
+# For these extensions we support listing them in the galaxy contents list
+# In the future we may allow any extension to be listed, and call ansible-doc on it
+EDA_EVENT_SOURCE_NAME = "eda/plugins/event_source"
+EDA_EVENT_FILTER_NAME = "eda/plugins/event_filter"
+ALLOWED_EXTENSION_DIRS = [
+    EDA_EVENT_SOURCE_NAME,
+    EDA_EVENT_FILTER_NAME,
+]
+
 
 class ContentCategory(enum.Enum):
     MODULE = "module"
     ROLE = "role"
     PLUGIN = "plugin"
     PLAYBOOK = "playbook"
+    EXTENSION = "extension"
 
 
 class ContentType(enum.Enum):
@@ -73,6 +83,8 @@ class ContentType(enum.Enum):
     TERMINAL_PLUGIN = "terminal"
     TEST_PLUGIN = "test"
     VARS_PLUGIN = "vars"
+    EDA_EVENT_SOURCE = EDA_EVENT_SOURCE_NAME
+    EDA_EVENT_FILTER = EDA_EVENT_FILTER_NAME
 
     @property
     def category(self):
@@ -97,4 +109,6 @@ class ContentType(enum.Enum):
             ContentType.TERMINAL_PLUGIN: ContentCategory.PLUGIN,
             ContentType.TEST_PLUGIN: ContentCategory.PLUGIN,
             ContentType.VARS_PLUGIN: ContentCategory.PLUGIN,
+            ContentType.EDA_EVENT_SOURCE: ContentCategory.EXTENSION,
+            ContentType.EDA_EVENT_FILTER: ContentCategory.EXTENSION,
         }.get(self)
