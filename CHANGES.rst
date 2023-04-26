@@ -1,3 +1,12 @@
+galaxy-importer 0.4.10 (2023-04-25)
+==================================
+
+Features
+--------
+
+- Find and load eda extensions into content list (`AAH-2311 <https://issues.redhat.com/browse/AAH-2311>`_)
+
+
 galaxy-importer 0.4.9 (2023-04-18)
 ==================================
 
