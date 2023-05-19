@@ -87,9 +87,10 @@ then
         tox -e pylint-event-filter -q -- /ansible_collections/"$NAMESPACE"/"$NAME"
     else
         echo "No EDA event_filter plugins found."
-    fi 
+    fi
+    echo "EDA linting complete."
 
 else
     echo "No EDA content found. Skipping linters."
 fi
-echo "EDA linting complete."
+
