@@ -165,6 +165,15 @@ class PluginLoader(ContentLoader):
         return ".".join(list(dirname_parts) + [name])
 
 
+class ExtensionLoader(PluginLoader):
+    @staticmethod
+    def _make_path_name(rel_path, name):
+        """Not expecting extensions to exist in subdirs like other content types,
+        can simply return name
+        """
+        return name
+
+
 class RoleLoader(ContentLoader):
     def load(self):
         self._log_loading()
@@ -231,4 +240,7 @@ def get_loader_cls(content_type):
         constants.ContentCategory.MODULE,
     ]:
         return PluginLoader
+    elif content_type.category == constants.ContentCategory.EXTENSION:
+        return ExtensionLoader
+
     return None

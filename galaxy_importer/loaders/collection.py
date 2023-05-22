@@ -29,9 +29,8 @@ except ImportError:
 
 from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder, FileWalker
-from galaxy_importer import loaders
-from galaxy_importer import schema
 from galaxy_importer import constants
+from galaxy_importer import loaders, file_parser, schema
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils import chksums
 from galaxy_importer.utils import string_utils
@@ -91,7 +90,7 @@ class CollectionLoader(object):
 
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
-        self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
+        self.requires_ansible = file_parser.RuntimeFileParser(self.path).get_requires_ansible()
         self._check_ee_yml_dep_files()
         self._check_collection_changelog()
 

@@ -1,4 +1,4 @@
-# (c) 2012-2019, Ansible by Red Hat
+# (c) 2012-2023, Ansible by Red Hat
 #
 # This file is part of Ansible Galaxy
 #
@@ -28,6 +28,17 @@ from galaxy_importer.finder import ContentFinder, FileWalker
 log = logging.getLogger(__name__)
 
 
+EXTENSIONS_META = """
+extensions:
+  - args:
+      ext_dir: eda/plugins/event_filter
+  - args:
+      ext_dir: eda/plugins/event_source
+  - args:
+      ext_dir: custom/plugins/custom_type
+"""
+
+
 class TestContentFinder(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -41,6 +52,10 @@ class TestContentFinder(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
+
+    @pytest.fixture(autouse=True)
+    def inject_caplog(self, caplog):
+        self._caplog = caplog
 
     def test_find_content(self):
         with open(os.path.join(self.module_dir, "__init__.py"), "w"):
@@ -112,6 +127,49 @@ class TestContentFinder(unittest.TestCase):
         content_items = [os.path.basename(c.path) for c in contents]
         assert "my_role" in content_items
         assert len(content_items) == 1
+
+    def test_extensions_metadata_and_path_exist(self):
+        event_sources_path = os.path.join(self.temp_dir, "extensions/eda/plugins/event_source")
+        os.makedirs(event_sources_path, exist_ok=True)
+        with open(os.path.join(event_sources_path, "my_event_source.py"), "w"):
+            pass
+
+        ext_metadata_path = os.path.join(self.temp_dir, "meta")
+        os.mkdir(ext_metadata_path)
+        with open(os.path.join(ext_metadata_path, "extensions.yml"), "w") as f:
+            f.write(EXTENSIONS_META)
+
+        self._caplog.set_level(logging.INFO)
+
+        contents = list(ContentFinder().find_contents(self.temp_dir))
+        assert len(contents) == 1
+        assert contents[0].content_type.value == "eda/plugins/event_source"
+        assert contents[0].path == "extensions/eda/plugins/event_source/my_event_source.py"
+
+        custom_ext_log = (
+            "The extension type 'custom/plugins/custom_type' listed in 'meta/extensions.yml' "
+            "is custom and will not be listed in Galaxy's contents nor documentation"
+        )
+
+        assert custom_ext_log in [r.message for r in self._caplog.records]
+
+    def test_extensions_metadata_exists_path_not(self):
+        ext_metadata_path = os.path.join(self.temp_dir, "meta")
+        os.mkdir(ext_metadata_path)
+        with open(os.path.join(ext_metadata_path, "extensions.yml"), "w") as f:
+            f.write(EXTENSIONS_META)
+
+        contents = list(ContentFinder().find_contents(self.temp_dir))
+        assert len(contents) == 0
+
+    def test_extensions_path_exists_metadata_not(self):
+        event_sources_path = os.path.join(self.temp_dir, "extensions/eda/plugins/event_source")
+        os.makedirs(event_sources_path, exist_ok=True)
+        with open(os.path.join(event_sources_path, "my_event_source.py"), "w"):
+            pass
+
+        contents = list(ContentFinder().find_contents(self.temp_dir))
+        assert len(contents) == 0
 
 
 @pytest.fixture
