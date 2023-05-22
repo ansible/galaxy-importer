@@ -42,7 +42,10 @@ EOF
 popd > /dev/null
 mv placeholder_namespace/placeholder_name placeholder_namespace/"$NAME"
 mv placeholder_namespace/ "$NAMESPACE"
-cd /ansible_collections/"$NAMESPACE"/"$NAME"
+
+COLLECTION_DIR=/ansible_collections/"$NAMESPACE"/"$NAME"
+
+cd $COLLECTION_DIR
 
 # Set env var so ansible --version does not error with getpass.getuser()
 export USER=user1
@@ -59,24 +62,24 @@ ansible-test sanity --skip-test import --skip-test validate-modules --skip-test 
 
 echo "ansible-test sanity complete."
 
-EDA_PLUGIN_DIR=/ansible_collections/"$NAMESPACE"/"$NAME"/extensions/eda/plugins
-EDA_PLUGIN_SOURCE=/ansible_collections/"$NAMESPACE"/"$NAME"/extensions/eda/plugins/event_source
-EDA_PLUGIN_FILTER=/ansible_collections/"$NAMESPACE"/"$NAME"/extensions/eda/plugins/event_filter
+EDA_PLUGIN_DIR=$COLLECTION_DIR/extensions/eda/plugins
+EDA_PLUGIN_SOURCE=$COLLECTION_DIR/extensions/eda/plugins/event_source
+EDA_PLUGIN_FILTER=$COLLECTION_DIR/extensions/eda/plugins/event_filter
 
 
 if [ -d "$EDA_PLUGIN_DIR" ]
 then
     echo "EDA plugin content found. Running ruff on /extensions/eda/plugins..."
     cd /eda/tox
-    tox -q -e ruff -- /ansible_collections/"$NAMESPACE"/"$NAME"
+    tox -q -e ruff -- $COLLECTION_DIR
 
     echo "Running darglint on /extensions/eda/plugins..."
-    tox -q -e darglint -- /ansible_collections/"$NAMESPACE"/"$NAME"
+    tox -q -e darglint -- $COLLECTION_DIR
 
     if [ -d "$EDA_PLUGIN_SOURCE" ]
     then
         echo "Running pylint on /extensions/eda/plugins/event_source..."
-        tox -e pylint-event-source -q -- /ansible_collections/"$NAMESPACE"/"$NAME"
+        tox -e pylint-event-source -q -- $COLLECTION_DIR
     else
         echo "No EDA event_source plugins found. Skipping pylint on /extensions/eda/plugins/event_source."
     fi
@@ -84,9 +87,9 @@ then
     if [ -d "$EDA_PLUGIN_FILTER" ]
     then
         echo "Running pylint on /extensions/eda/plugins/event_filter..."
-        tox -e pylint-event-filter -q -- /ansible_collections/"$NAMESPACE"/"$NAME"
+        tox -e pylint-event-filter -q -- $COLLECTION_DIR
     else
-        echo "No EDA event_filter plugins found."
+        echo "No EDA event_filter plugins found. Skipping pylint on /extensions/eda/plugins/event_filter."
     fi
     echo "EDA linting complete."
 
