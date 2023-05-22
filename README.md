@@ -63,6 +63,8 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 - `LOCAL_IMAGE_DOCKER` - Set to `True` to run the `ansible-test` container image via Docker; otherwise, Podman will be used. Defaults to `False`.
 
+
+
 ### Issues and Process
 
 To file an issue, visit the [Automation Hub Jira project](https://issues.redhat.com/projects/AAH/issues)
