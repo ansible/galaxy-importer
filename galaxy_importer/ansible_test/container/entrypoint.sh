@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 function download_archive {
   echo "Downloading collection archive..."
   wget $ARCHIVE_URL -q -O /archive/archive.tar.gz
@@ -41,7 +42,10 @@ EOF
 popd > /dev/null
 mv placeholder_namespace/placeholder_name placeholder_namespace/"$NAME"
 mv placeholder_namespace/ "$NAMESPACE"
-cd /ansible_collections/"$NAMESPACE"/"$NAME"
+
+COLLECTION_DIR=/ansible_collections/"$NAMESPACE"/"$NAME"
+
+cd $COLLECTION_DIR
 
 # Set env var so ansible --version does not error with getpass.getuser()
 export USER=user1
@@ -55,3 +59,41 @@ echo "Running ansible-test sanity on $NAMESPACE-$NAME-$VERSION ..."
 # "pslint" throws ScriptRequiresMissingModules when container is not run as root
 # "ansible-doc" is already called for all plugins in import process
 ansible-test sanity --skip-test import --skip-test validate-modules --skip-test pslint --skip-test ansible-doc --color no --failure-ok
+
+echo "ansible-test sanity complete."
+
+EDA_PLUGIN_DIR=$COLLECTION_DIR/extensions/eda/plugins
+EDA_PLUGIN_SOURCE=$COLLECTION_DIR/extensions/eda/plugins/event_source
+EDA_PLUGIN_FILTER=$COLLECTION_DIR/extensions/eda/plugins/event_filter
+
+
+if [ -d "$EDA_PLUGIN_DIR" ]
+then
+    echo "EDA plugin content found. Running ruff on /extensions/eda/plugins..."
+    cd /eda/tox
+    tox -q -e ruff -- $COLLECTION_DIR
+
+    echo "Running darglint on /extensions/eda/plugins..."
+    tox -q -e darglint -- $COLLECTION_DIR
+
+    if [ -d "$EDA_PLUGIN_SOURCE" ]
+    then
+        echo "Running pylint on /extensions/eda/plugins/event_source..."
+        tox -e pylint-event-source -q -- $COLLECTION_DIR
+    else
+        echo "No EDA event_source plugins found. Skipping pylint on /extensions/eda/plugins/event_source."
+    fi
+
+    if [ -d "$EDA_PLUGIN_FILTER" ]
+    then
+        echo "Running pylint on /extensions/eda/plugins/event_filter..."
+        tox -e pylint-event-filter -q -- $COLLECTION_DIR
+    else
+        echo "No EDA event_filter plugins found. Skipping pylint on /extensions/eda/plugins/event_filter."
+    fi
+    echo "EDA linting complete."
+
+else
+    echo "No EDA content found. Skipping linters."
+fi
+

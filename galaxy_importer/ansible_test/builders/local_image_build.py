@@ -94,7 +94,12 @@ class Build(object):
         pkg_entrypoint = pkg_resources.resource_filename(
             "galaxy_importer", "ansible_test/container/entrypoint.sh"
         )
+        eda_linting = pkg_resources.resource_filename(
+            "galaxy_importer", "ansible_test/container/eda/tox.ini"
+        )
         shutil.copyfile(pkg_entrypoint, os.path.join(dir, "entrypoint.sh"))
+        os.mkdir(os.path.join(dir, "eda"))
+        shutil.copyfile(eda_linting, os.path.join(dir, "eda", "tox.ini"))
 
         cmd = [container_engine, "build", ".", "--quiet"]
         proc = Popen(
