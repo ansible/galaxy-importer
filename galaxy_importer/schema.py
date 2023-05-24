@@ -499,6 +499,19 @@ class LegacyMetadata:
             dependencies = metadata.get("dependencies", list())
         return cls(galaxy_info, dependencies)
 
+    @dependencies.validator
+    def _validate_dependencies(self, attribute, value):
+        for dependency in value:
+            if not isinstance(dependency, str):
+                raise ValueError("depdencies must be a list of strings")
+            if dependency.count(".") != 1:
+                raise ValueError(f"{dependency} must have namespace and name separated by '.'")
+            namespace, name = dependency.split(".")
+            if not constants.GITHUB_NAME_REGEXP.match(namespace):
+                raise ValueError(f"dependency namespace '{namespace}' is invalid")
+            if not constants.NAME_REGEXP.match(name):
+                raise ValueError(f"dependency name '{name}' is invalid")
+
 
 @attr.s(frozen=True)
 class ResultContentItem(object):
@@ -527,6 +540,13 @@ class LegacyImportResult(object):
     metadata = attr.ib(type=LegacyMetadata)
     readme_file = attr.ib(default=None)
     readme_html = attr.ib(default=None)
+
+    @metadata.validator
+    def _ensure_no_self_dependency(self, attribute, value):
+        for dependency in self.metadata.dependencies:
+            namespace, name = dependency.split(".")
+            if self.namespace == namespace and self.name == name:
+                raise ValueError(f"role {self.namespace}.{self.name} cannot depend on itself")
 
 
 @attr.s
