@@ -184,11 +184,6 @@ class CollectionLoader(object):
 
     def _check_collection_changelog(self):
         """Log an error when a CHANGELOG file is not present in the root of the collection."""
-        CHANGELOG_ERROR = (
-            "No changelog found. "
-            "Add a CHANGELOG.rst, CHANGELOG.md, or changelogs/changelog.yaml file."
-        )
-
         changelog_rst_path = os.path.join(self.path, "CHANGELOG.rst")
         changelog_md_path = os.path.join(self.path, "CHANGELOG.md")
         changelog_yaml_path = os.path.join(self.path, "changelogs/changelog.yaml")
@@ -198,7 +193,10 @@ class CollectionLoader(object):
             and not os.path.exists(changelog_md_path)
             and not os.path.exists(changelog_yaml_path)
         ):
-            self.log.error(CHANGELOG_ERROR)
+            self.log.warning(
+                "No changelog found. "
+                "Add a CHANGELOG.rst, CHANGELOG.md, or changelogs/changelog.yaml file."
+            )
 
     def _check_ee_yml_dep_files(self):  # pragma: no cover
         """Check for python deps file and system deps file if they are listed in
@@ -210,7 +208,7 @@ class CollectionLoader(object):
         try:
             python_deps, system_deps = introspect.process_collection(self.path)
         except FileNotFoundError as e:
-            self.log.error(
+            self.log.warning(
                 f"Error when checking meta/execution-environment.yml for dependency files: {e}"
             )
 
