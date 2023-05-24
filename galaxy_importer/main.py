@@ -22,8 +22,9 @@ import os
 import re
 import sys
 
-from galaxy_importer import collection
+from galaxy_importer import collection, legacy_role
 from galaxy_importer import config
+from galaxy_importer import constants
 from galaxy_importer.exceptions import ImporterError
 
 FILENAME_REGEXP = re.compile(
@@ -88,6 +89,15 @@ def parse_args(args):
         action="store_true",
         help="print importer result to console",
     )
+    parser.add_argument(
+        "--legacy-role",
+        dest="legacy_role",
+        action="store_true",
+        help="import a legacy role rather than collection",
+    )
+    parser.add_argument(
+        "--namespace", dest="namespace", help="namespace of the legacy role to import"
+    )
     return parser.parse_args(args=args)
 
 
@@ -98,6 +108,28 @@ def call_importer(args, cfg):  # pragma: no cover
 
     Method excluded from pytest unit test coverage, tests exist in tests/integration
     """
+    if args.legacy_role:
+        if args.file is None:
+            logger.error("Must supply the directory of the role")
+            return None
+        if args.namespace is None:
+            logger.error("Must supply a namespace when importing a legacy role")
+            return None
+        namespace = args.namespace.lower()
+        if re.match(constants.GITHUB_NAME_REGEXP, namespace) is None:
+            logger.error(f"The namespace '{namespace}' is not a valid GitHub username")
+            return None
+        try:
+            data = legacy_role.import_legacy_role(args.file, namespace, logger=logger, cfg=cfg)
+        except ImporterError as e:
+            logger.error(f"The import failed for the following reason: {str(e)}")
+            return None
+        except Exception as e:
+            logger.exception(f"Unexpected error occurred: {str(e)}")
+            return None
+        logger.info("Importer processing completed successfully")
+        return data
+
     if not args.file:
         return collection.import_collection(
             git_clone_path=os.path.abspath(args.git_clone_path),

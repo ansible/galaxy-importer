@@ -34,7 +34,42 @@ def test_parser():
     assert parser.git_clone_path == "/my/clone/path"
     assert parser.output_path == "/my/output/path"
 
+    parser = main.parse_args(["--namespace", "my-namespace", "--legacy-role"])
+    assert parser.namespace == "my-namespace"
+    assert parser.legacy_role
+
 
 def test_main_no_args():
     with pytest.raises(TypeError, match="expected str, bytes or os.PathLike object, not NoneType"):
         main.main(args={})
+
+
+def test_legacy_no_role(caplog):
+    args = main.parse_args(["--legacy-role"])
+    data = main.call_importer(args, None)
+    assert data is None
+    assert "supply the directory of the role" in caplog.text
+    assert len(caplog.records) == 1
+
+
+def test_legacy_missing_namespace(caplog):
+    args = main.parse_args(["--legacy-role", "role"])
+    data = main.call_importer(args, None)
+    assert data is None
+    assert "Must supply a namespace" in caplog.text
+    assert len(caplog.records) == 1
+
+
+def test_legacy_valid_namespace(caplog):
+    args = main.parse_args(["--legacy-role", "--namespace", "my-name", "role"])
+    data = main.call_importer(args, None)
+    assert data is None
+    assert "not a valid GitHub username" not in caplog.text
+
+
+def test_legacy_invalid_namespace(caplog):
+    args = main.parse_args(["--legacy-role", "--namespace", "my-name-", "role"])
+    data = main.call_importer(args, None)
+    assert data is None
+    assert "not a valid GitHub username" in caplog.text
+    assert len(caplog.records) == 1

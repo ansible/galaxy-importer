@@ -18,6 +18,10 @@ Run parsing/validation standalone to view log output and importer result for a b
 
 `python -m galaxy_importer.main [collection_artifact_file]`
 
+Also supports standalone legacy roles:
+
+`python -m galaxy_importer.main --legacy-role [legacy_role_directory] --namespace [namespace]`
+
 View log output in terminal, and view the importer result in the written file `importer_result.json`
 
 #### Structure of Output

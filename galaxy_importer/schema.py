@@ -20,6 +20,7 @@ import re
 
 import attr
 import semantic_version
+import yaml
 
 from galaxy_importer import config
 from galaxy_importer import constants
@@ -376,6 +377,48 @@ class CollectionArtifactFileManifest(object):
 
 
 @attr.s(frozen=True)
+class LegacyGalaxyInfo(object):
+    """Represents legacy role metadata galaxy_info field."""
+
+    role_name = attr.ib(default=None)
+    author = attr.ib(default=None)
+    description = attr.ib(default=None)
+    company = attr.ib(default=None)
+    issue_tracker_url = attr.ib(default=None)
+    license = attr.ib(default=None)
+    min_ansible_version = attr.ib(default=None)
+    min_ansible_container_version = attr.ib(default=None)
+    github_branch = attr.ib(default=None)
+    platforms = attr.ib(factory=list)
+    galaxy_tags = attr.ib(factory=list)
+
+
+@attr.s(frozen=True)
+class LegacyMetadata:
+    """Represents legacy role metadata."""
+
+    galaxy_info = attr.ib(default=None, type=LegacyGalaxyInfo)
+    dependencies = attr.ib(factory=list)
+
+    @classmethod
+    def parse(cls, data):
+        with open(data, "r") as fh:
+            metadata = yaml.safe_load(fh)
+            if not isinstance(metadata, dict):
+                raise ValueError("metadata must be in the form of a yaml dictionary")
+            if "galaxy_info" not in metadata:
+                raise ValueError("galaxy_info field not found in metadata")
+            if not isinstance(metadata["galaxy_info"], dict):
+                raise ValueError("galaxy_info field must contain a dictionary")
+            try:
+                galaxy_info = LegacyGalaxyInfo(**metadata["galaxy_info"])
+            except TypeError as e:
+                raise ValueError("unknown field in galaxy_info") from e
+            dependencies = metadata.get("dependencies", list())
+        return cls(galaxy_info, dependencies)
+
+
+@attr.s(frozen=True)
 class ResultContentItem(object):
     name = attr.ib()
     content_type = attr.ib()
@@ -391,6 +434,17 @@ class ImportResult(object):
     contents = attr.ib(factory=list, type=ResultContentItem)
     custom_license = attr.ib(default=None)
     requires_ansible = attr.ib(default=None)
+
+
+@attr.s(frozen=True)
+class LegacyImportResult(object):
+    """Result of legacy import with namespace, name, metadata, and readme."""
+
+    namespace = attr.ib()
+    name = attr.ib()
+    metadata = attr.ib(type=LegacyMetadata)
+    readme_file = attr.ib(default=None)
+    readme_html = attr.ib(default=None)
 
 
 @attr.s

@@ -2,6 +2,10 @@ from .collection import (
     CollectionLoader,
 )
 
+from .legacy_role import (
+    LegacyRoleLoader,
+)
+
 from .content import (
     ContentLoader,
     PluginLoader,
@@ -16,6 +20,7 @@ from .doc_string import (
 
 __all__ = (
     "CollectionLoader",
+    "LegacyRoleLoader",
     "ContentLoader",
     "PluginLoader",
     "ExtensionLoader",
