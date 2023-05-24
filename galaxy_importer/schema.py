@@ -392,6 +392,88 @@ class LegacyGalaxyInfo(object):
     platforms = attr.ib(factory=list)
     galaxy_tags = attr.ib(factory=list)
 
+    @role_name.validator
+    @author.validator
+    @description.validator
+    @company.validator
+    @issue_tracker_url.validator
+    @license.validator
+    @github_branch.validator
+    def _validate_str(self, attribute, value):
+        """Ensure value is of type str."""
+
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"{attribute.name} must be a string")
+
+    @platforms.validator
+    def _validate_list_dict(self, attribute, value):
+        """Ensure value is of type list[dict]."""
+
+        if value is not None:
+            if not isinstance(value, list):
+                raise ValueError(f"{attribute.name} must be a list")
+            if not all(isinstance(element, dict) for element in value):
+                raise ValueError(f"{attribute.name} must be a list of dictionaries")
+
+    @galaxy_tags.validator
+    def _validate_list_str(self, attribute, value):
+        """Ensure value is of type list[str]."""
+
+        if value is not None:
+            if not isinstance(value, list):
+                raise ValueError(f"{attribute.name} must be a list")
+            if not all(isinstance(element, str) for element in value):
+                raise ValueError(f"{attribute.name} must be a list of strings")
+
+    @role_name.validator
+    def _validate_role_name(self, attribute, value):
+        """Ensure role name matches the regular expression."""
+
+        if value is not None and not constants.NAME_REGEXP.match(value):
+            raise ValueError("role name is invalid")
+
+    @author.validator
+    def _validate_author(self, attribute, value):
+        """Ensure the author value is not too long."""
+
+        if value is not None and len(value) > MAX_LENGTH_AUTHOR:
+            raise ValueError(f"author must not exceed {MAX_LENGTH_AUTHOR} characters")
+
+    @issue_tracker_url.validator
+    def _validate_url(self, attribute, value):
+        """Ensure a URL is not too long."""
+
+        if value is not None and len(value) > MAX_LENGTH_URL:
+            raise ValueError(f"url must not exceed {MAX_LENGTH_URL} characters")
+
+    @license.validator
+    def _validate_license(self, attribute, value):
+        """Ensure the license is not too long."""
+
+        if value is not None:
+            if len(value) > MAX_LENGTH_LICENSE * 2:
+                raise ValueError(
+                    f"role license must not exceed {MAX_LENGTH_LICENSE * 2} characters"
+                )
+
+    @min_ansible_version.validator
+    @min_ansible_container_version.validator
+    def _validate_version(self, attribute, value):
+        """Ensure a version is not too long and abides by semantic versioning."""
+
+        if value is not None and len(str(value)) > MAX_LENGTH_VERSION:
+            raise ValueError(
+                f"version for {attribute.name} must not exceed {MAX_LENGTH_VERSION} characters"
+            )
+
+    @galaxy_tags.validator
+    def _validate_tags(self, attribute, value):
+        """Ensure tags are not too long."""
+
+        if value is not None:
+            if any(len(element) > MAX_LENGTH_TAG for element in value):
+                raise ValueError(f"tag must not exceed {MAX_LENGTH_TAG} characters")
+
 
 @attr.s(frozen=True)
 class LegacyMetadata:
