@@ -507,7 +507,7 @@ class LegacyMetadata:
             if dependency.count(".") != 1:
                 raise ValueError(f"{dependency} must have namespace and name separated by '.'")
             namespace, name = dependency.split(".")
-            if not constants.GITHUB_NAME_REGEXP.match(namespace):
+            if not constants.GITHUB_USERNAME_REGEXP.match(namespace):
                 raise ValueError(f"dependency namespace '{namespace}' is invalid")
             if not constants.NAME_REGEXP.match(name):
                 raise ValueError(f"dependency name '{name}' is invalid")

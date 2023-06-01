@@ -116,7 +116,7 @@ def call_importer(args, cfg):  # pragma: no cover
             logger.error("Must supply a namespace when importing a legacy role")
             return None
         namespace = args.namespace.lower()
-        if re.match(constants.GITHUB_NAME_REGEXP, namespace) is None:
+        if re.match(constants.GITHUB_USERNAME_REGEXP, namespace) is None:
             logger.error(f"The namespace '{namespace}' is not a valid GitHub username")
             return None
         try:
