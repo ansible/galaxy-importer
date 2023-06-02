@@ -3,10 +3,10 @@ import os
 import shutil
 from subprocess import PIPE, Popen, TimeoutExpired
 
-from .content import RoleLoader
-
+from galaxy_importer import config
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
+from galaxy_importer.utils import markup
 from galaxy_importer import schema
 
 default_logger = logging.getLogger(__name__)
@@ -16,28 +16,32 @@ class LegacyRoleLoader(object):
     """Loads legacy role information."""
 
     def __init__(self, dirname, namespace, cfg=None, logger=None):
-        self.log = logger or default_logger
         self.dirname = dirname
         self.namespace = namespace
-        self.cfg = cfg
 
+        # If no config is found, use default configuration values.
+        self.cfg = cfg
+        if self.cfg is None:
+            config_data = config.ConfigFile.load()
+            self.cfg = config.Config(config_data=config_data)
+
+        self.log = logger or default_logger
+
+        self.name = None
         self.metadata = None
         self.content_obj = None
-        self.content = None
-        self.name = None
-        self.readme_file = None
+        self.readme = None
         self.readme_html = None
 
     def load(self):
         """Loads role metadata and content information and lints role."""
 
+        self._validate_namespace()
+
         self.metadata = self._load_metadata()
-
-        self.content_obj = self._load_content()
-
-        self.name = self.content_obj.name
-        self.readme_file = self.content_obj.readme_file
-        self.readme_html = self.content_obj.readme_html
+        self.name = self._load_name()
+        self.readme = self._load_readme()
+        self.readme_html = markup.get_html(self.readme)
 
         if self.cfg.run_ansible_lint:
             self._lint_role()
@@ -46,41 +50,64 @@ class LegacyRoleLoader(object):
             namespace=self.namespace,
             name=self.name,
             metadata=self.metadata,
-            readme_file=self.readme_file,
+            readme_file=self.readme.name,
             readme_html=self.readme_html,
         )
+
+    def _validate_namespace(self):
+        """Validate the namespace is a valid github username."""
+
+        if constants.GITHUB_USERNAME_REGEXP.match(self.namespace) is None:
+            raise exc.ImporterError(f"namespace {self.namespace} is invalid")
 
     def _load_metadata(self):
         """Loads role metadata."""
 
-        metayaml = None
+        # Search for metadata in paths
+        # meta.yml, meta.yaml, meta/main.yml, and meta/main.yaml.
+        meta_path = None
         for file in constants.ROLE_META_FILES:
-            metayaml = os.path.join(self.dirname, file)
-            if os.path.exists(metayaml):
+            path = os.path.join(self.dirname, file)
+            if os.path.exists(path):
+                meta_path = path
                 break
-        if metayaml is None or not os.path.exists(metayaml):
+        if meta_path is None:
             raise exc.ImporterError("Metadata not found at any path")
-        return schema.LegacyMetadata.parse(metayaml)
 
-    def _load_content(self):
-        """Loads role content information."""
+        return schema.LegacyMetadata.parse(meta_path)
 
-        data = RoleLoader(
-            constants.ContentType.ROLE,
-            self.dirname,
-            os.getcwd(),
-            None,
-            self.cfg,
-            self.log,
-            True,
-        ).load()
-        return data
+    def _load_name(self):
+        """Determine the name of a legacy role."""
+
+        # The name of the role is determined by the name of its directory
+        # UNLESS there is a galaxy_info.role_name field. The metadata field
+        # overrides the directory name.
+        if self.metadata.galaxy_info.role_name is not None:
+            name = self.metadata.galaxy_info.role_name
+        else:
+            name = os.path.basename(os.path.normpath(self.dirname))
+
+        # Validate role name regex.
+        if constants.NAME_REGEXP.match(name) is None:
+            raise exc.ImporterError(f"role name {name} is invalid")
+
+        self.log.info(f"Determined role name to be {name}")
+
+        return name
+
+    def _load_readme(self):
+        """Find the README file of a role."""
+
+        readme = markup.get_readme_doc_file(self.dirname)
+        if not readme:
+            raise exc.ImporterError("No role readme found")
+
+        return readme
 
     def _lint_role(self):
         """Log ansible-lint output.
 
-        ansible-lint stdout are linter violations, they are logged as warnings
-
+        ansible-lint stdout are linter violations, they are logged as warnings.
         ansible-lint stderr includes info about vars, file discovery,
         summary of linter violations, config suggestions, and raised errors.
         Only raised errors are logged, they are logged as errors.
@@ -96,15 +123,18 @@ class LegacyRoleLoader(object):
             "/usr/bin/env",
             f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
             "ansible-lint",
-            self.dirname,
+            "--profile",
+            "production",
             "--parseable",
+            "--nocolor",
+            self.dirname,
         ]
 
         self.log.debug("CMD:", "".join(cmd))
 
         proc = Popen(
             cmd,
-            cwd=os.path.dirname(self.dirname) or os.path.curdir,
+            cwd=os.path.join(self.dirname, os.path.pardir),
             encoding="utf-8",
             stdout=PIPE,
             stderr=PIPE,
@@ -123,3 +153,5 @@ class LegacyRoleLoader(object):
         for line in errs.splitlines():
             if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
                 self.log.error(line.strip())
+
+        self.log.info("...ansible-lint run complete")

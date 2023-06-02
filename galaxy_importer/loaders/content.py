@@ -175,22 +175,6 @@ class ExtensionLoader(PluginLoader):
 
 
 class RoleLoader(ContentLoader):
-    def __init__(
-        self,
-        content_type,
-        rel_path,
-        root,
-        doc_strings=None,
-        cfg=None,
-        logger=None,
-        legacy=False,
-    ):
-        super().__init__(content_type, rel_path, root, doc_strings, cfg, logger)
-        self.legacy = legacy
-
-        if self.legacy:
-            self.path_name = self.name
-
     def load(self):
         self._log_loading()
         description = self._get_metadata_description()

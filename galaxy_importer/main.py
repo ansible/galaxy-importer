@@ -113,7 +113,7 @@ def call_importer(args, cfg):  # pragma: no cover
             logger.error("Must supply the directory of the role")
             return None
         if args.namespace is None:
-            logger.error("Must supply a namespace when importing a legacy role")
+            logger.error("Importing legacy role requires explicit namespace")
             return None
         namespace = args.namespace.lower()
         if re.match(constants.GITHUB_USERNAME_REGEXP, namespace) is None:

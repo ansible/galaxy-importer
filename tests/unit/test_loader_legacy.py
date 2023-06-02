@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import shutil
 from subprocess import TimeoutExpired
 import tempfile
@@ -8,6 +9,7 @@ from unittest import mock
 
 import pytest
 
+from galaxy_importer import config
 from galaxy_importer import exceptions as exc
 from galaxy_importer.loaders import LegacyRoleLoader
 
@@ -112,6 +114,22 @@ def test_load_values(populated_role_root):
     assert dependencies == list()
 
 
+@pytest.mark.parametrize(
+    "invalid_namespace",
+    [
+        "",
+        "a_b",
+        "this--that",
+        "foo-bar-",
+        "-red-hat",
+        "q" * 40,
+    ],
+)
+def test_load_invalid_namespace(populated_role_root, invalid_namespace):
+    with pytest.raises(exc.ImporterError, match=f"namespace {invalid_namespace} is invalid"):
+        LegacyRoleLoader(populated_role_root, invalid_namespace).load()
+
+
 def test_load_metadata_missing_yaml(populated_role_root):
     os.unlink(os.path.join(populated_role_root, "meta", "main.yml"))
 
@@ -125,11 +143,7 @@ def test_load_metadata_location(populated_role_root):
         os.path.join(populated_role_root, "meta", "main.yaml"),
     )
 
-    data = LegacyRoleLoader(
-        populated_role_root,
-        "my-namespace",
-        cfg=SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
-    ).load()
+    data = LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
     assert data.namespace == "my-namespace"
 
@@ -138,11 +152,7 @@ def test_load_metadata_location(populated_role_root):
         os.path.join(populated_role_root, "meta.yml"),
     )
 
-    data = LegacyRoleLoader(
-        populated_role_root,
-        "my-namespace",
-        cfg=SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
-    ).load()
+    data = LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
     assert data.name == "my_role"
 
@@ -151,11 +161,7 @@ def test_load_metadata_location(populated_role_root):
         os.path.join(populated_role_root, "meta.yaml"),
     )
 
-    data = LegacyRoleLoader(
-        populated_role_root,
-        "my-namespace",
-        cfg=SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
-    ).load()
+    data = LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
     assert data.readme_file == "README.md"
 
@@ -165,64 +171,76 @@ def test_load_metadata_invalid_metadata(populated_role_root):
         fh.write("")
 
     with pytest.raises(ValueError, match="must be in the form of a yaml dictionary"):
-        LegacyRoleLoader(
-            populated_role_root,
-            "my-namespace",
-            cfg=SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
-        ).load()
+        LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
     with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
         fh.write("hello: person\nanother: field\n")
 
     with pytest.raises(ValueError, match="galaxy_info field not found"):
-        LegacyRoleLoader(
-            populated_role_root,
-            "my-namespace",
-            cfg=SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
-        ).load()
+        LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
     with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
         fh.write("galaxy_info: nope\n")
 
     with pytest.raises(ValueError, match="galaxy_info field must contain a dictionary"):
-        LegacyRoleLoader(
-            populated_role_root,
-            "my-namespace",
-            cfg=SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
-        ).load()
+        LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
     with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
         fh.write("galaxy_info: \n  role_nam: my_role\n")
 
     with pytest.raises(ValueError, match="unknown field in galaxy_info"):
-        LegacyRoleLoader(
-            populated_role_root,
-            "my-namespace",
-            cfg=SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
-        ).load()
+        LegacyRoleLoader(populated_role_root, "my-namespace").load()
+
+
+def test_load_name_no_role_name(populated_role_root):
+    with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
+        fh.write("galaxy_info: \n  author: me\n")
+
+    data = LegacyRoleLoader(populated_role_root, "my-namespace").load()
+
+    assert data.name == "my_role"
+
+
+@pytest.mark.parametrize(
+    "invalid_name",
+    [
+        "_this",
+        "walker-turzai",
+        "foo_bar-baz",
+        "3w6",
+        "$@#",
+        "this.role",
+        "docker!",
+        "big space",
+        "whyUpper",
+    ],
+)
+def test_load_name_regex(populated_role_root, invalid_name):
+    with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
+        fh.write("galaxy_info: \n  author: me\n")
+
+    renamed_root = os.path.join(os.path.dirname(populated_role_root), invalid_name)
+
+    os.rename(populated_role_root, renamed_root)
+
+    with pytest.raises(exc.ImporterError, match=re.escape(f"role name {invalid_name} is invalid")):
+        LegacyRoleLoader(renamed_root, "my-namespace").load()
 
 
 def test_load_readme_missing(populated_role_root):
     os.unlink(os.path.join(populated_role_root, "README.md"))
 
-    with pytest.raises(exc.ContentLoadError, match="No role readme found."):
-        LegacyRoleLoader(
-            populated_role_root,
-            "my-namespace",
-            cfg=SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
-        ).load()
+    with pytest.raises(exc.ImporterError, match="No role readme found"):
+        LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
 
 def test_lint_role_fail(populated_role_root, caplog):
-    loader = LegacyRoleLoader(
+    LegacyRoleLoader(
         populated_role_root,
         "my-namespace",
         cfg=SimpleNamespace(run_ansible_lint=True, ansible_local_tmp=populated_role_root),
-    )
-    loader._load_metadata()
-    loader._load_content()
+    ).load()
 
-    loader._lint_role()
     captured = caplog.text
     assert "WARNING" in captured
     assert len(caplog.records) > 0
@@ -232,15 +250,12 @@ def test_lint_role_pass(populated_role_root, caplog):
     with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
         fh.write(META_LINTPASS_YAML)
 
-    loader = LegacyRoleLoader(
+    LegacyRoleLoader(
         populated_role_root,
         "my-namespace",
         cfg=SimpleNamespace(run_ansible_lint=True, ansible_local_tmp=populated_role_root),
-    )
-    loader._load_metadata()
-    loader._load_content()
+    ).load()
 
-    loader._lint_role()
     assert len(caplog.records) == 0
 
 
@@ -280,6 +295,13 @@ def test_lint_timeout(mocked_communicate, populated_role_root, caplog):
         ).load()
 
     assert "Timeout on call to ansible-lint" in caplog.text
+
+
+def test_no_config(populated_role_root):
+    loader = LegacyRoleLoader(populated_role_root, "my-namespace", None, None)
+
+    assert loader.cfg is not None
+    assert isinstance(loader.cfg, config.Config)
 
 
 def test_no_logger(populated_role_root):

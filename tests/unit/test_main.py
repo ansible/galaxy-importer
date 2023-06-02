@@ -56,7 +56,7 @@ def test_legacy_missing_namespace(caplog):
     args = main.parse_args(["--legacy-role", "role"])
     data = main.call_importer(args, None)
     assert data is None
-    assert "Must supply a namespace" in caplog.text
+    assert "requires explicit namespace" in caplog.text
     assert len(caplog.records) == 1
 
 

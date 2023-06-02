@@ -1,3 +1,4 @@
+import logging
 import os
 import pytest
 import shutil
@@ -5,8 +6,9 @@ import tempfile
 from types import SimpleNamespace
 
 from galaxy_importer import config
-from galaxy_importer import exceptions as exc
 from galaxy_importer import legacy_role
+
+log = logging.getLogger(__name__)
 
 
 META_YAML = """
@@ -66,7 +68,7 @@ def populated_role_root(tmp_role_root):
 def test_import_legacy_role(mocker):
     mocker.patch.object(legacy_role, "_import_legacy_role")
     mocker.patch.object(config.ConfigFile, "load")
-    legacy_role.import_legacy_role(populated_role_root, "my-namespace", logger=None, cfg=None)
+    legacy_role.import_legacy_role(populated_role_root, "my-namespace", cfg=None, logger=None)
     assert config.ConfigFile.load.called
     assert legacy_role._import_legacy_role.called
 
@@ -75,8 +77,8 @@ def test_import_legacy_role_return(populated_role_root):
     data = legacy_role.import_legacy_role(
         populated_role_root,
         "my-namespace",
-        None,
-        SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
+        cfg=SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
+        logger=None,
     )
 
     assert isinstance(data, dict)
@@ -96,8 +98,8 @@ def test__import_legacy_role_return(populated_role_root):
     data = legacy_role._import_legacy_role(
         populated_role_root,
         "my-namespace",
-        None,
         SimpleNamespace(run_ansible_lint=False, ansible_local_tmp=populated_role_root),
+        log,
     )
 
     assert isinstance(data, dict)
@@ -111,8 +113,3 @@ def test__import_legacy_role_return(populated_role_root):
         {"name": "Fedora", "versions": "all"},
         {"name": "Debian", "versions": ["buster", "bullseye"]},
     ]
-
-
-def test_import_legacy_no_namespace():
-    with pytest.raises(exc.ImporterError, match="requires explicit namespace"):
-        legacy_role.import_legacy_role(populated_role_root, None, None, None)

@@ -430,7 +430,7 @@ class LegacyGalaxyInfo(object):
         """Ensure role name matches the regular expression."""
 
         if value is not None and not constants.NAME_REGEXP.match(value):
-            raise ValueError("role name is invalid")
+            raise ValueError(f"role name {value} is invalid")
 
     @author.validator
     def _validate_author(self, attribute, value):
@@ -506,11 +506,6 @@ class LegacyMetadata:
                 raise ValueError("depdencies must be a list of strings")
             if dependency.count(".") != 1:
                 raise ValueError(f"{dependency} must have namespace and name separated by '.'")
-            namespace, name = dependency.split(".")
-            if not constants.GITHUB_USERNAME_REGEXP.match(namespace):
-                raise ValueError(f"dependency namespace '{namespace}' is invalid")
-            if not constants.NAME_REGEXP.match(name):
-                raise ValueError(f"dependency name '{name}' is invalid")
 
 
 @attr.s(frozen=True)
