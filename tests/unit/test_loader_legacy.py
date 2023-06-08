@@ -130,6 +130,20 @@ def test_load_invalid_namespace(populated_role_root, invalid_namespace):
         LegacyRoleLoader(populated_role_root, invalid_namespace).load()
 
 
+@pytest.mark.parametrize(
+    "uppercase_namespace",
+    [
+        "HELLO",
+        "camelCase",
+        "Qwerty",
+        "phD",
+    ],
+)
+def test_load_uppercase_namespace(populated_role_root, uppercase_namespace):
+    with pytest.raises(exc.ImporterError, match=f"{uppercase_namespace} must be lowercase"):
+        LegacyRoleLoader(populated_role_root, uppercase_namespace).load()
+
+
 def test_load_metadata_missing_yaml(populated_role_root):
     os.unlink(os.path.join(populated_role_root, "meta", "main.yml"))
 

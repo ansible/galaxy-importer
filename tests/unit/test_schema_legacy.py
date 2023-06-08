@@ -114,6 +114,18 @@ def test_max_author(galaxy_info):
         LegacyGalaxyInfo(**galaxy_info)
 
 
+def test_max_description(galaxy_info):
+    galaxy_info["description"] = "Description!" * 100
+    with pytest.raises(ValueError, match="must not exceed"):
+        LegacyGalaxyInfo(**galaxy_info)
+
+
+def test_max_company(galaxy_info):
+    galaxy_info["company"] = "Red Hat" * 10
+    with pytest.raises(ValueError, match="must not exceed"):
+        LegacyGalaxyInfo(**galaxy_info)
+
+
 def test_max_url(galaxy_info):
     galaxy_info["issue_tracker_url"] = galaxy_info["issue_tracker_url"] + ("/a" * 1001)
     with pytest.raises(ValueError, match="must not exceed"):

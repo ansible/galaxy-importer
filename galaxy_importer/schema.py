@@ -33,6 +33,11 @@ MAX_LENGTH_TAG = 64
 MAX_LENGTH_URL = 2000
 MAX_LENGTH_VERSION = 128
 
+MAX_LEGACY_ROLE_LENGTH_VERSION = 10
+MAX_LEGACY_ROLE_LENGTH_COMPANY = 50
+MAX_LEGACY_ROLE_LENGTH_LICENSE = 50
+MAX_LEGACY_ROLE_LENGTH_DESCRIPTION = 255
+
 SHA1_LEN = 40
 REQUIRED_TAG_LIST = [
     "application",
@@ -439,6 +444,20 @@ class LegacyGalaxyInfo(object):
         if value is not None and len(value) > MAX_LENGTH_AUTHOR:
             raise ValueError(f"author must not exceed {MAX_LENGTH_AUTHOR} characters")
 
+    @description.validator
+    def _validate_description(self, attribute, value):
+        if value is not None and len(value) > MAX_LEGACY_ROLE_LENGTH_DESCRIPTION:
+            raise ValueError(
+                "description must not exceed {MAX_LEGACY_ROLE_LENGTH_DESCRIPTION} characters"
+            )
+
+    @company.validator
+    def _validate_company(self, attribute, value):
+        if value is not None and len(value) > MAX_LEGACY_ROLE_LENGTH_COMPANY:
+            raise ValueError(
+                "company must not exceed {MAX_LEGACY_ROLE_LENGTH_DESCRIPTION} characters"
+            )
+
     @issue_tracker_url.validator
     def _validate_url(self, attribute, value):
         """Ensure a URL is not too long."""
@@ -451,19 +470,20 @@ class LegacyGalaxyInfo(object):
         """Ensure the license is not too long."""
 
         if value is not None:
-            if len(value) > MAX_LENGTH_LICENSE * 2:
+            if len(value) > MAX_LEGACY_ROLE_LENGTH_LICENSE:
                 raise ValueError(
-                    f"role license must not exceed {MAX_LENGTH_LICENSE * 2} characters"
+                    f"role license must not exceed {MAX_LEGACY_ROLE_LENGTH_LICENSE} characters"
                 )
 
     @min_ansible_version.validator
     @min_ansible_container_version.validator
     def _validate_version(self, attribute, value):
-        """Ensure a version is not too long and abides by semantic versioning."""
+        """Ensure a version is not too long."""
 
-        if value is not None and len(str(value)) > MAX_LENGTH_VERSION:
+        if value is not None and len(str(value)) > MAX_LEGACY_ROLE_LENGTH_VERSION:
             raise ValueError(
-                f"version for {attribute.name} must not exceed {MAX_LENGTH_VERSION} characters"
+                f"version for {attribute.name} must not exceed"
+                f"{MAX_LEGACY_ROLE_LENGTH_VERSION} characters"
             )
 
     @galaxy_tags.validator

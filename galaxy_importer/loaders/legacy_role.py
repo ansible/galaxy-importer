@@ -58,6 +58,8 @@ class LegacyRoleLoader(object):
         """Validate the namespace is a valid github username."""
 
         if constants.GITHUB_USERNAME_REGEXP.match(self.namespace) is None:
+            if constants.GITHUB_USERNAME_REGEXP.match(self.namespace.lower()):
+                raise exc.ImporterError(f"namespace {self.namespace} must be lowercase")
             raise exc.ImporterError(f"namespace {self.namespace} is invalid")
 
     def _load_metadata(self):

@@ -24,7 +24,6 @@ import sys
 
 from galaxy_importer import collection, legacy_role
 from galaxy_importer import config
-from galaxy_importer import constants
 from galaxy_importer.exceptions import ImporterError
 
 FILENAME_REGEXP = re.compile(
@@ -115,42 +114,36 @@ def call_importer(args, cfg):  # pragma: no cover
         if args.namespace is None:
             logger.error("Importing legacy role requires explicit namespace")
             return None
-        namespace = args.namespace.lower()
-        if re.match(constants.GITHUB_USERNAME_REGEXP, namespace) is None:
-            logger.error(f"The namespace '{namespace}' is not a valid GitHub username")
-            return None
         try:
-            data = legacy_role.import_legacy_role(args.file, namespace, logger=logger, cfg=cfg)
+            data = legacy_role.import_legacy_role(args.file, args.namespace, logger=logger, cfg=cfg)
         except ImporterError as e:
             logger.error(f"The import failed for the following reason: {str(e)}")
             return None
         except Exception as e:
             logger.exception(f"Unexpected error occurred: {str(e)}")
             return None
-        logger.info("Importer processing completed successfully")
-        return data
+    else:
+        if not args.file:
+            return collection.import_collection(
+                git_clone_path=os.path.abspath(args.git_clone_path),
+                output_path=os.path.abspath(args.output_path),
+                logger=logger,
+                cfg=cfg,
+            )
 
-    if not args.file:
-        return collection.import_collection(
-            git_clone_path=os.path.abspath(args.git_clone_path),
-            output_path=os.path.abspath(args.output_path),
-            logger=logger,
-            cfg=cfg,
-        )
+        match = FILENAME_REGEXP.match(os.path.basename(args.file))
+        namespace, name, version = match.groups()
+        filename = collection.CollectionFilename(namespace, name, version)
 
-    match = FILENAME_REGEXP.match(os.path.basename(args.file))
-    namespace, name, version = match.groups()
-    filename = collection.CollectionFilename(namespace, name, version)
-
-    with open(args.file, "rb") as fh:
-        try:
-            data = collection.import_collection(fh, filename, logger=logger, cfg=cfg)
-        except ImporterError as e:
-            logger.error(f"The import failed for the following reason: {str(e)}")
-            return None
-        except Exception as e:
-            logger.exception(f"Unexpected error occurred: {str(e)}")
-            return None
+        with open(args.file, "rb") as fh:
+            try:
+                data = collection.import_collection(fh, filename, logger=logger, cfg=cfg)
+            except ImporterError as e:
+                logger.error(f"The import failed for the following reason: {str(e)}")
+                return None
+            except Exception as e:
+                logger.exception(f"Unexpected error occurred: {str(e)}")
+                return None
 
     logger.info("Importer processing completed successfully")
     return data

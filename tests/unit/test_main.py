@@ -58,18 +58,3 @@ def test_legacy_missing_namespace(caplog):
     assert data is None
     assert "requires explicit namespace" in caplog.text
     assert len(caplog.records) == 1
-
-
-def test_legacy_valid_namespace(caplog):
-    args = main.parse_args(["--legacy-role", "--namespace", "my-name", "role"])
-    data = main.call_importer(args, None)
-    assert data is None
-    assert "not a valid GitHub username" not in caplog.text
-
-
-def test_legacy_invalid_namespace(caplog):
-    args = main.parse_args(["--legacy-role", "--namespace", "my-name-", "role"])
-    data = main.call_importer(args, None)
-    assert data is None
-    assert "not a valid GitHub username" in caplog.text
-    assert len(caplog.records) == 1
