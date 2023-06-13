@@ -86,10 +86,9 @@ class LegacyRoleLoader(object):
             name = self.metadata.galaxy_info.role_name
         else:
             name = os.path.basename(os.path.normpath(self.dirname))
-
-        # Validate role name regex.
-        if constants.NAME_REGEXP.match(name) is None:
-            raise exc.ImporterError(f"role name {name} is invalid")
+            # Validate role name that inherits from directory name.
+            if constants.NAME_REGEXP.match(name) is None:
+                raise exc.ImporterError(f"role name {name} is invalid")
 
         self.log.info(f"Determined role name to be {name}")
 
