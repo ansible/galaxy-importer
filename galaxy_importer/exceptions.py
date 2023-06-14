@@ -78,3 +78,7 @@ class ContentNameError(ImporterError):
 
 class FileParserError(ImporterError):
     pass
+
+
+class LegacyMetadataParserError(ImporterError):
+    pass

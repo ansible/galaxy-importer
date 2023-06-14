@@ -169,11 +169,18 @@ def test_valid_dependencies(galaxy_info, valid_dependency):
     assert metadata.dependencies == valid_dependency
 
 
-def test_invalid_dependency_type(galaxy_info):
-    dependencies = [dict()]
-
+@pytest.mark.parametrize(
+    "invalid_dependency",
+    [
+        [dict()],
+        "geerlingguy.java",
+        {"name": "redhat.ansible"},
+        [[]],
+    ],
+)
+def test_invalid_dependency_type(galaxy_info, invalid_dependency):
     with pytest.raises(ValueError, match="must be a list of strings"):
-        LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), dependencies)
+        LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dependency)
 
 
 def test_invalid_dependency_separation(galaxy_info):
@@ -193,3 +200,22 @@ def test_self_dependency(galaxy_info):
             "README.md",
             "",
         )
+
+
+@pytest.mark.parametrize(
+    "invalid_name",
+    [
+        "_this",
+        "walker-turzai",
+        "foo_bar-baz",
+        "3w6",
+        "$@#",
+        "this.role",
+        "docker!",
+        "big space",
+        "whyUpper",
+    ],
+)
+def test_load_name_regex(galaxy_info, invalid_name):
+    with pytest.raises(ValueError, match=re.escape(f"role name {invalid_name} is invalid")):
+        LegacyImportResult("my-namespace", invalid_name, LegacyMetadata(galaxy_info, []))

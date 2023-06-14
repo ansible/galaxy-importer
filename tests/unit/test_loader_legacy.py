@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 import shutil
 from subprocess import TimeoutExpired
 import tempfile
@@ -170,61 +169,48 @@ def test_load_metadata_invalid_metadata(populated_role_root):
     with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
         fh.write("")
 
-    with pytest.raises(ValueError, match="must be in the form of a yaml dictionary"):
+    with pytest.raises(exc.ImporterError, match="must be in the form of a yaml dictionary"):
         LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
     with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
         fh.write("hello: person\nanother: field\n")
 
-    with pytest.raises(ValueError, match="galaxy_info field not found"):
+    with pytest.raises(exc.ImporterError, match="galaxy_info field not found"):
         LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
     with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
         fh.write("galaxy_info: nope\n")
 
-    with pytest.raises(ValueError, match="galaxy_info field must contain a dictionary"):
+    with pytest.raises(exc.ImporterError, match="galaxy_info field must contain a dictionary"):
         LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
     with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
         fh.write("galaxy_info: \n  role_nam: my_role\n")
 
-    with pytest.raises(ValueError, match="unknown field in galaxy_info"):
+    with pytest.raises(exc.ImporterError, match="unknown field in galaxy_info"):
         LegacyRoleLoader(populated_role_root, "my-namespace").load()
 
 
-def test_load_name_no_role_name(populated_role_root):
-    with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
-        fh.write("galaxy_info: \n  author: me\n")
-
-    data = LegacyRoleLoader(populated_role_root, "my-namespace").load()
-
-    assert data.name == "my_role"
-
-
 @pytest.mark.parametrize(
-    "invalid_name",
+    "name",
     [
-        "_this",
-        "walker-turzai",
-        "foo_bar-baz",
-        "3w6",
-        "$@#",
-        "this.role",
-        "docker!",
-        "big space",
-        "whyUpper",
+        "my_role",
+        "role1",
+        "number_1",
+        "directory",
+        "etc",
     ],
 )
-def test_load_name_regex(populated_role_root, invalid_name):
+def test_load_name_no_role_name(populated_role_root, name):
     with open(os.path.join(populated_role_root, "meta", "main.yml"), "w") as fh:
         fh.write("galaxy_info: \n  author: me\n")
 
-    renamed_root = os.path.join(os.path.dirname(populated_role_root), invalid_name)
-
+    renamed_root = os.path.join(os.path.dirname(populated_role_root), name)
     os.rename(populated_role_root, renamed_root)
 
-    with pytest.raises(exc.ImporterError, match=re.escape(f"role name {invalid_name} is invalid")):
-        LegacyRoleLoader(renamed_root, "my-namespace").load()
+    data = LegacyRoleLoader(renamed_root, "my-namespace").load()
+
+    assert data.name == name
 
 
 def test_load_readme_missing(populated_role_root):

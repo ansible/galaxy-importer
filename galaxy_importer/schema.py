@@ -521,9 +521,11 @@ class LegacyMetadata:
 
     @dependencies.validator
     def _validate_dependencies(self, attribute, value):
+        if not isinstance(value, list):
+            raise ValueError("dependencies must be a list of strings")
         for dependency in value:
             if not isinstance(dependency, str):
-                raise ValueError("depdencies must be a list of strings")
+                raise ValueError("dependencies must be a list of strings")
             if dependency.count(".") != 1:
                 raise ValueError(f"{dependency} must have namespace and name separated by '.'")
 
@@ -555,6 +557,11 @@ class LegacyImportResult(object):
     metadata = attr.ib(type=LegacyMetadata)
     readme_file = attr.ib(default=None)
     readme_html = attr.ib(default=None)
+
+    @name.validator
+    def _validate_name(self, attribute, value):
+        if constants.NAME_REGEXP.match(value) is None:
+            raise ValueError(f"role name {value} is invalid")
 
     @metadata.validator
     def _ensure_no_self_dependency(self, attribute, value):

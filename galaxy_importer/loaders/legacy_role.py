@@ -46,13 +46,18 @@ class LegacyRoleLoader(object):
         if self.cfg.run_ansible_lint:
             self._lint_role()
 
-        return schema.LegacyImportResult(
-            namespace=self.namespace,
-            name=self.name,
-            metadata=self.metadata,
-            readme_file=self.readme.name,
-            readme_html=self.readme_html,
-        )
+        try:
+            result = schema.LegacyImportResult(
+                namespace=self.namespace,
+                name=self.name,
+                metadata=self.metadata,
+                readme_file=self.readme.name,
+                readme_html=self.readme_html,
+            )
+        except ValueError as e:
+            raise exc.ImporterError(str(e)) from e
+
+        return result
 
     def _validate_namespace(self):
         """Validate the namespace is a valid github username."""
@@ -74,7 +79,12 @@ class LegacyRoleLoader(object):
         if meta_path is None:
             raise exc.ImporterError("Metadata not found at any path")
 
-        return schema.LegacyMetadata.parse(meta_path)
+        try:
+            metadata = schema.LegacyMetadata.parse(meta_path)
+        except ValueError as e:
+            raise exc.LegacyMetadataParserError(str(e)) from e
+
+        return metadata
 
     def _load_name(self):
         """Determine the name of a legacy role."""
@@ -86,9 +96,6 @@ class LegacyRoleLoader(object):
             name = self.metadata.galaxy_info.role_name
         else:
             name = os.path.basename(os.path.normpath(self.dirname))
-            # Validate role name that inherits from directory name.
-            if constants.NAME_REGEXP.match(name) is None:
-                raise exc.ImporterError(f"role name {name} is invalid")
 
         self.log.info(f"Determined role name to be {name}")
 
