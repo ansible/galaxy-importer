@@ -138,13 +138,7 @@ class LegacyRoleLoader(object):
 
         self.log.debug("CMD:", "".join(cmd))
 
-        proc = Popen(
-            cmd,
-            cwd=os.path.join(self.dirname, os.path.pardir),
-            encoding="utf-8",
-            stdout=PIPE,
-            stderr=PIPE,
-        )
+        proc = Popen(cmd, encoding="utf-8", stdout=PIPE, stderr=PIPE)
 
         try:
             outs, errs = proc.communicate(timeout=120)

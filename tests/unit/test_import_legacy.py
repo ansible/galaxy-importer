@@ -6,6 +6,7 @@ import tempfile
 from types import SimpleNamespace
 
 from galaxy_importer import config
+from galaxy_importer import exceptions as exc
 from galaxy_importer import legacy_role
 
 log = logging.getLogger(__name__)
@@ -65,7 +66,9 @@ def populated_role_root(tmp_role_root):
     return tmp_role_root
 
 
-def test_import_legacy_role(mocker):
+def test_import_legacy_role(populated_role_root, mocker):
+    os.chdir(os.path.abspath(os.path.join(populated_role_root, os.pardir)))
+
     mocker.patch.object(legacy_role, "_import_legacy_role")
     mocker.patch.object(config.ConfigFile, "load")
     legacy_role.import_legacy_role(populated_role_root, "my-namespace", cfg=None, logger=None)
@@ -74,6 +77,8 @@ def test_import_legacy_role(mocker):
 
 
 def test_import_legacy_role_return(populated_role_root):
+    os.chdir(os.path.abspath(os.path.join(populated_role_root, os.pardir)))
+
     data = legacy_role.import_legacy_role(
         populated_role_root,
         "my-namespace",
@@ -95,6 +100,8 @@ def test_import_legacy_role_return(populated_role_root):
 
 
 def test__import_legacy_role_return(populated_role_root):
+    os.chdir(os.path.abspath(os.path.join(populated_role_root, os.pardir)))
+
     data = legacy_role._import_legacy_role(
         populated_role_root,
         "my-namespace",
@@ -113,3 +120,55 @@ def test__import_legacy_role_return(populated_role_root):
         {"name": "Fedora", "versions": "all"},
         {"name": "Debian", "versions": ["buster", "bullseye"]},
     ]
+
+
+@pytest.mark.parametrize(
+    "dirname",
+    [
+        "my_role",
+        "my_role/",
+        "./my_role",
+        "././././././my_role/",
+    ],
+)
+def test_valid_directory_depth(populated_role_root, dirname, caplog):
+    os.chdir(os.path.abspath(os.path.join(populated_role_root, os.pardir)))
+
+    data = legacy_role.import_legacy_role(dirname, "my-namespace")
+
+    assert isinstance(data, dict)
+    assert "metadata" in data
+    assert "galaxy_info" in data["metadata"]
+    assert "dependencies" in data["metadata"]
+    assert "WARNING" in caplog.text
+
+
+def test_nonexistent_directory(populated_role_root):
+    os.chdir(os.path.abspath(os.path.join(populated_role_root, os.pardir)))
+
+    with pytest.raises(exc.ImporterError, match="does not exist"):
+        legacy_role.import_legacy_role(populated_role_root[:-1], "my-namespace")
+
+
+def test_import_from_role_directory(populated_role_root):
+    os.chdir(populated_role_root)
+
+    with pytest.raises(exc.ImporterError, match="Cannot run importer from role directory"):
+        legacy_role.import_legacy_role(os.curdir, "my-namespace")
+
+
+def test_invalid_directory_depth(populated_role_root):
+    os.chdir(os.path.abspath(os.path.join(populated_role_root, os.pardir)))
+    os.chdir(os.pardir)
+
+    with pytest.raises(exc.ImporterError, match="run importer from parent directory"):
+        legacy_role.import_legacy_role("ansible_roles/my_role", "my-namespace")
+
+
+def test_role_not_directory(populated_role_root):
+    os.chdir(os.path.abspath(os.path.join(populated_role_root, os.pardir)))
+    with open("file.random", "w+"):
+        pass
+
+    with pytest.raises(exc.ImporterError, match="must be a directory"):
+        legacy_role.import_legacy_role("file.random", "my-namespace")

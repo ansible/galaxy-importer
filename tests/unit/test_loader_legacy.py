@@ -78,6 +78,7 @@ def populated_role_root(tmp_role_root):
         fh.write(META_YAML)
     with open(os.path.join(tmp_role_root, "README.md"), "w") as fh:
         fh.write(README_MD)
+    os.chdir(os.path.abspath(os.path.join(tmp_role_root, os.pardir)))
     return tmp_role_root
 
 

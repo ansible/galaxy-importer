@@ -18,7 +18,7 @@ Run parsing/validation standalone to view log output and importer result for a b
 
 `python -m galaxy_importer.main [collection_artifact_file]`
 
-Also supports standalone legacy roles:
+Supports legacy roles (note: must be in the parent directory of the legacy role):
 
 `python -m galaxy_importer.main --legacy-role [legacy_role_directory] --namespace [namespace]`
 
