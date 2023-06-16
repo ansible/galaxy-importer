@@ -80,5 +80,5 @@ class FileParserError(ImporterError):
     pass
 
 
-class LegacyMetadataParserError(ImporterError):
+class LegacyRoleSchemaError(ImporterError):
     pass

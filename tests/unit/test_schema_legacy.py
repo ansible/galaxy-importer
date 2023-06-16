@@ -2,6 +2,7 @@ import re
 
 import pytest
 
+from galaxy_importer import exceptions as exc
 from galaxy_importer.schema import LegacyGalaxyInfo, LegacyMetadata, LegacyImportResult
 
 
@@ -46,27 +47,27 @@ def test_values(galaxy_info):
 
 def test_valid_str(galaxy_info):
     galaxy_info["role_name"] = []
-    with pytest.raises(ValueError, match="must be a string"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must be a string"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
 def test_valid_list_dict(galaxy_info):
     galaxy_info["platforms"] = "string"
-    with pytest.raises(ValueError, match=re.compile("must be a list$")):
+    with pytest.raises(exc.LegacyRoleSchemaError, match=re.compile("must be a list$")):
         LegacyGalaxyInfo(**galaxy_info)
 
     galaxy_info["platforms"] = ["string", "other"]
-    with pytest.raises(ValueError, match="must be a list of dictionaries"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must be a list of dictionaries"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
 def test_valid_list_str(galaxy_info):
     galaxy_info["galaxy_tags"] = "string"
-    with pytest.raises(ValueError, match=re.compile("must be a list$")):
+    with pytest.raises(exc.LegacyRoleSchemaError, match=re.compile("must be a list$")):
         LegacyGalaxyInfo(**galaxy_info)
 
     galaxy_info["galaxy_tags"] = [dict()]
-    with pytest.raises(ValueError, match="must be a list of strings"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must be a list of strings"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
@@ -104,54 +105,56 @@ def test_valid_role_name(galaxy_info, valid_name):
 )
 def test_invalid_role_name(galaxy_info, invalid_name):
     galaxy_info["role_name"] = invalid_name
-    with pytest.raises(ValueError, match=re.escape(f"role name {invalid_name} is invalid")):
+    with pytest.raises(
+        exc.LegacyRoleSchemaError, match=re.escape(f"role name {invalid_name} is invalid")
+    ):
         LegacyGalaxyInfo(**galaxy_info)
 
 
 def test_max_author(galaxy_info):
     galaxy_info["author"] = galaxy_info["author"] * 100
-    with pytest.raises(ValueError, match="must not exceed"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must not exceed"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
 def test_max_description(galaxy_info):
     galaxy_info["description"] = "Description!" * 100
-    with pytest.raises(ValueError, match="must not exceed"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must not exceed"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
 def test_max_company(galaxy_info):
     galaxy_info["company"] = "Red Hat" * 10
-    with pytest.raises(ValueError, match="must not exceed"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must not exceed"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
 def test_max_url(galaxy_info):
     galaxy_info["issue_tracker_url"] = galaxy_info["issue_tracker_url"] + ("/a" * 1001)
-    with pytest.raises(ValueError, match="must not exceed"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must not exceed"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
 def test_max_license(galaxy_info):
     galaxy_info["license"] = galaxy_info["license"] * 30
-    with pytest.raises(ValueError, match="must not exceed"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must not exceed"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
 def test_max_version(galaxy_info):
     galaxy_info["min_ansible_version"] = galaxy_info["min_ansible_version"] * 50
-    with pytest.raises(ValueError, match="must not exceed"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must not exceed"):
         LegacyGalaxyInfo(**galaxy_info)
 
     galaxy_info["min_ansible_version"] = "2.1"
     galaxy_info["min_ansible_container_version"] = galaxy_info["min_ansible_container_version"] * 50
-    with pytest.raises(ValueError, match="must not exceed"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must not exceed"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
 def test_max_tag(galaxy_info):
     galaxy_info["galaxy_tags"][0] = "rhel" * 100
-    with pytest.raises(ValueError, match="must not exceed"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must not exceed"):
         LegacyGalaxyInfo(**galaxy_info)
 
 
@@ -179,20 +182,20 @@ def test_valid_dependencies(galaxy_info, valid_dependency):
     ],
 )
 def test_invalid_dependency_type(galaxy_info, invalid_dependency):
-    with pytest.raises(ValueError, match="must be a list of strings"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="must be a list of strings"):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dependency)
 
 
 def test_invalid_dependency_separation(galaxy_info):
     dependencies = ["foo.bar.baz"]
 
-    with pytest.raises(ValueError, match="namespace and name separated by '.'"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="namespace and name separated by '.'"):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), dependencies)
 
 
 def test_self_dependency(galaxy_info):
     dependencies = ["someone.my_role"]
-    with pytest.raises(ValueError, match="cannot depend on itself"):
+    with pytest.raises(exc.LegacyRoleSchemaError, match="cannot depend on itself"):
         LegacyImportResult(
             "someone",
             "my_role",
@@ -217,5 +220,7 @@ def test_self_dependency(galaxy_info):
     ],
 )
 def test_load_name_regex(galaxy_info, invalid_name):
-    with pytest.raises(ValueError, match=re.escape(f"role name {invalid_name} is invalid")):
+    with pytest.raises(
+        exc.LegacyRoleSchemaError, match=re.escape(f"role name {invalid_name} is invalid")
+    ):
         LegacyImportResult("my-namespace", invalid_name, LegacyMetadata(galaxy_info, []))
