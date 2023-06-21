@@ -28,14 +28,8 @@ import bleach
 from bleach_allowlist import markdown_tags, markdown_attrs
 
 README_NAME = "README"
-DOCFILE_EXTENSIONS = [
-    ".md",
-    ".rst"
-]
-DOCFILE_MIMETYPES = {
-    ".md": "text/markdown",
-    ".rst": "text/x-rst"
-}
+DOCFILE_EXTENSIONS = [".md", ".rst"]
+DOCFILE_MIMETYPES = {".md": "text/markdown", ".rst": "text/x-rst"}
 DOCFILE_MAX_SIZE = 512 * 1024  # 512 KiB
 
 DocFile = collections.namedtuple("DocFile", ["name", "text", "mimetype", "hash"])
@@ -164,55 +158,32 @@ class StringOutputWriter(docutils.writers.Writer):
         super().__init__()
         self.output = []
 
-    #def write(self, data):
     def write(self, document, destination):
-        #import epdb; epdb.st()
         self.output.append(document)
 
     def get_output(self):
-        return ''.join([str(x) for x in self.output])
+        return "".join([str(x) for x in self.output])
 
     def assemble_parts(self):
-        self.parts['whole'] = self.output
-        #self.parts['encoding'] = self.document.settings.output_encoding
-        self.parts['encoding'] = 'utf-8'
-        self.parts['version'] = docutils.__version__
+        self.parts["whole"] = self.output
+        self.parts["encoding"] = "utf-8"
+        self.parts["version"] = docutils.__version__
 
 
 def _render_from_restructured_text(doc_file):
     """Render html from restructured text (RST)  documentation file.
 
     :param doc_file: DocFile"""
-    doc_bytes = io.BytesIO(doc_file.text.encode('utf-8'))
+    # we have to send in a file like object
+    doc_bytes = io.BytesIO(doc_file.text.encode("utf-8"))
 
+    # we need a file like object to store the result
     output = io.StringIO()
+
+    # we need to override the output with a custom writer
     writer = StringOutputWriter()
 
-    docutils.core.publish_file(
-		#source_class=io.StringIO,
-		#source=doc_file.text,
-        source=doc_bytes,
-		destination=output,
-		writer=writer
-	)
+    docutils.core.publish_file(source=doc_bytes, destination=output, writer=writer)
 
     unsafe_html = writer.get_output()
-    '''
-    result = bleach.clean(
-        unsafe_html,
-        tags=markdown_tags + ["pre", "table", "thead", "th", "tr", "td", "inline", "raw", "list_item"],
-        attributes=markdown_attrs,
-        styles=[],
-        strip=True,
-    )
-    '''
-    result = unsafe_html
-
-    newdir = '/tmp/docs'
-    if not os.path.exists(newdir):
-        os.makedirs(newdir)
-    newfile = os.path.join(newdir, doc_file.name.replace('.rst', '.html'))
-    with open(newfile, 'w') as f:
-        f.write(result)
-
-    return result
+    return unsafe_html
