@@ -20,9 +20,11 @@ import re
 
 import attr
 import semantic_version
+import yaml
 
 from galaxy_importer import config
 from galaxy_importer import constants
+from galaxy_importer import exceptions as exc
 from galaxy_importer.utils.spdx_licenses import is_valid_license_id
 
 MAX_LENGTH_AUTHOR = 64
@@ -31,6 +33,11 @@ MAX_LENGTH_NAME = 64
 MAX_LENGTH_TAG = 64
 MAX_LENGTH_URL = 2000
 MAX_LENGTH_VERSION = 128
+
+MAX_LEGACY_ROLE_LENGTH_VERSION = 10
+MAX_LEGACY_ROLE_LENGTH_COMPANY = 50
+MAX_LEGACY_ROLE_LENGTH_LICENSE = 50
+MAX_LEGACY_ROLE_LENGTH_DESCRIPTION = 255
 
 SHA1_LEN = 40
 REQUIRED_TAG_LIST = [
@@ -376,6 +383,159 @@ class CollectionArtifactFileManifest(object):
 
 
 @attr.s(frozen=True)
+class LegacyGalaxyInfo(object):
+    """Represents legacy role metadata galaxy_info field."""
+
+    role_name = attr.ib(default=None)
+    author = attr.ib(default=None)
+    description = attr.ib(default=None)
+    company = attr.ib(default=None)
+    issue_tracker_url = attr.ib(default=None)
+    license = attr.ib(default=None)
+    min_ansible_version = attr.ib(default=None)
+    min_ansible_container_version = attr.ib(default=None)
+    github_branch = attr.ib(default=None)
+    platforms = attr.ib(factory=list)
+    galaxy_tags = attr.ib(factory=list)
+
+    @role_name.validator
+    @author.validator
+    @description.validator
+    @company.validator
+    @issue_tracker_url.validator
+    @license.validator
+    @github_branch.validator
+    def _validate_str(self, attribute, value):
+        """Ensure value is of type str."""
+
+        if value is not None and not isinstance(value, str):
+            raise exc.LegacyRoleSchemaError(f"{attribute.name} must be a string")
+
+    @platforms.validator
+    def _validate_list_dict(self, attribute, value):
+        """Ensure value is of type list[dict]."""
+
+        if value is not None:
+            if not isinstance(value, list):
+                raise exc.LegacyRoleSchemaError(f"{attribute.name} must be a list")
+            if not all(isinstance(element, dict) for element in value):
+                raise exc.LegacyRoleSchemaError(f"{attribute.name} must be a list of dictionaries")
+
+    @galaxy_tags.validator
+    def _validate_list_str(self, attribute, value):
+        """Ensure value is of type list[str]."""
+
+        if value is not None:
+            if not isinstance(value, list):
+                raise exc.LegacyRoleSchemaError(f"{attribute.name} must be a list")
+            if not all(isinstance(element, str) for element in value):
+                raise exc.LegacyRoleSchemaError(f"{attribute.name} must be a list of strings")
+
+    @role_name.validator
+    def _validate_role_name(self, attribute, value):
+        """Ensure role name matches the regular expression."""
+
+        if value is not None and not constants.NAME_REGEXP.match(value):
+            raise exc.LegacyRoleSchemaError(f"role name {value} is invalid")
+
+    @author.validator
+    def _validate_author(self, attribute, value):
+        """Ensure the author value is not too long."""
+
+        if value is not None and len(value) > MAX_LENGTH_AUTHOR:
+            raise exc.LegacyRoleSchemaError(
+                f"author must not exceed {MAX_LENGTH_AUTHOR} characters"
+            )
+
+    @description.validator
+    def _validate_description(self, attribute, value):
+        if value is not None and len(value) > MAX_LEGACY_ROLE_LENGTH_DESCRIPTION:
+            raise exc.LegacyRoleSchemaError(
+                f"description must not exceed {MAX_LEGACY_ROLE_LENGTH_DESCRIPTION} characters"
+            )
+
+    @company.validator
+    def _validate_company(self, attribute, value):
+        if value is not None and len(value) > MAX_LEGACY_ROLE_LENGTH_COMPANY:
+            raise exc.LegacyRoleSchemaError(
+                f"company must not exceed {MAX_LEGACY_ROLE_LENGTH_DESCRIPTION} characters"
+            )
+
+    @issue_tracker_url.validator
+    def _validate_url(self, attribute, value):
+        """Ensure a URL is not too long."""
+
+        if value is not None and len(value) > MAX_LENGTH_URL:
+            raise exc.LegacyRoleSchemaError(f"url must not exceed {MAX_LENGTH_URL} characters")
+
+    @license.validator
+    def _validate_license(self, attribute, value):
+        """Ensure the license is not too long."""
+
+        if value is not None:
+            if len(value) > MAX_LEGACY_ROLE_LENGTH_LICENSE:
+                raise exc.LegacyRoleSchemaError(
+                    f"role license must not exceed {MAX_LEGACY_ROLE_LENGTH_LICENSE} characters"
+                )
+
+    @min_ansible_version.validator
+    @min_ansible_container_version.validator
+    def _validate_version(self, attribute, value):
+        """Ensure a version is not too long."""
+
+        if value is not None and len(str(value)) > MAX_LEGACY_ROLE_LENGTH_VERSION:
+            raise exc.LegacyRoleSchemaError(
+                f"version for {attribute.name} must not exceed"
+                f"{MAX_LEGACY_ROLE_LENGTH_VERSION} characters"
+            )
+
+    @galaxy_tags.validator
+    def _validate_tags(self, attribute, value):
+        """Ensure tags are not too long."""
+
+        if value is not None:
+            if any(len(element) > MAX_LENGTH_TAG for element in value):
+                raise exc.LegacyRoleSchemaError(f"tag must not exceed {MAX_LENGTH_TAG} characters")
+
+
+@attr.s(frozen=True)
+class LegacyMetadata:
+    """Represents legacy role metadata."""
+
+    galaxy_info = attr.ib(default=None, type=LegacyGalaxyInfo)
+    dependencies = attr.ib(factory=list)
+
+    @classmethod
+    def parse(cls, data):
+        with open(data, "r") as fh:
+            metadata = yaml.safe_load(fh)
+            if not isinstance(metadata, dict):
+                raise exc.LegacyRoleSchemaError("metadata must be in the form of a yaml dictionary")
+            if "galaxy_info" not in metadata:
+                raise exc.LegacyRoleSchemaError("galaxy_info field not found in metadata")
+            if not isinstance(metadata["galaxy_info"], dict):
+                raise exc.LegacyRoleSchemaError("galaxy_info field must contain a dictionary")
+            try:
+                galaxy_info = LegacyGalaxyInfo(**metadata["galaxy_info"])
+            except TypeError as e:
+                raise exc.LegacyRoleSchemaError("unknown field in galaxy_info") from e
+            dependencies = metadata.get("dependencies", list())
+        return cls(galaxy_info, dependencies)
+
+    @dependencies.validator
+    def _validate_dependencies(self, attribute, value):
+        if not isinstance(value, list):
+            raise exc.LegacyRoleSchemaError("dependencies must be a list of strings")
+        for dependency in value:
+            if not isinstance(dependency, str):
+                raise exc.LegacyRoleSchemaError("dependencies must be a list of strings")
+            if dependency.count(".") != 1:
+                raise exc.LegacyRoleSchemaError(
+                    f"{dependency} must have namespace and name separated by '.'"
+                )
+
+
+@attr.s(frozen=True)
 class ResultContentItem(object):
     name = attr.ib()
     content_type = attr.ib()
@@ -391,6 +551,31 @@ class ImportResult(object):
     contents = attr.ib(factory=list, type=ResultContentItem)
     custom_license = attr.ib(default=None)
     requires_ansible = attr.ib(default=None)
+
+
+@attr.s(frozen=True)
+class LegacyImportResult(object):
+    """Result of legacy import with namespace, name, metadata, and readme."""
+
+    namespace = attr.ib()
+    name = attr.ib()
+    metadata = attr.ib(type=LegacyMetadata)
+    readme_file = attr.ib(default=None)
+    readme_html = attr.ib(default=None)
+
+    @name.validator
+    def _validate_name(self, attribute, value):
+        if constants.NAME_REGEXP.match(value) is None:
+            raise exc.LegacyRoleSchemaError(f"role name {value} is invalid")
+
+    @metadata.validator
+    def _ensure_no_self_dependency(self, attribute, value):
+        for dependency in self.metadata.dependencies:
+            namespace, name = dependency.split(".")
+            if self.namespace == namespace and self.name == name:
+                raise exc.LegacyRoleSchemaError(
+                    f"role {self.namespace}.{self.name} cannot depend on itself"
+                )
 
 
 @attr.s

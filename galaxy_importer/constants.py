@@ -53,6 +53,8 @@ ALLOWED_EXTENSION_DIRS = [
     EDA_EVENT_FILTER_NAME,
 ]
 
+GITHUB_USERNAME_REGEXP = re.compile(r"^[a-zA-Z\d](?:[a-zA-Z\d]|-(?=[a-zA-Z\d])){0,38}$")
+
 
 class ContentCategory(enum.Enum):
     MODULE = "module"

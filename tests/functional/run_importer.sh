@@ -47,6 +47,13 @@ rm foo/bar/foo-bar-*.tar.gz
 python3 -m galaxy_importer.main --git-clone-path=foo/bar/ --output-path=foo/bar/
 RETURN_CODE=$?
 
+# build a legacy role
+ansible-galaxy role init bar_role
+
+# run the importer with legacy role directory
+python3 -m galaxy_importer.main bar_role --legacy-role --namespace foo-namespace
+RETURN_CODE=$?
+
 # cleanup
 cd /tmp
 rm -rf $TMPDIR
