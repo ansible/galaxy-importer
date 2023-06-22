@@ -1,0 +1,1 @@
+Adding `ansible-lint` collection level call for the `ansible-lint` Production profile and removing the `ansible-lint` role level call. 

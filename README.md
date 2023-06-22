@@ -18,6 +18,10 @@ Run parsing/validation standalone to view log output and importer result for a b
 
 `python -m galaxy_importer.main [collection_artifact_file]`
 
+Supports legacy roles (note: must be in the parent directory of the legacy role):
+
+`python -m galaxy_importer.main --legacy-role [legacy_role_directory] --namespace [namespace]`
+
 View log output in terminal, and view the importer result in the written file `importer_result.json`
 
 #### Structure of Output
@@ -62,6 +66,8 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 - `ANSIBLE_TEST_LOCAL_IMAGE` - Set to `True` to run `ansible-test` sandboxed within a container image. Requires installation of either Podman or Docker to run the container. Defaults to `False`.
 
 - `LOCAL_IMAGE_DOCKER` - Set to `True` to run the `ansible-test` container image via Docker; otherwise, Podman will be used. Defaults to `False`.
+
+
 
 ### Issues and Process
 

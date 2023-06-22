@@ -18,6 +18,9 @@
 import logging
 import os
 import re
+import shutil
+from subprocess import Popen, PIPE, TimeoutExpired
+
 
 try:
     from ansible_builder import introspect
@@ -26,8 +29,8 @@ except ImportError:
 
 from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder, FileWalker
-from galaxy_importer import loaders
-from galaxy_importer import schema
+from galaxy_importer import constants
+from galaxy_importer import loaders, file_parser, schema
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils import chksums
 from galaxy_importer.utils import string_utils
@@ -87,10 +90,13 @@ class CollectionLoader(object):
 
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
-        self.requires_ansible = loaders.RuntimeFileLoader(self.path).get_requires_ansible()
-        self._check_ansible_test_ignore_files()
+        self.requires_ansible = file_parser.RuntimeFileParser(self.path).get_requires_ansible()
         self._check_ee_yml_dep_files()
         self._check_collection_changelog()
+
+        if self.cfg.run_ansible_lint:
+            self._lint_collection()
+        self._check_ansible_test_ignore_files()
 
         return schema.ImportResult(
             metadata=self.metadata,
@@ -98,6 +104,63 @@ class CollectionLoader(object):
             contents=self.contents,
             requires_ansible=self.requires_ansible,
         )
+
+    def _lint_collection(self):
+        """Log ansible-lint output.
+
+        ansible-lint stdout are linter violations, they are logged as warnings and errors,
+        depending on the rule level.
+
+        ansible-lint stderr includes info about vars, file discovery,
+        summary of linter violations, config suggestions, and raised errors.
+        Only raised errors are logged, they are logged as errors.
+        """
+
+        self.log.info("Linting collection via ansible-lint...")
+
+        if not shutil.which("ansible-lint"):
+            self.log.warning("ansible-lint not found, skipping lint of collection")
+            return
+
+        cmd = [
+            "/usr/bin/env",
+            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            "ansible-lint",
+            "--profile",
+            "production",
+            "--exclude",
+            "tests/integration/",
+            "--exclude",
+            "tests/unit/",
+            "--parseable",
+            "--nocolor",
+        ]
+        self.log.debug("CMD: " + " ".join(cmd))
+        proc = Popen(
+            cmd,
+            cwd=self.path,
+            encoding="utf-8",
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+
+        try:
+            outs, errs = proc.communicate(timeout=120)
+        except (
+            TimeoutExpired
+        ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
+            self.log.error("Timeout on call to ansible-lint")
+            proc.kill()
+            outs, errs = proc.communicate()
+
+        for line in outs.splitlines():
+            self.log.warning(line.strip())
+
+        for line in errs.splitlines():
+            if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
+                self.log.warning(line.rstrip())
+
+        self.log.info("...ansible-lint run complete")
 
     def _check_ansible_test_ignore_files(self):  # pragma: no cover
         """Log a warning when ansible test sanity ignore files are present.
@@ -121,11 +184,6 @@ class CollectionLoader(object):
 
     def _check_collection_changelog(self):
         """Log an error when a CHANGELOG file is not present in the root of the collection."""
-        CHANGELOG_ERROR = (
-            "No changelog found. "
-            "Add a CHANGELOG.rst, CHANGELOG.md, or changelogs/changelog.yaml file."
-        )
-
         changelog_rst_path = os.path.join(self.path, "CHANGELOG.rst")
         changelog_md_path = os.path.join(self.path, "CHANGELOG.md")
         changelog_yaml_path = os.path.join(self.path, "changelogs/changelog.yaml")
@@ -135,7 +193,10 @@ class CollectionLoader(object):
             and not os.path.exists(changelog_md_path)
             and not os.path.exists(changelog_yaml_path)
         ):
-            self.log.error(CHANGELOG_ERROR)
+            self.log.warning(
+                "No changelog found. "
+                "Add a CHANGELOG.rst, CHANGELOG.md, or changelogs/changelog.yaml file."
+            )
 
     def _check_ee_yml_dep_files(self):  # pragma: no cover
         """Check for python deps file and system deps file if they are listed in
@@ -147,7 +208,7 @@ class CollectionLoader(object):
         try:
             python_deps, system_deps = introspect.process_collection(self.path)
         except FileNotFoundError as e:
-            self.log.error(
+            self.log.warning(
                 f"Error when checking meta/execution-environment.yml for dependency files: {e}"
             )
 

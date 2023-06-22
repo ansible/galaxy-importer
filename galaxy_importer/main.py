@@ -22,7 +22,7 @@ import os
 import re
 import sys
 
-from galaxy_importer import collection
+from galaxy_importer import collection, legacy_role
 from galaxy_importer import config
 from galaxy_importer.exceptions import ImporterError
 
@@ -88,6 +88,15 @@ def parse_args(args):
         action="store_true",
         help="print importer result to console",
     )
+    parser.add_argument(
+        "--legacy-role",
+        dest="legacy_role",
+        action="store_true",
+        help="import a legacy role rather than collection",
+    )
+    parser.add_argument(
+        "--namespace", dest="namespace", help="namespace of the legacy role to import"
+    )
     return parser.parse_args(args=args)
 
 
@@ -98,27 +107,43 @@ def call_importer(args, cfg):  # pragma: no cover
 
     Method excluded from pytest unit test coverage, tests exist in tests/integration
     """
-    if not args.file:
-        return collection.import_collection(
-            git_clone_path=os.path.abspath(args.git_clone_path),
-            output_path=os.path.abspath(args.output_path),
-            logger=logger,
-            cfg=cfg,
-        )
-
-    match = FILENAME_REGEXP.match(os.path.basename(args.file))
-    namespace, name, version = match.groups()
-    filename = collection.CollectionFilename(namespace, name, version)
-
-    with open(args.file, "rb") as fh:
+    if args.legacy_role:
+        if args.file is None:
+            logger.error("Must supply the directory of the role")
+            return None
+        if args.namespace is None:
+            logger.error("Importing legacy role requires explicit namespace")
+            return None
         try:
-            data = collection.import_collection(fh, filename, logger=logger, cfg=cfg)
+            data = legacy_role.import_legacy_role(args.file, args.namespace, logger=logger, cfg=cfg)
         except ImporterError as e:
             logger.error(f"The import failed for the following reason: {str(e)}")
             return None
         except Exception as e:
             logger.exception(f"Unexpected error occurred: {str(e)}")
             return None
+    else:
+        if not args.file:
+            return collection.import_collection(
+                git_clone_path=os.path.abspath(args.git_clone_path),
+                output_path=os.path.abspath(args.output_path),
+                logger=logger,
+                cfg=cfg,
+            )
+
+        match = FILENAME_REGEXP.match(os.path.basename(args.file))
+        namespace, name, version = match.groups()
+        filename = collection.CollectionFilename(namespace, name, version)
+
+        with open(args.file, "rb") as fh:
+            try:
+                data = collection.import_collection(fh, filename, logger=logger, cfg=cfg)
+            except ImporterError as e:
+                logger.error(f"The import failed for the following reason: {str(e)}")
+                return None
+            except Exception as e:
+                logger.exception(f"Unexpected error occurred: {str(e)}")
+                return None
 
     logger.info("Importer processing completed successfully")
     return data
