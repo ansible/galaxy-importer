@@ -13,13 +13,27 @@ Notes about the process surrounding the `galaxy-importer` package, which is a de
 * If Pull Request is small enough not to need a Jira issue, at least one commit must include a single line with `No-Issue`
 * Please run the tests in `Makefile` or install the pre-commit hook in `hooks/pre-commit` and correct any failures prior to submitting a pull request.
 
+#### galaxy-importer Roadmap
+
+* [Prioritized list of tickets](https://issues.redhat.com/issues/?jql=project%20in%20(AAH%2C%20AAP%2C%20ANSTRAT)%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20importer%20ORDER%20BY%20priority%20DESC) labeled `importer`
+
+#### Versioning
+
+Versioning (x.y.z) following https://semver.org/
+* Advance the x-stream if breaking backwards-compatibility
+* Advance the y-stream for new features
+* Advance the z-stream for bugfixes / ci / minor changes
+
 #### Release steps
 
-* Test `master` branch against `pulp-ansible` functional tests inside `galaxy_ng` development environment
-* Update `galaxy_importer/__init__.py` with new version number
-* Run `$ towncrier` to update `CHANGES.rst`
-* Push changes under commit title `Release <#.#.#>`
-* Tag the commit `v<#.#.#>`, and push the tag to trigger publish to PyPi
+* Open PR with title `Release #.#.#`
+  * Update `galaxy_importer/__init__.py` with new version number
+    * Be aware of `galaxy-importer` version range dependencies in [pulp_ansible](https://github.com/pulp/pulp_ansible/blob/main/requirements.txt) and [galaxy_ng](https://github.com/ansible/galaxy_ng/blob/master/setup.py)
+  * Run `$ towncrier` to update `CHANGES.rst`
+* Merge PR
+* Check the master branch CI on the merged commit to ensure it is green
+* Tag the commit `v<#.#.#>`, and push the tag to upstream repo
+* Check the master branch CI on the merged and tagged commit, it will execute a new job to publish to pypi
 
 #### Testing in other systems
 
