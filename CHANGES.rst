@@ -1,3 +1,20 @@
+galaxy-importer 0.4.11 (2023-06-23)
+===================================
+
+Features
+--------
+
+- Adding `ansible-lint` collection level call for the `ansible-lint` Production profile and removing the `ansible-lint` role level call. (`AAH-2202 <https://issues.redhat.com/browse/AAH-2202>`_)
+- Adding EDA testing with `tox`, containing the `ruff`, `darglint`, and `pylint` linters. (`AAH-2307 <https://issues.redhat.com/browse/AAH-2307>`_)
+- Support importing legacy roles and yielding data, including linting (`AAH-2356 <https://issues.redhat.com/browse/AAH-2356>`_)
+
+
+Misc
+----
+
+- `AAH-2350 <https://issues.redhat.com/browse/AAH-2350>`_
+
+
 galaxy-importer 0.4.10 (2023-04-25)
 ==================================
 
