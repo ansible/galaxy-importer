@@ -81,6 +81,11 @@ def test_valid_list_str(galaxy_info):
         "name123_four",
         "r1",
         "crush_",
+        "3w6",
+        "-foo-bar_baz-",
+        "___---___",
+        "9",
+        "q" * 55,
     ],
 )
 def test_valid_role_name(galaxy_info, valid_name):
@@ -92,15 +97,11 @@ def test_valid_role_name(galaxy_info, valid_name):
 @pytest.mark.parametrize(
     "invalid_name",
     [
-        "_this",
-        "walker-turzai",
-        "foo_bar-baz",
-        "3w6",
         "$@#",
         "this.role",
         "docker!",
         "big space",
-        "whyUpper",
+        "q" * 56,
     ],
 )
 def test_invalid_role_name(galaxy_info, invalid_name):
@@ -208,15 +209,11 @@ def test_self_dependency(galaxy_info):
 @pytest.mark.parametrize(
     "invalid_name",
     [
-        "_this",
-        "walker-turzai",
-        "foo_bar-baz",
-        "3w6",
         "$@#",
         "this.role",
         "docker!",
         "big space",
-        "whyUpper",
+        "q" * 56,
     ],
 )
 def test_load_name_regex(galaxy_info, invalid_name):
