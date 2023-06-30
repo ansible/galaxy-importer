@@ -18,7 +18,6 @@
 from copy import deepcopy
 import json
 import logging
-import os
 import shutil
 from subprocess import Popen, PIPE
 
@@ -47,9 +46,7 @@ class DocStringLoader:
             return docs
 
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
-            plugin_dir_name = constants.ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
-
-            plugins = self._get_plugins(os.path.join(self.path, "plugins", plugin_dir_name))
+            plugins = self._get_plugins_of_type(plugin_type)
 
             if not plugins:
                 continue
@@ -60,26 +57,50 @@ class DocStringLoader:
 
         return docs
 
-    def _get_plugins(self, plugin_dir):
-        """Get list of fully qualified plugin names inside directory.
+    def _get_plugins_of_type(self, plugin_type: str) -> list[str]:
+        """Get list of fully qualified plugins names of a type.
 
-        Ex: ['google.gcp.service_facts', 'google.gcp.storage.subdir2.gc_storage']
+        This function uses ansible-doc to parse the names of all plugins
+        for this collection (self.fq_collection_name) of the given plugin
+        type. An alternate strategy may be to walk the collection directory
+        and find plugins. However, that gets murky with filter and test plugins
+        which may have either inline-python documentation or adjacent-yaml
+        documentation. This way, ansible-doc does the hard work for us.
         """
-        plugins = []
-        for root, _, files in os.walk(plugin_dir):
-            for filename in files:
-                if not filename.endswith(".py") or filename == "__init__.py":
-                    continue
-                file_path = os.path.join(root, filename)
-                sub_dirs = os.path.relpath(root, plugin_dir)
+        collections_path = "/".join(self.path.split("/")[:-3])
 
-                fq_name_parts = [self.fq_collection_name]
-                if sub_dirs and sub_dirs != ".":
-                    fq_name_parts.extend(sub_dirs.split("/"))
-                fq_name_parts.append(os.path.basename(file_path)[:-3])
+        # This command invokes ansible-doc to list the names of all plugins
+        # of the given plugin type. The output is a json dictionary in which
+        # the keys are the plugin names and the values are short descriptions.
+        # We only care about the names.
+        cmd = [
+            "/usr/bin/env",
+            f"ANSIBLE_COLLECTIONS_PATHS={collections_path}",
+            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            "ansible-doc",
+            "--type",
+            plugin_type,
+            "--list",
+            "--json",
+            self.fq_collection_name
+        ]
+        proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
 
-                plugins.append(".".join(fq_name_parts))
-        return plugins
+        # If ansible-doc fails for any reason, log the error and return
+        # the empty list.
+        if proc.returncode:
+            self.log.error(
+                'Error running ansible-doc: cmd="{cmd}" returncode="{rc}" {err}'.format(
+                    cmd=" ".join(cmd), rc=proc.returncode, err=stderr
+                )
+            )
+            return list()
+
+        # Success! Load the ansible-doc output into a python
+        # dictionary and returns a list of the keys.
+        result = json.loads(stdout)
+        return list(result.keys())
 
     def _run_ansible_doc(self, plugin_type, plugins):
         collections_path = "/".join(self.path.split("/")[:-3])
