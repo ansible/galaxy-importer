@@ -204,7 +204,11 @@ def test_manifest_success(_build_docs_blob, populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=tmp_collection_root,
+        ),
     ).load()
     assert data.metadata.namespace == "my_namespace"
     assert data.metadata.name == "my_collection"
@@ -375,7 +379,11 @@ def test_filename_empty_value(_build_docs_blob, populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=tmp_collection_root,
+        ),
     ).load()
     assert data.metadata.namespace == "my_namespace"
     assert data.metadata.name == "my_collection"
@@ -390,7 +398,11 @@ def test_filename_none(_build_docs_blob, populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=tmp_collection_root,
+        ),
     ).load()
     assert data.metadata.namespace == "my_namespace"
     assert data.metadata.name == "my_collection"
@@ -413,7 +425,11 @@ def test_license_file(populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename=None,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=tmp_collection_root,
+        ),
     ).load()
     assert data.metadata.license_file == "LICENSE"
 
@@ -453,7 +469,11 @@ def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
     CollectionLoader(
         populated_collection_root,
         filename=None,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=tmp_collection_root,
+        ),
     ).load()
     assert (
         "No changelog found. "

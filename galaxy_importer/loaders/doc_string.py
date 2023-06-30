@@ -82,7 +82,7 @@ class DocStringLoader:
             plugin_type,
             "--list",
             "--json",
-            self.fq_collection_name
+            self.fq_collection_name,
         ]
         proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
