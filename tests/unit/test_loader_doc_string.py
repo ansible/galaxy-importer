@@ -24,8 +24,35 @@ import pytest
 import shutil
 
 from galaxy_importer import config
-from galaxy_importer import constants
 from galaxy_importer import loaders
+
+
+FIL_PY = """
+def fil_one(): pass
+
+def fil_two(): pass
+
+class FilterModule(object):
+    def filters(self):
+        return {
+            'fil_one': fil_one,
+            'fil_two': fil_two,
+        }
+"""
+
+FIL_ONE_YML = """
+DOCUMENTATION:
+  name: fil_one
+  short_description: Do nothing filter one
+  author: Connor
+"""
+
+FIL_TWO_YML = """
+DOCUMENTATION:
+  name: fil_two
+  short_description: Do nothing filter two
+  author: Zach
+"""
 
 
 @pytest.fixture
@@ -36,9 +63,6 @@ def plugins_collection_root():
         collection_root = os.path.join(tmp_dir, sub_path)
         os.makedirs(collection_root)
         os.makedirs(os.path.join(collection_root, "plugins"))
-        for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
-            plugin_dir = constants.ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
-            os.makedirs(os.path.join(collection_root, "plugins", plugin_dir))
         yield collection_root
     finally:
         shutil.rmtree(tmp_dir)
@@ -67,6 +91,7 @@ def test_get_plugins(plugins_collection_root):
 
     # Test single cache plugin.
     cache_dir = os.path.join(plugins_collection_root, "plugins", "cache")
+    os.mkdir(cache_dir)
     with open(os.path.join(cache_dir, "this.py"), "w+") as fh:
         fh.write("")
     plugins = loader._get_plugins_of_type("cache")
@@ -74,6 +99,7 @@ def test_get_plugins(plugins_collection_root):
 
     # Test multiple connection plugins.
     connection_dir = os.path.join(plugins_collection_root, "plugins", "connection")
+    os.mkdir(connection_dir)
     with open(os.path.join(connection_dir, "qwe.py"), "w+") as fh:
         fh.write("")
     with open(os.path.join(plugins_collection_root, "plugins", "connection", "rty.py"), "w+") as fh:
@@ -84,20 +110,13 @@ def test_get_plugins(plugins_collection_root):
     # Test multiple inventory plugins including a nested directory.
     inventory_dir = os.path.join(plugins_collection_root, "plugins", "inventory")
     nested_dir = os.path.join(inventory_dir, "nested")
-    os.mkdir(nested_dir)
+    os.makedirs(nested_dir)
     with open(os.path.join(inventory_dir, "ans.py"), "w+") as fh:
         fh.write("")
     with open(os.path.join(nested_dir, "ible.py"), "w+") as fh:
         fh.write("")
     plugins = loader._get_plugins_of_type("inventory")
     assert plugins == ["my_namespace.my_collection.ans", "my_namespace.my_collection.nested.ible"]
-
-
-@pytest.mark.skip
-def test_get_plugins_subdirs(doc_string_loader, tmpdir):
-    tmpdir.mkdir("subdir1").mkdir("subdir2").join("nested_plugin.py").write("")
-    plugins = doc_string_loader._get_plugins(str(tmpdir))
-    assert plugins == ["my_namespace.my_collection.subdir1.subdir2.nested_plugin"]
 
 
 @mock.patch("galaxy_importer.loaders.doc_string.Popen")
@@ -119,9 +138,9 @@ def test_run_ansible_doc_exception(mocked_popen, doc_string_loader):
     assert not res
 
 
-@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc")
-def test_ansible_doc_no_output(mocked_run_ansible_doc, doc_string_loader):
-    mocked_run_ansible_doc.return_value = ""
+@mock.patch.object(loaders.DocStringLoader, "_get_plugins_of_type")
+def test_ansible_doc_no_plugins(mocked_get_plugins_of_type, doc_string_loader):
+    mocked_get_plugins_of_type.return_value = []
     assert doc_string_loader.load() == {}
 
 
@@ -392,8 +411,9 @@ def test_transform_doc_strings_nested_suboptions(doc_string_loader):
     ]
 
 
+@mock.patch.object(loaders.DocStringLoader, "_get_plugins_of_type")
 @mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc")
-def test_load(mocked_run_ansible_doc, doc_string_loader, tmpdir):
+def test_load(mocked_run_ansible_doc, mocked_get_plugins_of_type, doc_string_loader):
     ansible_doc_output = """
         {
             "my_module": {
@@ -411,8 +431,10 @@ def test_load(mocked_run_ansible_doc, doc_string_loader, tmpdir):
     """
     mocked_run_ansible_doc.return_value = json.loads(ansible_doc_output)
 
-    doc_string_loader.path = str(tmpdir)
-    tmpdir.mkdir("plugins").mkdir("modules").join("my_module.py").write("")
+    def mocked_get_plugins_func(plugin_type):
+        return ["my_namespace.my_collection.my_module"] if plugin_type == "module" else []
+
+    mocked_get_plugins_of_type.side_effect = mocked_get_plugins_func
 
     res = doc_string_loader.load()
     assert res == {
@@ -434,16 +456,69 @@ def test_load(mocked_run_ansible_doc, doc_string_loader, tmpdir):
     }
 
 
+def test_filter_plugin_yml_doc(plugins_collection_root):
+    loader = loaders.DocStringLoader(
+        path=plugins_collection_root,
+        fq_collection_name="my_namespace.my_collection",
+        cfg=config.Config(config_data=config.ConfigFile.load()),
+    )
+
+    filter_dir = os.path.join(plugins_collection_root, "plugins", "filter")
+    os.mkdir(filter_dir)
+    with open(os.path.join(filter_dir, "fil.py"), "w+") as fh:
+        fh.write(FIL_PY)
+    with open(os.path.join(filter_dir, "fil_one.yml"), "w+") as fh:
+        fh.write(FIL_ONE_YML)
+    with open(os.path.join(filter_dir, "fil_two.yml"), "w+") as fh:
+        fh.write(FIL_TWO_YML)
+    result = loader.load()
+    assert result == {
+        "filter": {
+            "my_namespace.my_collection.fil_one": {
+                "doc": {
+                    "author": "Connor",
+                    "collection": "my_namespace.my_collection",
+                    "filename": os.path.join(
+                        plugins_collection_root, "plugins", "filter", "fil_one.yml"
+                    ),
+                    "name": "fil_one",
+                    "short_description": "Do nothing filter one",
+                },
+                "examples": None,
+                "metadata": None,
+                "return": None,
+            },
+            "my_namespace.my_collection.fil_two": {
+                "doc": {
+                    "author": "Zach",
+                    "collection": "my_namespace.my_collection",
+                    "filename": os.path.join(
+                        plugins_collection_root, "plugins", "filter", "fil_two.yml"
+                    ),
+                    "name": "fil_two",
+                    "short_description": "Do nothing filter two",
+                },
+                "examples": None,
+                "metadata": None,
+                "return": None,
+            },
+        }
+    }
+
+
+@mock.patch.object(loaders.DocStringLoader, "_get_plugins_of_type")
 @mock.patch("galaxy_importer.loaders.doc_string.Popen")
-def test_load_ansible_doc_error(mocked_popen, doc_string_loader, tmpdir):
+def test_load_ansible_doc_error(mocked_popen, mocked_get_plugins_of_type, doc_string_loader):
     mocked_popen.return_value.communicate.return_value = (
         "output",
         "error that causes exception",
     )
     mocked_popen.return_value.returncode = 1
 
-    doc_string_loader.path = str(tmpdir)
-    tmpdir.mkdir("plugins").mkdir("inventory").join("my_plugin.py").write("")
+    def mocked_get_plugins_func(plugin_type):
+        return ["my_namespace.my_collection.my_plugin"] if plugin_type == "inventory" else []
+
+    mocked_get_plugins_of_type.side_effect = mocked_get_plugins_func
 
     res = doc_string_loader.load()
     assert res == {"inventory": {}}
