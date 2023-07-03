@@ -62,7 +62,7 @@ def plugins_collection_root():
         sub_path = "ansible_collections/my_namespace/my_collection"
         collection_root = os.path.join(tmp_dir, sub_path)
         os.makedirs(collection_root)
-        os.makedirs(os.path.join(collection_root, "plugins"))
+        os.mkdir(os.path.join(collection_root, "plugins"))
         yield collection_root
     finally:
         shutil.rmtree(tmp_dir)

@@ -66,6 +66,8 @@ class DocStringLoader:
         and find plugins. However, that gets murky with filter and test plugins
         which may have either inline-python documentation or adjacent-yaml
         documentation. This way, ansible-doc does the hard work for us.
+
+        Ex: ['google.gcp.service_facts', 'google.gcp.storage.subdir2.gc_storage']
         """
         collections_path = "/".join(self.path.split("/")[:-3])
 
@@ -98,7 +100,7 @@ class DocStringLoader:
             return list()
 
         # Success! Load the ansible-doc output into a python
-        # dictionary and returns a list of the keys.
+        # dictionary and return a list of the keys.
         result = json.loads(stdout)
         return list(result.keys())
 
