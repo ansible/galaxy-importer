@@ -16,12 +16,32 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import json
+import os
+import tempfile
 from unittest import mock
 
 import pytest
+import shutil
 
 from galaxy_importer import config
+from galaxy_importer import constants
 from galaxy_importer import loaders
+
+
+@pytest.fixture
+def plugins_collection_root():
+    try:
+        tmp_dir = tempfile.TemporaryDirectory().name
+        sub_path = "ansible_collections/my_namespace/my_collection"
+        collection_root = os.path.join(tmp_dir, sub_path)
+        os.makedirs(collection_root)
+        os.makedirs(os.path.join(collection_root, "plugins"))
+        for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
+            plugin_dir = constants.ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
+            os.makedirs(os.path.join(collection_root, "plugins", plugin_dir))
+        yield collection_root
+    finally:
+        shutil.rmtree(tmp_dir)
 
 
 @pytest.fixture
@@ -38,14 +58,42 @@ def test_init_loader(doc_string_loader):
     assert doc_string_loader.fq_collection_name == "my_namespace.my_collection"
 
 
-def test_get_plugins(doc_string_loader, tmpdir):
-    tmpdir.join("__init__.py").write("")
-    tmpdir.join("should_be_ignored.txt").write("")
-    tmpdir.join("my_module.py").write("")
-    plugins = doc_string_loader._get_plugins(str(tmpdir))
-    assert plugins == ["my_namespace.my_collection.my_module"]
+def test_get_plugins(plugins_collection_root):
+    loader = loaders.DocStringLoader(
+        path=plugins_collection_root,
+        fq_collection_name="my_namespace.my_collection",
+        cfg=config.Config(config_data=config.ConfigFile.load()),
+    )
+
+    # Test single cache plugin.
+    cache_dir = os.path.join(plugins_collection_root, "plugins", "cache")
+    with open(os.path.join(cache_dir, "this.py"), "w+") as fh:
+        fh.write("")
+    plugins = loader._get_plugins_of_type("cache")
+    assert plugins == ["my_namespace.my_collection.this"]
+
+    # Test multiple connection plugins.
+    connection_dir = os.path.join(plugins_collection_root, "plugins", "connection")
+    with open(os.path.join(connection_dir, "qwe.py"), "w+") as fh:
+        fh.write("")
+    with open(os.path.join(plugins_collection_root, "plugins", "connection", "rty.py"), "w+") as fh:
+        fh.write("")
+    plugins = loader._get_plugins_of_type("connection")
+    assert plugins == ["my_namespace.my_collection.qwe", "my_namespace.my_collection.rty"]
+
+    # Test multiple inventory plugins including a nested directory.
+    inventory_dir = os.path.join(plugins_collection_root, "plugins", "inventory")
+    nested_dir = os.path.join(inventory_dir, "nested")
+    os.mkdir(nested_dir)
+    with open(os.path.join(inventory_dir, "ans.py"), "w+") as fh:
+        fh.write("")
+    with open(os.path.join(nested_dir, "ible.py"), "w+") as fh:
+        fh.write("")
+    plugins = loader._get_plugins_of_type("inventory")
+    assert plugins == ["my_namespace.my_collection.ans", "my_namespace.my_collection.nested.ible"]
 
 
+@pytest.mark.skip
 def test_get_plugins_subdirs(doc_string_loader, tmpdir):
     tmpdir.mkdir("subdir1").mkdir("subdir2").join("nested_plugin.py").write("")
     plugins = doc_string_loader._get_plugins(str(tmpdir))
