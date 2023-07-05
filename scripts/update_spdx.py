@@ -13,7 +13,10 @@ response = requests.get(SPDX_URL)
 result = response.json()
 
 # galaxy-importer only needs the license ID and deprecation status of each license.
-licenses = {license["licenseId"]: {"deprecated": license["isDeprecatedLicenseId"]} for license in result["licenses"]}
+licenses = {
+    license["licenseId"]: {"deprecated": license["isDeprecatedLicenseId"]}
+    for license in result["licenses"]
+}
 
 # Write output.
 with open(OUTPUT_PATH, "w") as fh:
