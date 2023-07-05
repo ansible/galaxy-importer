@@ -1,1193 +1,1673 @@
 {
-    "0BSD":{
-        "deprecated":false
+    "0BSD": {
+        "deprecated": false
     },
-    "AAL":{
-        "deprecated":false
+    "AAL": {
+        "deprecated": false
     },
-    "ADSL":{
-        "deprecated":false
+    "ADSL": {
+        "deprecated": false
     },
-    "AFL-1.1":{
-        "deprecated":false
+    "AFL-1.1": {
+        "deprecated": false
     },
-    "AFL-1.2":{
-        "deprecated":false
+    "AFL-1.2": {
+        "deprecated": false
     },
-    "AFL-2.0":{
-        "deprecated":false
+    "AFL-2.0": {
+        "deprecated": false
     },
-    "AFL-2.1":{
-        "deprecated":false
+    "AFL-2.1": {
+        "deprecated": false
     },
-    "AFL-3.0":{
-        "deprecated":false
+    "AFL-3.0": {
+        "deprecated": false
     },
-    "AGPL-1.0":{
-        "deprecated":true
+    "AGPL-1.0": {
+        "deprecated": true
     },
-    "AGPL-1.0-only":{
-        "deprecated":false
+    "AGPL-1.0-only": {
+        "deprecated": false
     },
-    "AGPL-1.0-or-later":{
-        "deprecated":false
+    "AGPL-1.0-or-later": {
+        "deprecated": false
     },
-    "AGPL-3.0":{
-        "deprecated":true
+    "AGPL-3.0": {
+        "deprecated": true
     },
-    "AGPL-3.0-only":{
-        "deprecated":false
+    "AGPL-3.0-only": {
+        "deprecated": false
     },
-    "AGPL-3.0-or-later":{
-        "deprecated":false
+    "AGPL-3.0-or-later": {
+        "deprecated": false
     },
-    "AMDPLPA":{
-        "deprecated":false
+    "AMDPLPA": {
+        "deprecated": false
     },
-    "AML":{
-        "deprecated":false
+    "AML": {
+        "deprecated": false
     },
-    "AMPAS":{
-        "deprecated":false
+    "AMPAS": {
+        "deprecated": false
     },
-    "ANTLR-PD":{
-        "deprecated":false
+    "ANTLR-PD": {
+        "deprecated": false
     },
-    "APAFML":{
-        "deprecated":false
+    "ANTLR-PD-fallback": {
+        "deprecated": false
     },
-    "APL-1.0":{
-        "deprecated":false
+    "APAFML": {
+        "deprecated": false
     },
-    "APSL-1.0":{
-        "deprecated":false
+    "APL-1.0": {
+        "deprecated": false
     },
-    "APSL-1.1":{
-        "deprecated":false
+    "APSL-1.0": {
+        "deprecated": false
     },
-    "APSL-1.2":{
-        "deprecated":false
+    "APSL-1.1": {
+        "deprecated": false
     },
-    "APSL-2.0":{
-        "deprecated":false
+    "APSL-1.2": {
+        "deprecated": false
     },
-    "Abstyles":{
-        "deprecated":false
+    "APSL-2.0": {
+        "deprecated": false
     },
-    "Adobe-2006":{
-        "deprecated":false
+    "ASWF-Digital-Assets-1.0": {
+        "deprecated": false
     },
-    "Adobe-Glyph":{
-        "deprecated":false
+    "ASWF-Digital-Assets-1.1": {
+        "deprecated": false
     },
-    "Afmparse":{
-        "deprecated":false
+    "Abstyles": {
+        "deprecated": false
     },
-    "Aladdin":{
-        "deprecated":false
+    "AdaCore-doc": {
+        "deprecated": false
     },
-    "Apache-1.0":{
-        "deprecated":false
+    "Adobe-2006": {
+        "deprecated": false
     },
-    "Apache-1.1":{
-        "deprecated":false
+    "Adobe-Glyph": {
+        "deprecated": false
     },
-    "Apache-2.0":{
-        "deprecated":false
+    "Afmparse": {
+        "deprecated": false
     },
-    "Artistic-1.0":{
-        "deprecated":false
+    "Aladdin": {
+        "deprecated": false
     },
-    "Artistic-1.0-Perl":{
-        "deprecated":false
+    "Apache-1.0": {
+        "deprecated": false
     },
-    "Artistic-1.0-cl8":{
-        "deprecated":false
+    "Apache-1.1": {
+        "deprecated": false
     },
-    "Artistic-2.0":{
-        "deprecated":false
+    "Apache-2.0": {
+        "deprecated": false
     },
-    "BSD-1-Clause":{
-        "deprecated":false
+    "App-s2p": {
+        "deprecated": false
     },
-    "BSD-2-Clause":{
-        "deprecated":false
+    "Arphic-1999": {
+        "deprecated": false
     },
-    "BSD-2-Clause-FreeBSD":{
-        "deprecated":false
+    "Artistic-1.0": {
+        "deprecated": false
     },
-    "BSD-2-Clause-NetBSD":{
-        "deprecated":false
+    "Artistic-1.0-Perl": {
+        "deprecated": false
     },
-    "BSD-2-Clause-Patent":{
-        "deprecated":false
+    "Artistic-1.0-cl8": {
+        "deprecated": false
     },
-    "BSD-3-Clause":{
-        "deprecated":false
+    "Artistic-2.0": {
+        "deprecated": false
     },
-    "BSD-3-Clause-Attribution":{
-        "deprecated":false
+    "BSD-1-Clause": {
+        "deprecated": false
     },
-    "BSD-3-Clause-Clear":{
-        "deprecated":false
+    "BSD-2-Clause": {
+        "deprecated": false
     },
-    "BSD-3-Clause-LBNL":{
-        "deprecated":false
+    "BSD-2-Clause-FreeBSD": {
+        "deprecated": true
     },
-    "BSD-3-Clause-No-Nuclear-License":{
-        "deprecated":false
+    "BSD-2-Clause-NetBSD": {
+        "deprecated": true
     },
-    "BSD-3-Clause-No-Nuclear-License-2014":{
-        "deprecated":false
+    "BSD-2-Clause-Patent": {
+        "deprecated": false
     },
-    "BSD-3-Clause-No-Nuclear-Warranty":{
-        "deprecated":false
+    "BSD-2-Clause-Views": {
+        "deprecated": false
     },
-    "BSD-3-Clause-Open-MPI":{
-        "deprecated":false
+    "BSD-3-Clause": {
+        "deprecated": false
     },
-    "BSD-4-Clause":{
-        "deprecated":false
+    "BSD-3-Clause-Attribution": {
+        "deprecated": false
     },
-    "BSD-4-Clause-UC":{
-        "deprecated":false
+    "BSD-3-Clause-Clear": {
+        "deprecated": false
     },
-    "BSD-Protection":{
-        "deprecated":false
+    "BSD-3-Clause-LBNL": {
+        "deprecated": false
     },
-    "BSD-Source-Code":{
-        "deprecated":false
+    "BSD-3-Clause-Modification": {
+        "deprecated": false
     },
-    "BSL-1.0":{
-        "deprecated":false
+    "BSD-3-Clause-No-Military-License": {
+        "deprecated": false
     },
-    "Bahyph":{
-        "deprecated":false
+    "BSD-3-Clause-No-Nuclear-License": {
+        "deprecated": false
     },
-    "Barr":{
-        "deprecated":false
+    "BSD-3-Clause-No-Nuclear-License-2014": {
+        "deprecated": false
     },
-    "Beerware":{
-        "deprecated":false
+    "BSD-3-Clause-No-Nuclear-Warranty": {
+        "deprecated": false
     },
-    "BitTorrent-1.0":{
-        "deprecated":false
+    "BSD-3-Clause-Open-MPI": {
+        "deprecated": false
     },
-    "BitTorrent-1.1":{
-        "deprecated":false
+    "BSD-4-Clause": {
+        "deprecated": false
     },
-    "BlueOak-1.0.0":{
-        "deprecated":false
+    "BSD-4-Clause-Shortened": {
+        "deprecated": false
     },
-    "Borceux":{
-        "deprecated":false
+    "BSD-4-Clause-UC": {
+        "deprecated": false
     },
-    "CATOSL-1.1":{
-        "deprecated":false
+    "BSD-4.3RENO": {
+        "deprecated": false
     },
-    "CC-BY-1.0":{
-        "deprecated":false
+    "BSD-4.3TAHOE": {
+        "deprecated": false
     },
-    "CC-BY-2.0":{
-        "deprecated":false
+    "BSD-Advertising-Acknowledgement": {
+        "deprecated": false
     },
-    "CC-BY-2.5":{
-        "deprecated":false
+    "BSD-Attribution-HPND-disclaimer": {
+        "deprecated": false
     },
-    "CC-BY-3.0":{
-        "deprecated":false
+    "BSD-Protection": {
+        "deprecated": false
     },
-    "CC-BY-4.0":{
-        "deprecated":false
+    "BSD-Source-Code": {
+        "deprecated": false
     },
-    "CC-BY-NC-1.0":{
-        "deprecated":false
+    "BSL-1.0": {
+        "deprecated": false
     },
-    "CC-BY-NC-2.0":{
-        "deprecated":false
+    "BUSL-1.1": {
+        "deprecated": false
     },
-    "CC-BY-NC-2.5":{
-        "deprecated":false
+    "Baekmuk": {
+        "deprecated": false
     },
-    "CC-BY-NC-3.0":{
-        "deprecated":false
+    "Bahyph": {
+        "deprecated": false
     },
-    "CC-BY-NC-4.0":{
-        "deprecated":false
+    "Barr": {
+        "deprecated": false
     },
-    "CC-BY-NC-ND-1.0":{
-        "deprecated":false
+    "Beerware": {
+        "deprecated": false
     },
-    "CC-BY-NC-ND-2.0":{
-        "deprecated":false
+    "BitTorrent-1.0": {
+        "deprecated": false
     },
-    "CC-BY-NC-ND-2.5":{
-        "deprecated":false
+    "BitTorrent-1.1": {
+        "deprecated": false
     },
-    "CC-BY-NC-ND-3.0":{
-        "deprecated":false
+    "Bitstream-Charter": {
+        "deprecated": false
     },
-    "CC-BY-NC-ND-4.0":{
-        "deprecated":false
+    "Bitstream-Vera": {
+        "deprecated": false
     },
-    "CC-BY-NC-SA-1.0":{
-        "deprecated":false
+    "BlueOak-1.0.0": {
+        "deprecated": false
     },
-    "CC-BY-NC-SA-2.0":{
-        "deprecated":false
+    "Boehm-GC": {
+        "deprecated": false
     },
-    "CC-BY-NC-SA-2.5":{
-        "deprecated":false
+    "Borceux": {
+        "deprecated": false
     },
-    "CC-BY-NC-SA-3.0":{
-        "deprecated":false
+    "Brian-Gladman-3-Clause": {
+        "deprecated": false
     },
-    "CC-BY-NC-SA-4.0":{
-        "deprecated":false
+    "C-UDA-1.0": {
+        "deprecated": false
     },
-    "CC-BY-ND-1.0":{
-        "deprecated":false
+    "CAL-1.0": {
+        "deprecated": false
     },
-    "CC-BY-ND-2.0":{
-        "deprecated":false
+    "CAL-1.0-Combined-Work-Exception": {
+        "deprecated": false
     },
-    "CC-BY-ND-2.5":{
-        "deprecated":false
+    "CATOSL-1.1": {
+        "deprecated": false
     },
-    "CC-BY-ND-3.0":{
-        "deprecated":false
+    "CC-BY-1.0": {
+        "deprecated": false
     },
-    "CC-BY-ND-4.0":{
-        "deprecated":false
+    "CC-BY-2.0": {
+        "deprecated": false
     },
-    "CC-BY-SA-1.0":{
-        "deprecated":false
+    "CC-BY-2.5": {
+        "deprecated": false
     },
-    "CC-BY-SA-2.0":{
-        "deprecated":false
+    "CC-BY-2.5-AU": {
+        "deprecated": false
     },
-    "CC-BY-SA-2.5":{
-        "deprecated":false
+    "CC-BY-3.0": {
+        "deprecated": false
     },
-    "CC-BY-SA-3.0":{
-        "deprecated":false
+    "CC-BY-3.0-AT": {
+        "deprecated": false
     },
-    "CC-BY-SA-4.0":{
-        "deprecated":false
+    "CC-BY-3.0-DE": {
+        "deprecated": false
     },
-    "CC-PDDC":{
-        "deprecated":false
+    "CC-BY-3.0-IGO": {
+        "deprecated": false
     },
-    "CC0-1.0":{
-        "deprecated":false
+    "CC-BY-3.0-NL": {
+        "deprecated": false
     },
-    "CDDL-1.0":{
-        "deprecated":false
+    "CC-BY-3.0-US": {
+        "deprecated": false
     },
-    "CDDL-1.1":{
-        "deprecated":false
+    "CC-BY-4.0": {
+        "deprecated": false
     },
-    "CDLA-Permissive-1.0":{
-        "deprecated":false
+    "CC-BY-NC-1.0": {
+        "deprecated": false
     },
-    "CDLA-Sharing-1.0":{
-        "deprecated":false
+    "CC-BY-NC-2.0": {
+        "deprecated": false
     },
-    "CECILL-1.0":{
-        "deprecated":false
+    "CC-BY-NC-2.5": {
+        "deprecated": false
     },
-    "CECILL-1.1":{
-        "deprecated":false
+    "CC-BY-NC-3.0": {
+        "deprecated": false
     },
-    "CECILL-2.0":{
-        "deprecated":false
+    "CC-BY-NC-3.0-DE": {
+        "deprecated": false
     },
-    "CECILL-2.1":{
-        "deprecated":false
+    "CC-BY-NC-4.0": {
+        "deprecated": false
     },
-    "CECILL-B":{
-        "deprecated":false
+    "CC-BY-NC-ND-1.0": {
+        "deprecated": false
     },
-    "CECILL-C":{
-        "deprecated":false
+    "CC-BY-NC-ND-2.0": {
+        "deprecated": false
     },
-    "CERN-OHL-1.1":{
-        "deprecated":false
+    "CC-BY-NC-ND-2.5": {
+        "deprecated": false
     },
-    "CERN-OHL-1.2":{
-        "deprecated":false
+    "CC-BY-NC-ND-3.0": {
+        "deprecated": false
     },
-    "CNRI-Jython":{
-        "deprecated":false
+    "CC-BY-NC-ND-3.0-DE": {
+        "deprecated": false
     },
-    "CNRI-Python":{
-        "deprecated":false
+    "CC-BY-NC-ND-3.0-IGO": {
+        "deprecated": false
     },
-    "CNRI-Python-GPL-Compatible":{
-        "deprecated":false
+    "CC-BY-NC-ND-4.0": {
+        "deprecated": false
     },
-    "CPAL-1.0":{
-        "deprecated":false
+    "CC-BY-NC-SA-1.0": {
+        "deprecated": false
     },
-    "CPL-1.0":{
-        "deprecated":false
+    "CC-BY-NC-SA-2.0": {
+        "deprecated": false
     },
-    "CPOL-1.02":{
-        "deprecated":false
+    "CC-BY-NC-SA-2.0-DE": {
+        "deprecated": false
     },
-    "CUA-OPL-1.0":{
-        "deprecated":false
+    "CC-BY-NC-SA-2.0-FR": {
+        "deprecated": false
     },
-    "Caldera":{
-        "deprecated":false
+    "CC-BY-NC-SA-2.0-UK": {
+        "deprecated": false
     },
-    "ClArtistic":{
-        "deprecated":false
+    "CC-BY-NC-SA-2.5": {
+        "deprecated": false
     },
-    "Condor-1.1":{
-        "deprecated":false
+    "CC-BY-NC-SA-3.0": {
+        "deprecated": false
     },
-    "Crossword":{
-        "deprecated":false
+    "CC-BY-NC-SA-3.0-DE": {
+        "deprecated": false
     },
-    "CrystalStacker":{
-        "deprecated":false
+    "CC-BY-NC-SA-3.0-IGO": {
+        "deprecated": false
     },
-    "Cube":{
-        "deprecated":false
+    "CC-BY-NC-SA-4.0": {
+        "deprecated": false
     },
-    "D-FSL-1.0":{
-        "deprecated":false
+    "CC-BY-ND-1.0": {
+        "deprecated": false
     },
-    "DOC":{
-        "deprecated":false
+    "CC-BY-ND-2.0": {
+        "deprecated": false
     },
-    "DSDP":{
-        "deprecated":false
+    "CC-BY-ND-2.5": {
+        "deprecated": false
     },
-    "Dotseqn":{
-        "deprecated":false
+    "CC-BY-ND-3.0": {
+        "deprecated": false
     },
-    "ECL-1.0":{
-        "deprecated":false
+    "CC-BY-ND-3.0-DE": {
+        "deprecated": false
     },
-    "ECL-2.0":{
-        "deprecated":false
+    "CC-BY-ND-4.0": {
+        "deprecated": false
     },
-    "EFL-1.0":{
-        "deprecated":false
+    "CC-BY-SA-1.0": {
+        "deprecated": false
     },
-    "EFL-2.0":{
-        "deprecated":false
+    "CC-BY-SA-2.0": {
+        "deprecated": false
     },
-    "EPL-1.0":{
-        "deprecated":false
+    "CC-BY-SA-2.0-UK": {
+        "deprecated": false
     },
-    "EPL-2.0":{
-        "deprecated":false
+    "CC-BY-SA-2.1-JP": {
+        "deprecated": false
     },
-    "EUDatagrid":{
-        "deprecated":false
+    "CC-BY-SA-2.5": {
+        "deprecated": false
     },
-    "EUPL-1.0":{
-        "deprecated":false
+    "CC-BY-SA-3.0": {
+        "deprecated": false
     },
-    "EUPL-1.1":{
-        "deprecated":false
+    "CC-BY-SA-3.0-AT": {
+        "deprecated": false
     },
-    "EUPL-1.2":{
-        "deprecated":false
+    "CC-BY-SA-3.0-DE": {
+        "deprecated": false
     },
-    "Entessa":{
-        "deprecated":false
+    "CC-BY-SA-3.0-IGO": {
+        "deprecated": false
     },
-    "ErlPL-1.1":{
-        "deprecated":false
+    "CC-BY-SA-4.0": {
+        "deprecated": false
     },
-    "Eurosym":{
-        "deprecated":false
+    "CC-PDDC": {
+        "deprecated": false
     },
-    "FSFAP":{
-        "deprecated":false
+    "CC0-1.0": {
+        "deprecated": false
     },
-    "FSFUL":{
-        "deprecated":false
+    "CDDL-1.0": {
+        "deprecated": false
     },
-    "FSFULLR":{
-        "deprecated":false
+    "CDDL-1.1": {
+        "deprecated": false
     },
-    "FTL":{
-        "deprecated":false
+    "CDL-1.0": {
+        "deprecated": false
     },
-    "Fair":{
-        "deprecated":false
+    "CDLA-Permissive-1.0": {
+        "deprecated": false
     },
-    "Frameworx-1.0":{
-        "deprecated":false
+    "CDLA-Permissive-2.0": {
+        "deprecated": false
     },
-    "FreeImage":{
-        "deprecated":false
+    "CDLA-Sharing-1.0": {
+        "deprecated": false
     },
-    "GFDL-1.1":{
-        "deprecated":true
+    "CECILL-1.0": {
+        "deprecated": false
     },
-    "GFDL-1.1-only":{
-        "deprecated":false
+    "CECILL-1.1": {
+        "deprecated": false
     },
-    "GFDL-1.1-or-later":{
-        "deprecated":false
+    "CECILL-2.0": {
+        "deprecated": false
     },
-    "GFDL-1.2":{
-        "deprecated":true
+    "CECILL-2.1": {
+        "deprecated": false
     },
-    "GFDL-1.2-only":{
-        "deprecated":false
+    "CECILL-B": {
+        "deprecated": false
     },
-    "GFDL-1.2-or-later":{
-        "deprecated":false
+    "CECILL-C": {
+        "deprecated": false
     },
-    "GFDL-1.3":{
-        "deprecated":true
+    "CERN-OHL-1.1": {
+        "deprecated": false
     },
-    "GFDL-1.3-only":{
-        "deprecated":false
+    "CERN-OHL-1.2": {
+        "deprecated": false
     },
-    "GFDL-1.3-or-later":{
-        "deprecated":false
+    "CERN-OHL-P-2.0": {
+        "deprecated": false
     },
-    "GL2PS":{
-        "deprecated":false
+    "CERN-OHL-S-2.0": {
+        "deprecated": false
     },
-    "GPL-1.0":{
-        "deprecated":true
+    "CERN-OHL-W-2.0": {
+        "deprecated": false
     },
-    "GPL-1.0+":{
-        "deprecated":true
+    "CFITSIO": {
+        "deprecated": false
     },
-    "GPL-1.0-only":{
-        "deprecated":false
+    "CMU-Mach": {
+        "deprecated": false
     },
-    "GPL-1.0-or-later":{
-        "deprecated":false
+    "CNRI-Jython": {
+        "deprecated": false
     },
-    "GPL-2.0":{
-        "deprecated":true
+    "CNRI-Python": {
+        "deprecated": false
     },
-    "GPL-2.0+":{
-        "deprecated":true
+    "CNRI-Python-GPL-Compatible": {
+        "deprecated": false
     },
-    "GPL-2.0-only":{
-        "deprecated":false
+    "COIL-1.0": {
+        "deprecated": false
     },
-    "GPL-2.0-or-later":{
-        "deprecated":false
+    "CPAL-1.0": {
+        "deprecated": false
     },
-    "GPL-2.0-with-GCC-exception":{
-        "deprecated":true
+    "CPL-1.0": {
+        "deprecated": false
     },
-    "GPL-2.0-with-autoconf-exception":{
-        "deprecated":true
+    "CPOL-1.02": {
+        "deprecated": false
     },
-    "GPL-2.0-with-bison-exception":{
-        "deprecated":true
+    "CUA-OPL-1.0": {
+        "deprecated": false
     },
-    "GPL-2.0-with-classpath-exception":{
-        "deprecated":true
+    "Caldera": {
+        "deprecated": false
     },
-    "GPL-2.0-with-font-exception":{
-        "deprecated":true
+    "ClArtistic": {
+        "deprecated": false
     },
-    "GPL-3.0":{
-        "deprecated":true
+    "Clips": {
+        "deprecated": false
     },
-    "GPL-3.0+":{
-        "deprecated":true
+    "Community-Spec-1.0": {
+        "deprecated": false
     },
-    "GPL-3.0-only":{
-        "deprecated":false
+    "Condor-1.1": {
+        "deprecated": false
     },
-    "GPL-3.0-or-later":{
-        "deprecated":false
+    "Cornell-Lossless-JPEG": {
+        "deprecated": false
     },
-    "GPL-3.0-with-GCC-exception":{
-        "deprecated":true
+    "Crossword": {
+        "deprecated": false
     },
-    "GPL-3.0-with-autoconf-exception":{
-        "deprecated":true
+    "CrystalStacker": {
+        "deprecated": false
     },
-    "Giftware":{
-        "deprecated":false
+    "Cube": {
+        "deprecated": false
     },
-    "Glide":{
-        "deprecated":false
+    "D-FSL-1.0": {
+        "deprecated": false
     },
-    "Glulxe":{
-        "deprecated":false
+    "DL-DE-BY-2.0": {
+        "deprecated": false
     },
-    "HPND":{
-        "deprecated":false
+    "DOC": {
+        "deprecated": false
     },
-    "HPND-sell-variant":{
-        "deprecated":false
+    "DRL-1.0": {
+        "deprecated": false
     },
-    "HaskellReport":{
-        "deprecated":false
+    "DSDP": {
+        "deprecated": false
     },
-    "IBM-pibs":{
-        "deprecated":false
+    "Dotseqn": {
+        "deprecated": false
     },
-    "ICU":{
-        "deprecated":false
+    "ECL-1.0": {
+        "deprecated": false
     },
-    "IJG":{
-        "deprecated":false
+    "ECL-2.0": {
+        "deprecated": false
     },
-    "IPA":{
-        "deprecated":false
+    "EFL-1.0": {
+        "deprecated": false
     },
-    "IPL-1.0":{
-        "deprecated":false
+    "EFL-2.0": {
+        "deprecated": false
     },
-    "ISC":{
-        "deprecated":false
+    "EPICS": {
+        "deprecated": false
     },
-    "ImageMagick":{
-        "deprecated":false
+    "EPL-1.0": {
+        "deprecated": false
     },
-    "Imlib2":{
-        "deprecated":false
+    "EPL-2.0": {
+        "deprecated": false
     },
-    "Info-ZIP":{
-        "deprecated":false
+    "EUDatagrid": {
+        "deprecated": false
     },
-    "Intel":{
-        "deprecated":false
+    "EUPL-1.0": {
+        "deprecated": false
     },
-    "Intel-ACPI":{
-        "deprecated":false
+    "EUPL-1.1": {
+        "deprecated": false
     },
-    "Interbase-1.0":{
-        "deprecated":false
+    "EUPL-1.2": {
+        "deprecated": false
     },
-    "JPNIC":{
-        "deprecated":false
+    "Elastic-2.0": {
+        "deprecated": false
     },
-    "JSON":{
-        "deprecated":false
+    "Entessa": {
+        "deprecated": false
     },
-    "JasPer-2.0":{
-        "deprecated":false
+    "ErlPL-1.1": {
+        "deprecated": false
     },
-    "LAL-1.2":{
-        "deprecated":false
+    "Eurosym": {
+        "deprecated": false
     },
-    "LAL-1.3":{
-        "deprecated":false
+    "FDK-AAC": {
+        "deprecated": false
     },
-    "LGPL-2.0":{
-        "deprecated":true
+    "FSFAP": {
+        "deprecated": false
     },
-    "LGPL-2.0+":{
-        "deprecated":true
+    "FSFUL": {
+        "deprecated": false
     },
-    "LGPL-2.0-only":{
-        "deprecated":false
+    "FSFULLR": {
+        "deprecated": false
     },
-    "LGPL-2.0-or-later":{
-        "deprecated":false
+    "FSFULLRWD": {
+        "deprecated": false
     },
-    "LGPL-2.1":{
-        "deprecated":true
+    "FTL": {
+        "deprecated": false
     },
-    "LGPL-2.1+":{
-        "deprecated":true
+    "Fair": {
+        "deprecated": false
     },
-    "LGPL-2.1-only":{
-        "deprecated":false
+    "Frameworx-1.0": {
+        "deprecated": false
     },
-    "LGPL-2.1-or-later":{
-        "deprecated":false
+    "FreeBSD-DOC": {
+        "deprecated": false
     },
-    "LGPL-3.0":{
-        "deprecated":true
+    "FreeImage": {
+        "deprecated": false
     },
-    "LGPL-3.0+":{
-        "deprecated":true
+    "GD": {
+        "deprecated": false
     },
-    "LGPL-3.0-only":{
-        "deprecated":false
+    "GFDL-1.1": {
+        "deprecated": true
     },
-    "LGPL-3.0-or-later":{
-        "deprecated":false
+    "GFDL-1.1-invariants-only": {
+        "deprecated": false
     },
-    "LGPLLR":{
-        "deprecated":false
+    "GFDL-1.1-invariants-or-later": {
+        "deprecated": false
     },
-    "LPL-1.0":{
-        "deprecated":false
+    "GFDL-1.1-no-invariants-only": {
+        "deprecated": false
     },
-    "LPL-1.02":{
-        "deprecated":false
+    "GFDL-1.1-no-invariants-or-later": {
+        "deprecated": false
     },
-    "LPPL-1.0":{
-        "deprecated":false
+    "GFDL-1.1-only": {
+        "deprecated": false
     },
-    "LPPL-1.1":{
-        "deprecated":false
+    "GFDL-1.1-or-later": {
+        "deprecated": false
     },
-    "LPPL-1.2":{
-        "deprecated":false
+    "GFDL-1.2": {
+        "deprecated": true
     },
-    "LPPL-1.3a":{
-        "deprecated":false
+    "GFDL-1.2-invariants-only": {
+        "deprecated": false
     },
-    "LPPL-1.3c":{
-        "deprecated":false
+    "GFDL-1.2-invariants-or-later": {
+        "deprecated": false
     },
-    "Latex2e":{
-        "deprecated":false
+    "GFDL-1.2-no-invariants-only": {
+        "deprecated": false
     },
-    "Leptonica":{
-        "deprecated":false
+    "GFDL-1.2-no-invariants-or-later": {
+        "deprecated": false
     },
-    "LiLiQ-P-1.1":{
-        "deprecated":false
+    "GFDL-1.2-only": {
+        "deprecated": false
     },
-    "LiLiQ-R-1.1":{
-        "deprecated":false
+    "GFDL-1.2-or-later": {
+        "deprecated": false
     },
-    "LiLiQ-Rplus-1.1":{
-        "deprecated":false
+    "GFDL-1.3": {
+        "deprecated": true
     },
-    "Libpng":{
-        "deprecated":false
+    "GFDL-1.3-invariants-only": {
+        "deprecated": false
     },
-    "Linux-OpenIB":{
-        "deprecated":false
+    "GFDL-1.3-invariants-or-later": {
+        "deprecated": false
     },
-    "MIT":{
-        "deprecated":false
+    "GFDL-1.3-no-invariants-only": {
+        "deprecated": false
     },
-    "MIT-0":{
-        "deprecated":false
+    "GFDL-1.3-no-invariants-or-later": {
+        "deprecated": false
     },
-    "MIT-CMU":{
-        "deprecated":false
+    "GFDL-1.3-only": {
+        "deprecated": false
     },
-    "MIT-advertising":{
-        "deprecated":false
+    "GFDL-1.3-or-later": {
+        "deprecated": false
     },
-    "MIT-enna":{
-        "deprecated":false
+    "GL2PS": {
+        "deprecated": false
     },
-    "MIT-feh":{
-        "deprecated":false
+    "GLWTPL": {
+        "deprecated": false
     },
-    "MITNFA":{
-        "deprecated":false
+    "GPL-1.0": {
+        "deprecated": true
     },
-    "MPL-1.0":{
-        "deprecated":false
+    "GPL-1.0+": {
+        "deprecated": true
     },
-    "MPL-1.1":{
-        "deprecated":false
+    "GPL-1.0-only": {
+        "deprecated": false
     },
-    "MPL-2.0":{
-        "deprecated":false
+    "GPL-1.0-or-later": {
+        "deprecated": false
     },
-    "MPL-2.0-no-copyleft-exception":{
-        "deprecated":false
+    "GPL-2.0": {
+        "deprecated": true
     },
-    "MS-PL":{
-        "deprecated":false
+    "GPL-2.0+": {
+        "deprecated": true
     },
-    "MS-RL":{
-        "deprecated":false
+    "GPL-2.0-only": {
+        "deprecated": false
     },
-    "MTLL":{
-        "deprecated":false
+    "GPL-2.0-or-later": {
+        "deprecated": false
     },
-    "MakeIndex":{
-        "deprecated":false
+    "GPL-2.0-with-GCC-exception": {
+        "deprecated": true
     },
-    "MirOS":{
-        "deprecated":false
+    "GPL-2.0-with-autoconf-exception": {
+        "deprecated": true
     },
-    "Motosoto":{
-        "deprecated":false
+    "GPL-2.0-with-bison-exception": {
+        "deprecated": true
     },
-    "Multics":{
-        "deprecated":false
+    "GPL-2.0-with-classpath-exception": {
+        "deprecated": true
     },
-    "Mup":{
-        "deprecated":false
+    "GPL-2.0-with-font-exception": {
+        "deprecated": true
     },
-    "NASA-1.3":{
-        "deprecated":false
+    "GPL-3.0": {
+        "deprecated": true
     },
-    "NBPL-1.0":{
-        "deprecated":false
+    "GPL-3.0+": {
+        "deprecated": true
     },
-    "NCSA":{
-        "deprecated":false
+    "GPL-3.0-only": {
+        "deprecated": false
     },
-    "NGPL":{
-        "deprecated":false
+    "GPL-3.0-or-later": {
+        "deprecated": false
     },
-    "NLOD-1.0":{
-        "deprecated":false
+    "GPL-3.0-with-GCC-exception": {
+        "deprecated": true
     },
-    "NLPL":{
-        "deprecated":false
+    "GPL-3.0-with-autoconf-exception": {
+        "deprecated": true
     },
-    "NOSL":{
-        "deprecated":false
+    "Giftware": {
+        "deprecated": false
     },
-    "NPL-1.0":{
-        "deprecated":false
+    "Glide": {
+        "deprecated": false
     },
-    "NPL-1.1":{
-        "deprecated":false
+    "Glulxe": {
+        "deprecated": false
     },
-    "NPOSL-3.0":{
-        "deprecated":false
+    "Graphics-Gems": {
+        "deprecated": false
     },
-    "NRL":{
-        "deprecated":false
+    "HP-1986": {
+        "deprecated": false
     },
-    "NTP":{
-        "deprecated":false
+    "HPND": {
+        "deprecated": false
     },
-    "Naumen":{
-        "deprecated":false
+    "HPND-Markus-Kuhn": {
+        "deprecated": false
     },
-    "Net-SNMP":{
-        "deprecated":false
+    "HPND-export-US": {
+        "deprecated": false
     },
-    "NetCDF":{
-        "deprecated":false
+    "HPND-sell-variant": {
+        "deprecated": false
     },
-    "Newsletr":{
-        "deprecated":false
+    "HPND-sell-variant-MIT-disclaimer": {
+        "deprecated": false
     },
-    "Nokia":{
-        "deprecated":false
+    "HTMLTIDY": {
+        "deprecated": false
     },
-    "Noweb":{
-        "deprecated":false
+    "HaskellReport": {
+        "deprecated": false
     },
-    "Nunit":{
-        "deprecated":true
+    "Hippocratic-2.1": {
+        "deprecated": false
     },
-    "OCCT-PL":{
-        "deprecated":false
+    "IBM-pibs": {
+        "deprecated": false
     },
-    "OCLC-2.0":{
-        "deprecated":false
+    "ICU": {
+        "deprecated": false
     },
-    "ODC-By-1.0":{
-        "deprecated":false
+    "IEC-Code-Components-EULA": {
+        "deprecated": false
     },
-    "ODbL-1.0":{
-        "deprecated":false
+    "IJG": {
+        "deprecated": false
     },
-    "OFL-1.0":{
-        "deprecated":false
+    "IJG-short": {
+        "deprecated": false
     },
-    "OFL-1.1":{
-        "deprecated":false
+    "IPA": {
+        "deprecated": false
     },
-    "OGL-UK-1.0":{
-        "deprecated":false
+    "IPL-1.0": {
+        "deprecated": false
     },
-    "OGL-UK-2.0":{
-        "deprecated":false
+    "ISC": {
+        "deprecated": false
     },
-    "OGL-UK-3.0":{
-        "deprecated":false
+    "ImageMagick": {
+        "deprecated": false
     },
-    "OGTSL":{
-        "deprecated":false
+    "Imlib2": {
+        "deprecated": false
     },
-    "OLDAP-1.1":{
-        "deprecated":false
+    "Info-ZIP": {
+        "deprecated": false
     },
-    "OLDAP-1.2":{
-        "deprecated":false
+    "Inner-Net-2.0": {
+        "deprecated": false
     },
-    "OLDAP-1.3":{
-        "deprecated":false
+    "Intel": {
+        "deprecated": false
     },
-    "OLDAP-1.4":{
-        "deprecated":false
+    "Intel-ACPI": {
+        "deprecated": false
     },
-    "OLDAP-2.0":{
-        "deprecated":false
+    "Interbase-1.0": {
+        "deprecated": false
     },
-    "OLDAP-2.0.1":{
-        "deprecated":false
+    "JPL-image": {
+        "deprecated": false
     },
-    "OLDAP-2.1":{
-        "deprecated":false
+    "JPNIC": {
+        "deprecated": false
     },
-    "OLDAP-2.2":{
-        "deprecated":false
+    "JSON": {
+        "deprecated": false
     },
-    "OLDAP-2.2.1":{
-        "deprecated":false
+    "Jam": {
+        "deprecated": false
     },
-    "OLDAP-2.2.2":{
-        "deprecated":false
+    "JasPer-2.0": {
+        "deprecated": false
     },
-    "OLDAP-2.3":{
-        "deprecated":false
+    "Kazlib": {
+        "deprecated": false
     },
-    "OLDAP-2.4":{
-        "deprecated":false
+    "Knuth-CTAN": {
+        "deprecated": false
     },
-    "OLDAP-2.5":{
-        "deprecated":false
+    "LAL-1.2": {
+        "deprecated": false
     },
-    "OLDAP-2.6":{
-        "deprecated":false
+    "LAL-1.3": {
+        "deprecated": false
     },
-    "OLDAP-2.7":{
-        "deprecated":false
+    "LGPL-2.0": {
+        "deprecated": true
     },
-    "OLDAP-2.8":{
-        "deprecated":false
+    "LGPL-2.0+": {
+        "deprecated": true
     },
-    "OML":{
-        "deprecated":false
+    "LGPL-2.0-only": {
+        "deprecated": false
     },
-    "OPL-1.0":{
-        "deprecated":false
+    "LGPL-2.0-or-later": {
+        "deprecated": false
     },
-    "OSET-PL-2.1":{
-        "deprecated":false
+    "LGPL-2.1": {
+        "deprecated": true
     },
-    "OSL-1.0":{
-        "deprecated":false
+    "LGPL-2.1+": {
+        "deprecated": true
     },
-    "OSL-1.1":{
-        "deprecated":false
+    "LGPL-2.1-only": {
+        "deprecated": false
     },
-    "OSL-2.0":{
-        "deprecated":false
+    "LGPL-2.1-or-later": {
+        "deprecated": false
     },
-    "OSL-2.1":{
-        "deprecated":false
+    "LGPL-3.0": {
+        "deprecated": true
     },
-    "OSL-3.0":{
-        "deprecated":false
+    "LGPL-3.0+": {
+        "deprecated": true
     },
-    "OpenSSL":{
-        "deprecated":false
+    "LGPL-3.0-only": {
+        "deprecated": false
     },
-    "PDDL-1.0":{
-        "deprecated":false
+    "LGPL-3.0-or-later": {
+        "deprecated": false
     },
-    "PHP-3.0":{
-        "deprecated":false
+    "LGPLLR": {
+        "deprecated": false
     },
-    "PHP-3.01":{
-        "deprecated":false
+    "LOOP": {
+        "deprecated": false
     },
-    "PSF-2.0":{
-        "deprecated":false
+    "LPL-1.0": {
+        "deprecated": false
     },
-    "Parity-6.0.0":{
-        "deprecated":false
+    "LPL-1.02": {
+        "deprecated": false
     },
-    "Plexus":{
-        "deprecated":false
+    "LPPL-1.0": {
+        "deprecated": false
     },
-    "PostgreSQL":{
-        "deprecated":false
+    "LPPL-1.1": {
+        "deprecated": false
     },
-    "Python-2.0":{
-        "deprecated":false
+    "LPPL-1.2": {
+        "deprecated": false
     },
-    "QPL-1.0":{
-        "deprecated":false
+    "LPPL-1.3a": {
+        "deprecated": false
     },
-    "Qhull":{
-        "deprecated":false
+    "LPPL-1.3c": {
+        "deprecated": false
     },
-    "RHeCos-1.1":{
-        "deprecated":false
+    "LZMA-SDK-9.11-to-9.20": {
+        "deprecated": false
     },
-    "RPL-1.1":{
-        "deprecated":false
+    "LZMA-SDK-9.22": {
+        "deprecated": false
     },
-    "RPL-1.5":{
-        "deprecated":false
+    "Latex2e": {
+        "deprecated": false
     },
-    "RPSL-1.0":{
-        "deprecated":false
+    "Latex2e-translated-notice": {
+        "deprecated": false
     },
-    "RSA-MD":{
-        "deprecated":false
+    "Leptonica": {
+        "deprecated": false
     },
-    "RSCPL":{
-        "deprecated":false
+    "LiLiQ-P-1.1": {
+        "deprecated": false
     },
-    "Rdisc":{
-        "deprecated":false
+    "LiLiQ-R-1.1": {
+        "deprecated": false
     },
-    "Ruby":{
-        "deprecated":false
+    "LiLiQ-Rplus-1.1": {
+        "deprecated": false
     },
-    "SAX-PD":{
-        "deprecated":false
+    "Libpng": {
+        "deprecated": false
     },
-    "SCEA":{
-        "deprecated":false
+    "Linux-OpenIB": {
+        "deprecated": false
     },
-    "SGI-B-1.0":{
-        "deprecated":false
+    "Linux-man-pages-1-para": {
+        "deprecated": false
     },
-    "SGI-B-1.1":{
-        "deprecated":false
+    "Linux-man-pages-copyleft": {
+        "deprecated": false
     },
-    "SGI-B-2.0":{
-        "deprecated":false
+    "Linux-man-pages-copyleft-2-para": {
+        "deprecated": false
     },
-    "SHL-0.5":{
-        "deprecated":false
+    "Linux-man-pages-copyleft-var": {
+        "deprecated": false
     },
-    "SHL-0.51":{
-        "deprecated":false
+    "MIT": {
+        "deprecated": false
     },
-    "SISSL":{
-        "deprecated":false
+    "MIT-0": {
+        "deprecated": false
     },
-    "SISSL-1.2":{
-        "deprecated":false
+    "MIT-CMU": {
+        "deprecated": false
     },
-    "SMLNJ":{
-        "deprecated":false
+    "MIT-Festival": {
+        "deprecated": false
     },
-    "SMPPL":{
-        "deprecated":false
+    "MIT-Modern-Variant": {
+        "deprecated": false
     },
-    "SNIA":{
-        "deprecated":false
+    "MIT-Wu": {
+        "deprecated": false
     },
-    "SPL-1.0":{
-        "deprecated":false
+    "MIT-advertising": {
+        "deprecated": false
     },
-    "SSPL-1.0":{
-        "deprecated":false
+    "MIT-enna": {
+        "deprecated": false
     },
-    "SWL":{
-        "deprecated":false
+    "MIT-feh": {
+        "deprecated": false
     },
-    "Saxpath":{
-        "deprecated":false
+    "MIT-open-group": {
+        "deprecated": false
     },
-    "Sendmail":{
-        "deprecated":false
+    "MITNFA": {
+        "deprecated": false
     },
-    "Sendmail-8.23":{
-        "deprecated":false
+    "MPL-1.0": {
+        "deprecated": false
     },
-    "SimPL-2.0":{
-        "deprecated":false
+    "MPL-1.1": {
+        "deprecated": false
     },
-    "Sleepycat":{
-        "deprecated":false
+    "MPL-2.0": {
+        "deprecated": false
     },
-    "Spencer-86":{
-        "deprecated":false
+    "MPL-2.0-no-copyleft-exception": {
+        "deprecated": false
     },
-    "Spencer-94":{
-        "deprecated":false
+    "MS-LPL": {
+        "deprecated": false
     },
-    "Spencer-99":{
-        "deprecated":false
+    "MS-PL": {
+        "deprecated": false
     },
-    "StandardML-NJ":{
-        "deprecated":true
+    "MS-RL": {
+        "deprecated": false
     },
-    "SugarCRM-1.1.3":{
-        "deprecated":false
+    "MTLL": {
+        "deprecated": false
     },
-    "TAPR-OHL-1.0":{
-        "deprecated":false
+    "MakeIndex": {
+        "deprecated": false
     },
-    "TCL":{
-        "deprecated":false
+    "Martin-Birgmeier": {
+        "deprecated": false
     },
-    "TCP-wrappers":{
-        "deprecated":false
+    "Minpack": {
+        "deprecated": false
     },
-    "TMate":{
-        "deprecated":false
+    "MirOS": {
+        "deprecated": false
     },
-    "TORQUE-1.1":{
-        "deprecated":false
+    "Motosoto": {
+        "deprecated": false
     },
-    "TOSL":{
-        "deprecated":false
+    "MulanPSL-1.0": {
+        "deprecated": false
     },
-    "TU-Berlin-1.0":{
-        "deprecated":false
+    "MulanPSL-2.0": {
+        "deprecated": false
     },
-    "TU-Berlin-2.0":{
-        "deprecated":false
+    "Multics": {
+        "deprecated": false
     },
-    "UPL-1.0":{
-        "deprecated":false
+    "Mup": {
+        "deprecated": false
     },
-    "Unicode-DFS-2015":{
-        "deprecated":false
+    "NAIST-2003": {
+        "deprecated": false
     },
-    "Unicode-DFS-2016":{
-        "deprecated":false
+    "NASA-1.3": {
+        "deprecated": false
     },
-    "Unicode-TOU":{
-        "deprecated":false
+    "NBPL-1.0": {
+        "deprecated": false
     },
-    "Unlicense":{
-        "deprecated":false
+    "NCGL-UK-2.0": {
+        "deprecated": false
     },
-    "VOSTROM":{
-        "deprecated":false
+    "NCSA": {
+        "deprecated": false
     },
-    "VSL-1.0":{
-        "deprecated":false
+    "NGPL": {
+        "deprecated": false
     },
-    "Vim":{
-        "deprecated":false
+    "NICTA-1.0": {
+        "deprecated": false
     },
-    "W3C":{
-        "deprecated":false
+    "NIST-PD": {
+        "deprecated": false
     },
-    "W3C-19980720":{
-        "deprecated":false
+    "NIST-PD-fallback": {
+        "deprecated": false
     },
-    "W3C-20150513":{
-        "deprecated":false
+    "NIST-Software": {
+        "deprecated": false
     },
-    "WTFPL":{
-        "deprecated":false
+    "NLOD-1.0": {
+        "deprecated": false
     },
-    "Watcom-1.0":{
-        "deprecated":false
+    "NLOD-2.0": {
+        "deprecated": false
     },
-    "Wsuipa":{
-        "deprecated":false
+    "NLPL": {
+        "deprecated": false
     },
-    "X11":{
-        "deprecated":false
+    "NOSL": {
+        "deprecated": false
     },
-    "XFree86-1.1":{
-        "deprecated":false
+    "NPL-1.0": {
+        "deprecated": false
     },
-    "XSkat":{
-        "deprecated":false
+    "NPL-1.1": {
+        "deprecated": false
     },
-    "Xerox":{
-        "deprecated":false
+    "NPOSL-3.0": {
+        "deprecated": false
     },
-    "Xnet":{
-        "deprecated":false
+    "NRL": {
+        "deprecated": false
     },
-    "YPL-1.0":{
-        "deprecated":false
+    "NTP": {
+        "deprecated": false
     },
-    "YPL-1.1":{
-        "deprecated":false
+    "NTP-0": {
+        "deprecated": false
     },
-    "ZPL-1.1":{
-        "deprecated":false
+    "Naumen": {
+        "deprecated": false
     },
-    "ZPL-2.0":{
-        "deprecated":false
+    "Net-SNMP": {
+        "deprecated": false
     },
-    "ZPL-2.1":{
-        "deprecated":false
+    "NetCDF": {
+        "deprecated": false
     },
-    "Zed":{
-        "deprecated":false
+    "Newsletr": {
+        "deprecated": false
     },
-    "Zend-2.0":{
-        "deprecated":false
+    "Nokia": {
+        "deprecated": false
     },
-    "Zimbra-1.3":{
-        "deprecated":false
+    "Noweb": {
+        "deprecated": false
     },
-    "Zimbra-1.4":{
-        "deprecated":false
+    "Nunit": {
+        "deprecated": true
     },
-    "Zlib":{
-        "deprecated":false
+    "O-UDA-1.0": {
+        "deprecated": false
     },
-    "blessing":{
-        "deprecated":false
+    "OCCT-PL": {
+        "deprecated": false
     },
-    "bzip2-1.0.5":{
-        "deprecated":false
+    "OCLC-2.0": {
+        "deprecated": false
     },
-    "bzip2-1.0.6":{
-        "deprecated":false
+    "ODC-By-1.0": {
+        "deprecated": false
     },
-    "copyleft-next-0.3.0":{
-        "deprecated":false
+    "ODbL-1.0": {
+        "deprecated": false
     },
-    "copyleft-next-0.3.1":{
-        "deprecated":false
+    "OFFIS": {
+        "deprecated": false
     },
-    "curl":{
-        "deprecated":false
+    "OFL-1.0": {
+        "deprecated": false
     },
-    "diffmark":{
-        "deprecated":false
+    "OFL-1.0-RFN": {
+        "deprecated": false
     },
-    "dvipdfm":{
-        "deprecated":false
+    "OFL-1.0-no-RFN": {
+        "deprecated": false
     },
-    "eCos-2.0":{
-        "deprecated":true
+    "OFL-1.1": {
+        "deprecated": false
     },
-    "eGenix":{
-        "deprecated":false
+    "OFL-1.1-RFN": {
+        "deprecated": false
     },
-    "gSOAP-1.3b":{
-        "deprecated":false
+    "OFL-1.1-no-RFN": {
+        "deprecated": false
     },
-    "gnuplot":{
-        "deprecated":false
+    "OGC-1.0": {
+        "deprecated": false
     },
-    "iMatix":{
-        "deprecated":false
+    "OGDL-Taiwan-1.0": {
+        "deprecated": false
     },
-    "libpng-2.0":{
-        "deprecated":false
+    "OGL-Canada-2.0": {
+        "deprecated": false
     },
-    "libtiff":{
-        "deprecated":false
+    "OGL-UK-1.0": {
+        "deprecated": false
     },
-    "mpich2":{
-        "deprecated":false
+    "OGL-UK-2.0": {
+        "deprecated": false
     },
-    "psfrag":{
-        "deprecated":false
+    "OGL-UK-3.0": {
+        "deprecated": false
     },
-    "psutils":{
-        "deprecated":false
+    "OGTSL": {
+        "deprecated": false
     },
-    "wxWindows":{
-        "deprecated":true
+    "OLDAP-1.1": {
+        "deprecated": false
     },
-    "xinetd":{
-        "deprecated":false
+    "OLDAP-1.2": {
+        "deprecated": false
     },
-    "xpp":{
-        "deprecated":false
+    "OLDAP-1.3": {
+        "deprecated": false
     },
-    "zlib-acknowledgement":{
-        "deprecated":false
+    "OLDAP-1.4": {
+        "deprecated": false
+    },
+    "OLDAP-2.0": {
+        "deprecated": false
+    },
+    "OLDAP-2.0.1": {
+        "deprecated": false
+    },
+    "OLDAP-2.1": {
+        "deprecated": false
+    },
+    "OLDAP-2.2": {
+        "deprecated": false
+    },
+    "OLDAP-2.2.1": {
+        "deprecated": false
+    },
+    "OLDAP-2.2.2": {
+        "deprecated": false
+    },
+    "OLDAP-2.3": {
+        "deprecated": false
+    },
+    "OLDAP-2.4": {
+        "deprecated": false
+    },
+    "OLDAP-2.5": {
+        "deprecated": false
+    },
+    "OLDAP-2.6": {
+        "deprecated": false
+    },
+    "OLDAP-2.7": {
+        "deprecated": false
+    },
+    "OLDAP-2.8": {
+        "deprecated": false
+    },
+    "OLFL-1.3": {
+        "deprecated": false
+    },
+    "OML": {
+        "deprecated": false
+    },
+    "OPL-1.0": {
+        "deprecated": false
+    },
+    "OPL-UK-3.0": {
+        "deprecated": false
+    },
+    "OPUBL-1.0": {
+        "deprecated": false
+    },
+    "OSET-PL-2.1": {
+        "deprecated": false
+    },
+    "OSL-1.0": {
+        "deprecated": false
+    },
+    "OSL-1.1": {
+        "deprecated": false
+    },
+    "OSL-2.0": {
+        "deprecated": false
+    },
+    "OSL-2.1": {
+        "deprecated": false
+    },
+    "OSL-3.0": {
+        "deprecated": false
+    },
+    "OpenPBS-2.3": {
+        "deprecated": false
+    },
+    "OpenSSL": {
+        "deprecated": false
+    },
+    "PDDL-1.0": {
+        "deprecated": false
+    },
+    "PHP-3.0": {
+        "deprecated": false
+    },
+    "PHP-3.01": {
+        "deprecated": false
+    },
+    "PSF-2.0": {
+        "deprecated": false
+    },
+    "Parity-6.0.0": {
+        "deprecated": false
+    },
+    "Parity-7.0.0": {
+        "deprecated": false
+    },
+    "Plexus": {
+        "deprecated": false
+    },
+    "PolyForm-Noncommercial-1.0.0": {
+        "deprecated": false
+    },
+    "PolyForm-Small-Business-1.0.0": {
+        "deprecated": false
+    },
+    "PostgreSQL": {
+        "deprecated": false
+    },
+    "Python-2.0": {
+        "deprecated": false
+    },
+    "Python-2.0.1": {
+        "deprecated": false
+    },
+    "QPL-1.0": {
+        "deprecated": false
+    },
+    "QPL-1.0-INRIA-2004": {
+        "deprecated": false
+    },
+    "Qhull": {
+        "deprecated": false
+    },
+    "RHeCos-1.1": {
+        "deprecated": false
+    },
+    "RPL-1.1": {
+        "deprecated": false
+    },
+    "RPL-1.5": {
+        "deprecated": false
+    },
+    "RPSL-1.0": {
+        "deprecated": false
+    },
+    "RSA-MD": {
+        "deprecated": false
+    },
+    "RSCPL": {
+        "deprecated": false
+    },
+    "Rdisc": {
+        "deprecated": false
+    },
+    "Ruby": {
+        "deprecated": false
+    },
+    "SAX-PD": {
+        "deprecated": false
+    },
+    "SCEA": {
+        "deprecated": false
+    },
+    "SGI-B-1.0": {
+        "deprecated": false
+    },
+    "SGI-B-1.1": {
+        "deprecated": false
+    },
+    "SGI-B-2.0": {
+        "deprecated": false
+    },
+    "SGP4": {
+        "deprecated": false
+    },
+    "SHL-0.5": {
+        "deprecated": false
+    },
+    "SHL-0.51": {
+        "deprecated": false
+    },
+    "SISSL": {
+        "deprecated": false
+    },
+    "SISSL-1.2": {
+        "deprecated": false
+    },
+    "SMLNJ": {
+        "deprecated": false
+    },
+    "SMPPL": {
+        "deprecated": false
+    },
+    "SNIA": {
+        "deprecated": false
+    },
+    "SPL-1.0": {
+        "deprecated": false
+    },
+    "SSH-OpenSSH": {
+        "deprecated": false
+    },
+    "SSH-short": {
+        "deprecated": false
+    },
+    "SSPL-1.0": {
+        "deprecated": false
+    },
+    "SWL": {
+        "deprecated": false
+    },
+    "Saxpath": {
+        "deprecated": false
+    },
+    "SchemeReport": {
+        "deprecated": false
+    },
+    "Sendmail": {
+        "deprecated": false
+    },
+    "Sendmail-8.23": {
+        "deprecated": false
+    },
+    "SimPL-2.0": {
+        "deprecated": false
+    },
+    "Sleepycat": {
+        "deprecated": false
+    },
+    "Spencer-86": {
+        "deprecated": false
+    },
+    "Spencer-94": {
+        "deprecated": false
+    },
+    "Spencer-99": {
+        "deprecated": false
+    },
+    "StandardML-NJ": {
+        "deprecated": true
+    },
+    "SugarCRM-1.1.3": {
+        "deprecated": false
+    },
+    "SunPro": {
+        "deprecated": false
+    },
+    "Symlinks": {
+        "deprecated": false
+    },
+    "TAPR-OHL-1.0": {
+        "deprecated": false
+    },
+    "TCL": {
+        "deprecated": false
+    },
+    "TCP-wrappers": {
+        "deprecated": false
+    },
+    "TMate": {
+        "deprecated": false
+    },
+    "TORQUE-1.1": {
+        "deprecated": false
+    },
+    "TOSL": {
+        "deprecated": false
+    },
+    "TPDL": {
+        "deprecated": false
+    },
+    "TPL-1.0": {
+        "deprecated": false
+    },
+    "TTWL": {
+        "deprecated": false
+    },
+    "TU-Berlin-1.0": {
+        "deprecated": false
+    },
+    "TU-Berlin-2.0": {
+        "deprecated": false
+    },
+    "TermReadKey": {
+        "deprecated": false
+    },
+    "UCAR": {
+        "deprecated": false
+    },
+    "UCL-1.0": {
+        "deprecated": false
+    },
+    "UPL-1.0": {
+        "deprecated": false
+    },
+    "Unicode-DFS-2015": {
+        "deprecated": false
+    },
+    "Unicode-DFS-2016": {
+        "deprecated": false
+    },
+    "Unicode-TOU": {
+        "deprecated": false
+    },
+    "UnixCrypt": {
+        "deprecated": false
+    },
+    "Unlicense": {
+        "deprecated": false
+    },
+    "VOSTROM": {
+        "deprecated": false
+    },
+    "VSL-1.0": {
+        "deprecated": false
+    },
+    "Vim": {
+        "deprecated": false
+    },
+    "W3C": {
+        "deprecated": false
+    },
+    "W3C-19980720": {
+        "deprecated": false
+    },
+    "W3C-20150513": {
+        "deprecated": false
+    },
+    "WTFPL": {
+        "deprecated": false
+    },
+    "Watcom-1.0": {
+        "deprecated": false
+    },
+    "Widget-Workshop": {
+        "deprecated": false
+    },
+    "Wsuipa": {
+        "deprecated": false
+    },
+    "X11": {
+        "deprecated": false
+    },
+    "X11-distribute-modifications-variant": {
+        "deprecated": false
+    },
+    "XFree86-1.1": {
+        "deprecated": false
+    },
+    "XSkat": {
+        "deprecated": false
+    },
+    "Xdebug-1.03": {
+        "deprecated": false
+    },
+    "Xerox": {
+        "deprecated": false
+    },
+    "Xfig": {
+        "deprecated": false
+    },
+    "Xnet": {
+        "deprecated": false
+    },
+    "YPL-1.0": {
+        "deprecated": false
+    },
+    "YPL-1.1": {
+        "deprecated": false
+    },
+    "ZPL-1.1": {
+        "deprecated": false
+    },
+    "ZPL-2.0": {
+        "deprecated": false
+    },
+    "ZPL-2.1": {
+        "deprecated": false
+    },
+    "Zed": {
+        "deprecated": false
+    },
+    "Zend-2.0": {
+        "deprecated": false
+    },
+    "Zimbra-1.3": {
+        "deprecated": false
+    },
+    "Zimbra-1.4": {
+        "deprecated": false
+    },
+    "Zlib": {
+        "deprecated": false
+    },
+    "blessing": {
+        "deprecated": false
+    },
+    "bzip2-1.0.5": {
+        "deprecated": true
+    },
+    "bzip2-1.0.6": {
+        "deprecated": false
+    },
+    "checkmk": {
+        "deprecated": false
+    },
+    "copyleft-next-0.3.0": {
+        "deprecated": false
+    },
+    "copyleft-next-0.3.1": {
+        "deprecated": false
+    },
+    "curl": {
+        "deprecated": false
+    },
+    "diffmark": {
+        "deprecated": false
+    },
+    "dtoa": {
+        "deprecated": false
+    },
+    "dvipdfm": {
+        "deprecated": false
+    },
+    "eCos-2.0": {
+        "deprecated": true
+    },
+    "eGenix": {
+        "deprecated": false
+    },
+    "etalab-2.0": {
+        "deprecated": false
+    },
+    "gSOAP-1.3b": {
+        "deprecated": false
+    },
+    "gnuplot": {
+        "deprecated": false
+    },
+    "iMatix": {
+        "deprecated": false
+    },
+    "libpng-2.0": {
+        "deprecated": false
+    },
+    "libselinux-1.0": {
+        "deprecated": false
+    },
+    "libtiff": {
+        "deprecated": false
+    },
+    "libutil-David-Nugent": {
+        "deprecated": false
+    },
+    "metamail": {
+        "deprecated": false
+    },
+    "mpi-permissive": {
+        "deprecated": false
+    },
+    "mpich2": {
+        "deprecated": false
+    },
+    "mplus": {
+        "deprecated": false
+    },
+    "psfrag": {
+        "deprecated": false
+    },
+    "psutils": {
+        "deprecated": false
+    },
+    "snprintf": {
+        "deprecated": false
+    },
+    "w3m": {
+        "deprecated": false
+    },
+    "wxWindows": {
+        "deprecated": true
+    },
+    "xinetd": {
+        "deprecated": false
+    },
+    "xlock": {
+        "deprecated": false
+    },
+    "xpp": {
+        "deprecated": false
+    },
+    "zlib-acknowledgement": {
+        "deprecated": false
     }
 }
