@@ -20,5 +20,5 @@ jobs:
         with:
           python-version: "3.10"
 
-	  - name: run the functional tests
+      - name: run the functional tests
         run: make test/functional
