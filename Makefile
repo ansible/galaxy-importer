@@ -38,4 +38,4 @@ test/functional:
 
 .PHONY: test/integration
 test/integration:
-	@pytest tests/integration
+	@pytest tests/integration -v
