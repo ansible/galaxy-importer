@@ -20,5 +20,8 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: run the functional tests
-        run: make test/functional
+      - name: make venv
+        run: python3 -m venv /tmp/venv && source /tmp/venv/bin/activate && pip install -e .[dev]
+
+      - name: run the integration tests
+        run: source /tmp/venv/bin/activate && make test/integration

@@ -35,3 +35,7 @@ test/unit/annotate/clean:
 .PHONY: test/functional
 test/functional:
 	@sh tests/functional/*
+
+.PHONY: test/integration
+test/integration:
+	@pytest tests/integration

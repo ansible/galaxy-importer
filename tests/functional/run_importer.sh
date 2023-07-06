@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "Starting integration test..."
 
 TMPDIR=$(mktemp -d -t galaxy-importer-XXXXXXXX)
@@ -17,45 +19,3 @@ pip freeze | grep importer
 ###################################
 
 python -c 'from galaxy_importer import main'
-
-###################################
-#   RUNTIME VALIDATION
-###################################
-
-# make and build a collection
-ansible-galaxy collection init foo.bar
-cd foo/bar
-mkdir meta
-cd meta
-printf "requires_ansible: '>=2.9.10,<2.11.5'" > runtime.yml
-cd ..
-ansible-galaxy collection build
-cd $TMPDIR
-
-# create config file to run ansible-test sanity in locally built container
-printf "[galaxy-importer]\nRUN_ANSIBLE_TEST = True\nANSIBLE_TEST_LOCAL_IMAGE = True\nLOCAL_IMAGE_DOCKER = True\n" > galaxy-importer.cfg
-export GALAXY_IMPORTER_CONFIG=galaxy-importer.cfg
-echo "Using galaxy-importer.cfg:"
-cat galaxy-importer.cfg
-
-# run the importer with file artifact tarball
-python3 -m galaxy_importer.main foo/bar/foo-bar-*.tar.gz
-RETURN_CODE=$?
-
-# run the importer with git_clone_path and output_path
-rm foo/bar/foo-bar-*.tar.gz
-python3 -m galaxy_importer.main --git-clone-path=foo/bar/ --output-path=foo/bar/
-RETURN_CODE=$?
-
-# build a legacy role
-ansible-galaxy role init bar_role
-
-# run the importer with legacy role directory
-python3 -m galaxy_importer.main bar_role --legacy-role --namespace foo-namespace
-RETURN_CODE=$?
-
-# cleanup
-cd /tmp
-rm -rf $TMPDIR
-
-exit $RETURN_CODE
