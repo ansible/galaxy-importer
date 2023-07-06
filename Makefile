@@ -32,10 +32,6 @@ test/unit/annotate:
 test/unit/annotate/clean:
 	find galaxy_importer -type f -name '*,cover' -delete
 
-.PHONY: test/functional
-test/functional:
-	@sh tests/functional/*
-
 .PHONY: test/integration
 test/integration:
 	@pytest tests/integration -v
