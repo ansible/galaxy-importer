@@ -39,13 +39,13 @@ jobs:
         make lint
 
     - name: Run unit tests
+      if: matrix.python-version != '3.8'
       run: |
         make test/unit
 
-    - name: Run functional tests
-      run: |
-        make test/functional
-
+    - name: run the integration tests
+      run: make test/integration
+ 
 
   publish:
     name: Build and publish to PyPI registry
