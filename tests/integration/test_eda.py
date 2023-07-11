@@ -5,20 +5,15 @@ import json
 import os
 import subprocess
 
-import pytest
-
 
 def test_eda_import(workdir, local_image_config):
     assert os.path.exists(workdir)
     url = (
-        'https://beta-galaxy.ansible.com/api/v3/plugin/ansible/content/published/'
-        + 'collections/artifacts/ansible-eda-1.4.2.tar.gz'
+        "https://beta-galaxy.ansible.com/api/v3/plugin/ansible/content/published/"
+        + "collections/artifacts/ansible-eda-1.4.2.tar.gz"
     )
     dst = os.path.join(workdir, os.path.basename(url))
-    pid = subprocess.run(
-        #f'curl -L -o {dst} {url}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-        f'curl -L -o {dst} {url}', shell=True
-    )
+    pid = subprocess.run(f"curl -L -o {dst} {url}", shell=True)
     assert pid.returncode == 0
     assert os.path.exists(dst)
 
@@ -57,7 +52,11 @@ def test_eda_import(workdir, local_image_config):
     # the data should have all the relevant bits
     assert results["contents"] == [
         {"content_type": "role", "description": "your role description", "name": "test_role"},
-        {"content_type": "module", "description": "Upper cases a passed in string", "name": "upcase"}
+        {
+            "content_type": "module",
+            "description": "Upper cases a passed in string",
+            "name": "upcase",
+        },
     ]
     assert results["docs_blob"]["contents"] != []
     assert results["docs_blob"]["collection_readme"]["name"] == "README.md"
