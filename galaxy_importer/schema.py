@@ -435,7 +435,7 @@ class LegacyGalaxyInfo(object):
     def _validate_role_name(self, attribute, value):
         """Ensure role name matches the regular expression."""
 
-        if value is not None and not constants.NAME_REGEXP.match(value):
+        if value is not None and not constants.LEGACY_ROLE_NAME_REGEXP.match(value):
             raise exc.LegacyRoleSchemaError(f"role name {value} is invalid")
 
     @author.validator
@@ -565,7 +565,7 @@ class LegacyImportResult(object):
 
     @name.validator
     def _validate_name(self, attribute, value):
-        if constants.NAME_REGEXP.match(value) is None:
+        if constants.LEGACY_ROLE_NAME_REGEXP.match(value) is None:
             raise exc.LegacyRoleSchemaError(f"role name {value} is invalid")
 
     @metadata.validator

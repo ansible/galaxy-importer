@@ -55,6 +55,11 @@ ALLOWED_EXTENSION_DIRS = [
 
 GITHUB_USERNAME_REGEXP = re.compile(r"^[a-zA-Z\d](?:[a-zA-Z\d]|-(?=[a-zA-Z\d])){0,38}$")
 
+# Matches role names with any combination of lowercase letters,
+# uppercase letters, numbers, underscores, and hyphens with
+# a length in the inclusive range [1, 55].
+LEGACY_ROLE_NAME_REGEXP = re.compile("^[a-zA-Z0-9-_]{1,55}$")
+
 
 class ContentCategory(enum.Enum):
     MODULE = "module"
