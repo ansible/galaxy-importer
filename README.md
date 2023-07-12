@@ -68,6 +68,10 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 - `LOCAL_IMAGE_DOCKER` - Set to `True` to run the `ansible-test` container image via Docker; otherwise, Podman will be used. Defaults to `False`.
 
 
+### Maintenance
+
+galaxy-importer uses a list of SPDX licenses stored at [galaxy_importer/utils/spdx_licenses.json](galaxy_importer/utils/spdx_licenses.json). This file must be periodically updated to reflect the addition, removal, and deprecation of licenses in the future. Use [scripts/update_spdx.py](scripts/update_spdx.py) to update licenses: `python scripts/update_spdx.py`.
+
 
 ### Issues and Process
 
