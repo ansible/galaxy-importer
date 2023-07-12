@@ -3,35 +3,35 @@ FROM quay.io/centos/centos:stream9
 RUN rpm -e --nodeps curl-minimal
 RUN dnf install -y epel-release
 RUN dnf install -y \
-	ca-certificates \
-	curl \
-	g++ \
-	gcc \
-	git \
-	gnupg2 \
-	bzip2-devel \
-	libffi-devel \
-	readline-devel \
-	sqlite-devel \
-	libxml2-devel \
-	libxslt-devel \
-	libyaml \
-	glibc-locale-source \
-	make \
-	openssh-clients \
-	openssh-server \
-	openssl \
-	python3-pip \
-	python3-devel \
-	python3-distlib \
-	python3.11 \
-	python3.11-pip \
-	python3.11-devel \
-	libicu \
-	libicu-devel \
-	shellcheck \
-	sudo \
-	systemd-sysv \
+    ca-certificates \
+    curl \
+    g++ \
+    gcc \
+    git \
+    gnupg2 \
+    bzip2-devel \
+    libffi-devel \
+    readline-devel \
+    sqlite-devel \
+    libxml2-devel \
+    libxslt-devel \
+    libyaml \
+    glibc-locale-source \
+    make \
+    openssh-clients \
+    openssh-server \
+    openssl \
+    python3-pip \
+    python3-devel \
+    python3-distlib \
+    python3.11 \
+    python3.11-pip \
+    python3.11-devel \
+    libicu \
+    libicu-devel \
+    shellcheck \
+    sudo \
+    systemd-sysv \
     wget \
     openssl \
     openssl-devel \
