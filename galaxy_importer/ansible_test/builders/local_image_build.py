@@ -20,7 +20,6 @@ import logging
 import os
 import pkg_resources
 import shutil
-import subprocess
 import tempfile
 
 from galaxy_importer import exceptions
@@ -99,7 +98,9 @@ class Build(object):
         src = os.path.dirname(dockerfile)
         paths = glob.glob(f"{src}/*")
         for path in paths:
-            if os.path.basename(path) == 'Dockerfile':
+            # the dockerfile is modified in a previous function, so
+            # we can't just overwrite it with the original.
+            if os.path.basename(path) == "Dockerfile":
                 continue
             dst = os.path.join(dir, os.path.basename(path))
             print(f"{path} > {dst}")
@@ -108,7 +109,7 @@ class Build(object):
             else:
                 shutil.copyfile(path, dst)
 
-        #cmd = [container_engine, "build", ".", "--quiet"]
+        # cmd = [container_engine, "build", ".", "--quiet"]
         cmd = [container_engine, "build", "."]
 
         proc = Popen(
@@ -127,15 +128,17 @@ class Build(object):
                 continue
             print(line)
             build_log.append(line)
-            if 'sha256:' in line and 'FROM' not in line:
+            if "sha256:" in line and "FROM" not in line:
                 words = line.split()
-                words = [x for x in words if x.startswith('sha256:')]
+                words = [x for x in words if x.startswith("sha256:")]
                 image_id = words[0]
 
         return_code = proc.wait()
         if return_code != 0:
             raise exceptions.AnsibleTestError(
-                "An exception occurred in {}, returncode={} {}".format(" ".join(cmd), return_code, "\n".join(build_log))
+                "An exception occurred in {}, returncode={} {}".format(
+                    " ".join(cmd), return_code, "\n".join(build_log)
+                )
             )
         if container_engine == "docker":
             image_id = image_id.split(":")[-1]

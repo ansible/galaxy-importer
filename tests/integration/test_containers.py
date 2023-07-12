@@ -14,9 +14,7 @@ def test_local_build_container_with_collection(workdir, local_image_config, simp
     cmd = f"python3 -m galaxy_importer.main {simple_artifact}"
     pid = subprocess.run(
         cmd, shell=True, cwd=workdir, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-        #cmd, shell=True, cwd=workdir, env=env
     )
-    import epdb; epdb.st()
     assert pid.returncode == 0, pid.stdout
 
     # the log should contain all the relevant messages
