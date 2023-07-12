@@ -1,34 +1,92 @@
-FROM quay.io/ansible/base-test-container:4.1.0
+FROM quay.io/centos/centos:stream9
+
+RUN rpm -e --nodeps curl-minimal
+RUN dnf install -y epel-release
+RUN dnf install -y \
+	ca-certificates \
+	curl \
+	g++ \
+	gcc \
+	git \
+	gnupg2 \
+	bzip2-devel \
+	libffi-devel \
+	readline-devel \
+	sqlite-devel \
+	libxml2-devel \
+	libxslt-devel \
+	libyaml \
+	glibc-locale-source \
+	make \
+	openssh-clients \
+	openssh-server \
+	openssl \
+	python3-pip \
+	python3-devel \
+	python3-distlib \
+	python3.11 \
+	python3.11-pip \
+	python3.11-devel \
+	libicu \
+	libicu-devel \
+	shellcheck \
+	sudo \
+	systemd-sysv \
+    wget \
+    openssl \
+    openssl-devel \
+    patch
+
+# need py 3.6, 3.7, 3.10, 3.12
+COPY files/install_python.sh /usr/bin/install_python.sh
+RUN chmod +x /usr/bin/install_python.sh
+RUN /usr/bin/install_python.sh 2.7
+RUN /usr/bin/install_python.sh 3.5
+RUN /usr/bin/install_python.sh 3.6
+RUN /usr/bin/install_python.sh 3.7
+RUN /usr/bin/install_python.sh 3.8
+RUN /usr/bin/install_python.sh 3.10
+
+RUN alternatives --install /usr/bin/python python /usr/bin/python3.11 1
+RUN alternatives --set python /usr/bin/python3.11
+
+# powershell sanity
+COPY files/install_powershell.sh /tmp/install_powershell.sh
+RUN chmod +x /tmp/install_powershell.sh; /tmp/install_powershell.sh
+
+# populate ansible-test paths and files
+RUN git clone https://github.com/ansible/base-test-container /tmp/base-test-container
+RUN ls -al /tmp/base-test-container
+RUN mkdir -p /usr/share/container-setup
+RUN cp /tmp/base-test-container/files/*.py /usr/share/container-setup/
+RUN ln -s /usr/bin/python3.11 /usr/share/container-setup/python
+
+########################################
+# galaxy-importer specific
+########################################
+
+RUN mkdir -m 0775 -p /archive
+RUN mkdir -m 0775 -p /.cache/pylint
+RUN mkdir -m 0775 -p /eda/tox
+
+RUN mkdir -m 0775 -p /ansible_collections/ns/col
+RUN touch /ansible_collections/ns/col/placeholder.txt
+
+RUN useradd user1 --uid=1001 --no-create-home --gid root
+RUN chown -R user1 /ansible_collections
+RUN ls -al /
+#RUN exit 1
+
+RUN python3.9 -m pip install ansible-core==2.15.0 --disable-pip-version-check
+RUN python3.9 -m pip install tox
 
 COPY entrypoint.sh /entrypoint
-
-RUN useradd user1 \
-      --uid 1000 \
-      --no-create-home \
-      --gid root && \
-    apt-get update -y && \
-    # upgrade all packages except python, as they can conflict with python setup in base image
-    apt-mark hold python* && \
-    apt-get upgrade -y && \
-    apt-get install -y wget && \
-    chmod +x /entrypoint && \
-    mkdir -m 0775 /archive && \
-    mkdir -p -m 0775 /ansible_collections /ansible_collections/ns /ansible_collections/ns/col && \
-    touch /ansible_collections/ns/col/placeholder.txt && \
-    # On updating ansible-core version, update the FROM statement to the matching base-test-container version
-    python3.9 -m pip install ansible-core==2.15.0 --disable-pip-version-check && \
-    python3.9 -m pip install tox && \
-    # Creates dir with correct permissions for where ansible-test sanity writes files, needed for non-privileged containers
-    mkdir -m 0775 -p /.cache/pylint && \
-    mkdir -m 0775 -p /eda /eda/tox
-
+RUN chmod +x /entrypoint
 COPY eda/tox.ini /eda/tox
 
 ENV HOME /
-
-RUN cd /ansible_collections/ns/col && \
-    ansible-test sanity --prime-venvs && \
-    chmod -R 0775 /.ansible
+RUN cd /ansible_collections/ns/col && HOME=/ ansible-test sanity --prime-venvs && chmod -R 0775 /.ansible
+#RUN rm -rf /ansible_collections
 
 ENTRYPOINT ["/entrypoint"]
 
