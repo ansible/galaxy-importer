@@ -131,7 +131,7 @@ class Build(object):
             if "sha256:" in line and "FROM" not in line:
                 words = line.split()
                 words = [x for x in words if x.startswith("sha256:")]
-                image_id = words[0]
+                image_id = words[0].replace("sha256:", "")
 
         return_code = proc.wait()
         if return_code != 0:
