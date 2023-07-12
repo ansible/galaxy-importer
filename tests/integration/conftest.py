@@ -19,6 +19,26 @@ def workdir():
 
 
 @pytest.fixture
+def local_config():
+    config = [
+        "[galaxy-importer]",
+        "RUN_ANSIBLE_TEST=True",
+        "ANSIBLE_TEST_LOCAL_IMAGE=False",
+        "LOCAL_IMAGE_DOCKER=False",
+    ]
+    config = "\n".join(config)
+
+    tdir = tempfile.mkdtemp()
+    atexit.register(clean_files, tdir)
+
+    config_path = os.path.join(tdir, "galaxy-importer.cfg")
+    with open(config_path, "w") as f:
+        f.write(config)
+
+    return {"GALAXY_IMPORTER_CONFIG": config_path}
+
+
+@pytest.fixture
 def local_image_config():
     config = [
         "[galaxy-importer]",
