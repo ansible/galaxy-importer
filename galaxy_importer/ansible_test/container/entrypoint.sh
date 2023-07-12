@@ -6,11 +6,7 @@ function download_archive {
   wget $ARCHIVE_URL -q -O /archive/archive.tar.gz
 }
 
-set -x
 set -e
-echo "1: $1"
-id
-ls -al /
 
 # Extract collection to path needed for ansible-test sanity
 mkdir -p /ansible_collections/placeholder_namespace/placeholder_name
@@ -100,4 +96,3 @@ then
 else
     echo "No EDA content found. Skipping linters."
 fi
-
