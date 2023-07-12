@@ -86,7 +86,6 @@ COPY eda/tox.ini /eda/tox
 
 ENV HOME /
 RUN cd /ansible_collections/ns/col && HOME=/ ansible-test sanity --prime-venvs && chmod -R 0775 /.ansible
-#RUN rm -rf /ansible_collections
 
 ENTRYPOINT ["/entrypoint"]
 
