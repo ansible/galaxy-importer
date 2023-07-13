@@ -145,7 +145,7 @@ class CollectionLoader(object):
         )
 
         try:
-            outs, errs = proc.communicate(timeout=120)
+            outs, errs = proc.communicate(timeout=180)
         except (
             TimeoutExpired
         ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
