@@ -44,6 +44,7 @@ REQUIRED_TAG_LIST = [
     "application",
     "cloud",
     "database",
+    "eda",
     "infrastructure",
     "linux",
     "monitoring",
