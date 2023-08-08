@@ -1,3 +1,12 @@
+galaxy-importer 0.4.12 (2023-08-08)
+===================================
+
+Misc
+----
+
+- `AAH-1881 <https://issues.redhat.com/browse/AAH-1881>`_, `AAH-2584 <https://issues.redhat.com/browse/AAH-2584>`_
+
+
 galaxy-importer 0.4.11 (2023-06-23)
 ===================================
 
