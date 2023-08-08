@@ -56,7 +56,7 @@ def test_filename_parse():
 )
 def test_filename_format(filename_str):
     res = schema.CollectionFilename.parse(filename_str)
-    assert type(res) == schema.CollectionFilename
+    assert isinstance(res, schema.CollectionFilename)
 
 
 @pytest.mark.parametrize(

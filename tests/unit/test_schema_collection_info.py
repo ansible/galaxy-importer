@@ -40,7 +40,7 @@ def collection_info():
 
 def test_collection_info(collection_info):
     res = CollectionInfo(**collection_info)
-    assert type(res) == CollectionInfo
+    assert isinstance(res, CollectionInfo)
     assert res.namespace == "acme"
     assert res.name == "jenkins"
     assert res.version == "3.5.0"
