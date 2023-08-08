@@ -35,6 +35,7 @@ def test_eda_import(workdir, local_image_config):
     # EDA specific messages ...
     assert "EDA plugin content found. Running ruff on /extensions/eda/plugins..." in log
     assert "Running darglint on /extensions/eda/plugins..." in log
+    assert "aws_sqs_queue.py:main:33: DAR101" in log
     assert "Running pylint on /extensions/eda/plugins/event_source..." in log
     assert "Running pylint on /extensions/eda/plugins/event_filter..." in log
     assert "EDA linting complete." in log
