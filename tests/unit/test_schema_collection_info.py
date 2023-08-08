@@ -20,7 +20,7 @@ import pytest
 
 from galaxy_importer import config
 from galaxy_importer import schema
-from galaxy_importer.schema import CollectionInfo
+from galaxy_importer.schema import CollectionInfo, REQUIRED_TAG_LIST
 
 
 @pytest.fixture
@@ -171,9 +171,10 @@ def test_required_tag_enabled(collection_info, temp_config_file):
         config_data = config.ConfigFile.load()
         config.Config(config_data=config_data)
 
-        collection_info["tags"] = ["application"]
-        res = CollectionInfo(**collection_info)
-        assert ["application"] == res.tags
+        for tag in REQUIRED_TAG_LIST:
+            collection_info["tags"] = [f"{tag}"]
+            res = CollectionInfo(**collection_info)
+            assert [f"{tag}"] == res.tags
 
         collection_info["tags"] = ["fail"]
         with pytest.raises(ValueError, match=r"At least one tag required from tag list: "):
