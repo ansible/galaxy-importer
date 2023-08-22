@@ -163,7 +163,7 @@ class CollectionLoader(object):
         # The prevous code tries to be intelligent about what to display or not display
         # but we have serious errors from lint that are hidden by that logic. We should
         # attempt to inform the users of these errors (especially tracebacks).
-        if proc.returncode != 0 and errs and 'Traceback (most recent call last):' in errs:
+        if proc.returncode != 0 and errs and "Traceback (most recent call last):" in errs:
             self.log.error(errs)
 
         self.log.info("...ansible-lint run complete")

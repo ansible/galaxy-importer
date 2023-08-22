@@ -28,9 +28,11 @@ IMPORTER_INI_SECTION = "galaxy-importer"
 
 
 def parse_string_to_bool(val):
-    if val.lower() in ['yes', '1', 'true']:
+    if val is None:
+        return val
+    if val.lower() in ["yes", "1", "true"]:
         return True
-    if val.lower() in ['no', '0', 'false']:
+    if val.lower() in ["no", "0", "false"]:
         return False
     return val
 
@@ -62,7 +64,7 @@ class Config(object):
 
         # Allow environment overrides for testing
         for key in self.__dict__.keys():
-            env_key = 'GALAXY_IMPORTER_' + key.upper()
+            env_key = "GALAXY_IMPORTER_" + key.upper()
             if env_key in os.environ:
                 self.__dict__[key] = parse_string_to_bool(os.environ[env_key])
 
