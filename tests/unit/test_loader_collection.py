@@ -534,6 +534,7 @@ def test_ansiblelint_playbook_errors(populated_collection_root, tmp_collection_r
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
+            offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
@@ -550,6 +551,7 @@ def test_ansiblelint_collection_pass(populated_collection_root, tmp_collection_r
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
+            offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
@@ -565,6 +567,7 @@ def test_ansiblelint_true_loader(populated_collection_root, tmp_collection_root,
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
+            offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
@@ -586,6 +589,7 @@ def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_colle
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
+            offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
@@ -611,6 +615,7 @@ def test_ansiblelint_collection_meta_runtime_errors(
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
+            offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
@@ -642,6 +647,7 @@ def test_ansiblelint_stderr_filter(mocked_popen, caplog):
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
+            offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
@@ -664,6 +670,7 @@ def test_ansiblelint_warning_log(mocked_popen, caplog):
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
+            offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )

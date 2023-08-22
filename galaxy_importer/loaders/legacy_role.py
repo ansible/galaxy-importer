@@ -125,6 +125,8 @@ class LegacyRoleLoader(object):
             "--nocolor",
             self.dirname,
         ]
+        if self.cfg.offline_ansible_lint:
+            cmd.append("--offline")
 
         self.log.debug("CMD:", "".join(cmd))
 

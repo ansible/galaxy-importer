@@ -225,7 +225,11 @@ def test_lint_role_fail(populated_role_root, caplog):
     LegacyRoleLoader(
         populated_role_root,
         "my-namespace",
-        cfg=SimpleNamespace(run_ansible_lint=True, ansible_local_tmp=populated_role_root),
+        cfg=SimpleNamespace(
+            run_ansible_lint=True,
+            offline_ansible_lint=True,
+            ansible_local_tmp=populated_role_root,
+        ),
     ).load()
 
     captured = caplog.text
@@ -240,7 +244,11 @@ def test_lint_role_pass(populated_role_root, caplog):
     LegacyRoleLoader(
         populated_role_root,
         "my-namespace",
-        cfg=SimpleNamespace(run_ansible_lint=True, ansible_local_tmp=populated_role_root),
+        cfg=SimpleNamespace(
+            run_ansible_lint=True,
+            offline_ansible_lint=True,
+            ansible_local_tmp=populated_role_root,
+        ),
     ).load()
 
     assert len(caplog.records) == 0
@@ -278,7 +286,11 @@ def test_lint_timeout(mocked_communicate, populated_role_root, caplog):
         LegacyRoleLoader(
             populated_role_root,
             "my-namespace",
-            cfg=SimpleNamespace(run_ansible_lint=True, ansible_local_tmp=populated_role_root),
+            cfg=SimpleNamespace(
+                run_ansible_lint=True,
+                offline_ansible_lint=True,
+                ansible_local_tmp=populated_role_root,
+            ),
         ).load()
 
     assert "Timeout on call to ansible-lint" in caplog.text

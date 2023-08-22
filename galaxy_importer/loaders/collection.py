@@ -135,6 +135,9 @@ class CollectionLoader(object):
             "--parseable",
             "--nocolor",
         ]
+        if self.cfg.offline_ansible_lint:
+            cmd.append("--offline")
+
         self.log.debug("CMD: " + " ".join(cmd))
         proc = Popen(
             cmd,
