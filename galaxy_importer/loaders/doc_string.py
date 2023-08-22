@@ -95,7 +95,7 @@ class DocStringLoader:
         self.log.debug("CMD: {}".format(" ".join(cmd)))
         proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
-        if proc.returncode:
+        if proc.returncode != 0:
             self.log.error(
                 'Error running ansible-doc: cmd="{cmd}" returncode="{rc}" {err}'.format(
                     cmd=" ".join(cmd), rc=proc.returncode, err=stderr

@@ -27,6 +27,16 @@ FILE_LOCATIONS = [
 IMPORTER_INI_SECTION = "galaxy-importer"
 
 
+def parse_string_to_bool(val):
+    if val is None:
+        return val
+    if val.lower() in ["yes", "1", "true"]:
+        return True
+    if val.lower() in ["no", "0", "false"]:
+        return False
+    return val
+
+
 class Config(object):
     """Configuration for galaxy-importer."""
 
@@ -51,6 +61,12 @@ class Config(object):
         _data.update(self.DEFAULTS)
         _data.update(config_data or {})
         self.__dict__.update(_data)
+
+        # Allow environment overrides for testing
+        for key in self.__dict__.keys():
+            env_key = "GALAXY_IMPORTER_" + key.upper()
+            if env_key in os.environ:
+                self.__dict__[key] = parse_string_to_bool(os.environ[env_key])
 
 
 class ConfigFile(object):
