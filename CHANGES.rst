@@ -1,3 +1,12 @@
+galaxy-importer 0.4.13 (2023-08-22)
+===================================
+
+Features
+--------
+
+- Add offline_ansible_lint configuration, defaulted to True (`AAH-2606 <https://issues.redhat.com/browse/AAH-2606>`_)
+
+
 galaxy-importer 0.4.12 (2023-08-08)
 ===================================
 
