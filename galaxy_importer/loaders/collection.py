@@ -90,9 +90,15 @@ class CollectionLoader(object):
         self.contents = None
 
         # build the collections path for lint's module resolution
-        paths = self.path.split(os.sep)
-        ix = paths.index("ansible_collections")
-        self.collections_path = os.sep.join(paths[: ix + 1])
+        self.collections_path = self.path
+        if not callable(self.path):
+            if hasattr(self.path, "strpath"):
+                paths = self.path.strpath.split(os.sep)
+            else:
+                paths = self.path.split(os.sep)
+            if "ansible_collections" in paths:
+                ix = paths.index("ansible_collections")
+                self.collections_path = os.sep.join(paths[: ix + 1])
 
     def load(self):
         # NOTE: If we knew the chksum for MANIFEST.json, we could check it here first
