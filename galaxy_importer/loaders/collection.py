@@ -40,6 +40,40 @@ default_logger = logging.getLogger(__name__)
 DOCUMENTATION_DIR = "docs"
 
 
+def make_exclusions(basepath):
+    exclusions = []
+
+    for root, dirnames, filenames in os.walk(basepath):
+        if root != basepath:
+            continue
+        for dirname in dirnames:
+            if dirname == "roles":
+                continue
+            if dirname == "sanity":
+                continue
+
+            if dirname == "tests":
+                tests_dir = os.path.join(root, dirname)
+                for tests_root, tests_dirnames, tests_filenames in os.walk(tests_dir):
+                    if tests_root != tests_dir:
+                        continue
+                    for tests_dirname in tests_dirnames:
+                        if tests_dirname != "sanity":
+                            continue
+                        dn = (
+                            os.path.join(tests_root, tests_dirname).replace(basepath + "/", "")
+                            + "/"
+                        )
+                        if dn not in exclusions:
+                            exclusions.append(dn)
+
+            dn = os.path.join(root, dirname + "/").replace(basepath + "/", "")
+            if dn not in exclusions:
+                exclusions.append(dn)
+
+    return exclusions
+
+
 class CollectionLoader(object):
     """Loads collection and content info."""
 
@@ -95,7 +129,10 @@ class CollectionLoader(object):
         self._check_collection_changelog()
 
         if self.cfg.run_ansible_lint:
-            self._lint_collection()
+            if self.cfg.ansible_lint_serialize:
+                self._lint_collection_roles_individually()
+            else:
+                self._lint_collection()
         self._check_ansible_test_ignore_files()
 
         return schema.ImportResult(
@@ -104,6 +141,20 @@ class CollectionLoader(object):
             contents=self.contents,
             requires_ansible=self.requires_ansible,
         )
+
+    def _process_lint_results(self, proc, outs, errs):
+        for line in outs.splitlines():
+            self.log.warning(line.strip())
+
+        for line in errs.splitlines():
+            if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
+                self.log.warning(line.rstrip())
+
+        # The prevous code tries to be intelligent about what to display or not display
+        # but we have serious errors from lint that are hidden by that logic. We should
+        # attempt to inform the users of these errors (especially tracebacks).
+        if proc.returncode != 0 and errs and "Traceback (most recent call last):" in errs:
+            self.log.error(errs)
 
     def _lint_collection(self):
         """Log ansible-lint output.
@@ -128,16 +179,85 @@ class CollectionLoader(object):
             "ansible-lint",
             "--profile",
             "production",
-            "--exclude",
-            "tests/integration/",
-            "--exclude",
-            "tests/unit/",
             "--parseable",
             "--nocolor",
         ]
         if self.cfg.offline_ansible_lint:
             cmd.append("--offline")
 
+        if self.cfg.ansible_lint_dynamic_exclusions:
+            exclusions = make_exclusions(self.path)
+        else:
+            exclusions = ["tests/integration/", "tests/unit/"]
+
+        for exclusion in exclusions:
+            cmd.append("--exclude")
+            cmd.append(exclusion)
+
+        self.log.info("CMD: " + " ".join(cmd))
+        proc = Popen(
+            cmd,
+            cwd=self.path,
+            encoding="utf-8",
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+
+        try:
+            outs, errs = proc.communicate(timeout=self.cfg.ansible_lint_timeout)
+        except (
+            TimeoutExpired
+        ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
+            self.log.error("Timeout on call to ansible-lint")
+            proc.kill()
+            outs, errs = proc.communicate()
+
+        self._process_lint_results(proc, outs, errs)
+
+        self.log.info("...ansible-lint run complete")
+
+    def _lint_collection_roles_individually(self):
+        roles_path = os.path.join(self.path, "roles")
+        if not os.path.exists(roles_path):
+            self.log.info("No roles found, skipping ansible-lint")
+
+        role_paths = []
+        for root, dirnames, filenames in os.walk(roles_path):
+            if root != roles_path:
+                continue
+            for dirname in dirnames:
+                role_paths.append(os.path.join(root, dirname))
+
+        role_paths = sorted(role_paths)
+        for rp in role_paths:
+            self._lint_role(rp)
+
+    def _lint_role(self, path):
+        """Log ansible-lint output.
+        ansible-lint stdout are linter violations, they are logged as warnings.
+        ansible-lint stderr includes info about vars, file discovery,
+        summary of linter violations, config suggestions, and raised errors.
+        Only raised errors are logged, they are logged as errors.
+        """
+
+        path_name = os.path.basename(path)
+        self.log.info(f"Linting role {path_name} via ansible-lint...")
+
+        if not shutil.which("ansible-lint"):
+            self.log.warning("ansible-lint not found, skipping lint of role")
+            return
+
+        cmd = [
+            "/usr/bin/env",
+            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            "ansible-lint",
+            path,
+            "--parseable",
+            "--skip-list",
+            "metadata",
+            "--project-dir",
+            os.path.dirname(path),
+        ]
         self.log.debug("CMD: " + " ".join(cmd))
         proc = Popen(
             cmd,
@@ -148,7 +268,7 @@ class CollectionLoader(object):
         )
 
         try:
-            outs, errs = proc.communicate(timeout=120)
+            outs, errs = proc.communicate(timeout=self.cfg.ansible_lint_timeout)
         except (
             TimeoutExpired
         ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
@@ -156,20 +276,7 @@ class CollectionLoader(object):
             proc.kill()
             outs, errs = proc.communicate()
 
-        for line in outs.splitlines():
-            self.log.warning(line.strip())
-
-        for line in errs.splitlines():
-            if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
-                self.log.warning(line.rstrip())
-
-        # The prevous code tries to be intelligent about what to display or not display
-        # but we have serious errors from lint that are hidden by that logic. We should
-        # attempt to inform the users of these errors (especially tracebacks).
-        if proc.returncode != 0 and errs and "Traceback (most recent call last):" in errs:
-            self.log.error(errs)
-
-        self.log.info("...ansible-lint run complete")
+        self._process_lint_results(proc, outs, errs)
 
     def _check_ansible_test_ignore_files(self):  # pragma: no cover
         """Log a warning when ansible test sanity ignore files are present.
