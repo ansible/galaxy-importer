@@ -43,6 +43,9 @@ class Config(object):
     DEFAULTS = {
         "ansible_local_tmp": "~/.ansible/tmp",
         "ansible_test_local_image": False,
+        "ansible_lint_dynamic_exclusions": True,
+        "ansible_lint_serialize": False,
+        "ansible_lint_timeout": 120,
         "check_required_tags": False,
         "infra_osd": False,
         "local_image_docker": False,
@@ -67,7 +70,12 @@ class Config(object):
         for key in self.__dict__.keys():
             env_key = "GALAXY_IMPORTER_" + key.upper()
             if env_key in os.environ:
-                self.__dict__[key] = parse_string_to_bool(os.environ[env_key])
+                if key == "ansible_lint_timeout":
+                    self.__dict__[key] = int(os.environ[env_key])
+                elif key in ["ansible_local_tmp", "log_level_main"]:
+                    self.__dict__[key] = os.environ[env_key].upper()
+                else:
+                    self.__dict__[key] = parse_string_to_bool(os.environ[env_key])
 
 
 class ConfigFile(object):

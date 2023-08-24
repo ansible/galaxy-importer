@@ -440,7 +440,7 @@ def test_changelog(changelog_path, tmpdir, caplog):
         fh.write("Changelog info")
 
     collection_loader = CollectionLoader(
-        tmpdir, "filename", cfg=SimpleNamespace(run_ansible_doc=False)
+        tmpdir, "filename", cfg=SimpleNamespace(run_ansible_doc=False, ansible_lint_serialize=False)
     )
     collection_loader._check_collection_changelog()
     assert len(caplog.records) == 0
@@ -536,6 +536,8 @@ def test_ansiblelint_playbook_errors(populated_collection_root, tmp_collection_r
             run_ansible_lint=True,
             offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
+            ansible_lint_dynamic_exclusions=False,
+            ansible_lint_timeout=120,
         ),
     )
     collection_loader._lint_collection()
@@ -553,6 +555,8 @@ def test_ansiblelint_collection_pass(populated_collection_root, tmp_collection_r
             run_ansible_lint=True,
             offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
+            ansible_lint_dynamic_exclusions=False,
+            ansible_lint_timeout=120,
         ),
     )
     collection_loader._lint_collection()
@@ -569,6 +573,9 @@ def test_ansiblelint_true_loader(populated_collection_root, tmp_collection_root,
             run_ansible_lint=True,
             offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
+            ansible_lint_dynamic_exclusions=False,
+            ansible_lint_timeout=120,
+            ansible_lint_serialize=False,
         ),
     )
     collection_loader.load()
@@ -591,6 +598,8 @@ def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_colle
             run_ansible_lint=True,
             offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
+            ansible_lint_dynamic_exclusions=False,
+            ansible_lint_timeout=120,
         ),
     )
     collection_loader._lint_collection()
@@ -617,6 +626,8 @@ def test_ansiblelint_collection_meta_runtime_errors(
             run_ansible_lint=True,
             offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
+            ansible_lint_dynamic_exclusions=False,
+            ansible_lint_timeout=120,
         ),
     )
     collection_loader._lint_collection()
@@ -649,6 +660,8 @@ def test_ansiblelint_stderr_filter(mocked_popen, caplog):
             run_ansible_lint=True,
             offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
+            ansible_lint_dynamic_exclusions=False,
+            ansible_lint_timeout=120,
         ),
     )
     collection_loader._lint_collection()
@@ -672,6 +685,8 @@ def test_ansiblelint_warning_log(mocked_popen, caplog):
             run_ansible_lint=True,
             offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
+            ansible_lint_dynamic_exclusions=False,
+            ansible_lint_timeout=120,
         ),
     )
     collection_loader._lint_collection()
@@ -689,6 +704,8 @@ def test_no_ansible_lint_bin(mocked_shutil_which, tmp_collection_root, caplog):
             run_ansible_doc=False,
             run_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
+            ansible_lint_dynamic_exclusions=False,
+            ansible_lint_timeout=120,
         ),
     )
     collection_loader._lint_collection()
