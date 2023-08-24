@@ -89,6 +89,11 @@ class CollectionLoader(object):
         self.docs_blob = None
         self.contents = None
 
+        # build the collections path for lint's module resolution
+        paths = self.path.split(os.path.sep)
+        ix = paths.index("ansible_collections")
+        self.collections_path = os.sep.join(paths[: ix + 1])
+
     def load(self):
         # NOTE: If we knew the chksum for MANIFEST.json, we could check it here first
         self.manifest = self._load_manifest()
@@ -142,7 +147,12 @@ class CollectionLoader(object):
             requires_ansible=self.requires_ansible,
         )
 
-    def _process_lint_results(self, proc, outs, errs):
+    def _process_lint_results(self, proc, outs, errs, timedout=False):
+        # EXIT CODES ...
+        #  0 all good
+        #  2 lint found problems
+        # -9 lint process timed out OR was killed
+
         for line in outs.splitlines():
             self.log.warning(line.strip())
 
@@ -155,6 +165,8 @@ class CollectionLoader(object):
         # attempt to inform the users of these errors (especially tracebacks).
         if proc.returncode != 0 and errs and "Traceback (most recent call last):" in errs:
             self.log.error(errs)
+
+        self.log.debug(f"\tansible-lint returncode:{proc.returncode} timedout:{timedout}")
 
     def _lint_collection(self):
         """Log ansible-lint output.
@@ -175,6 +187,7 @@ class CollectionLoader(object):
 
         cmd = [
             "/usr/bin/env",
+            f"ANSIBLE_COLLECTIONS_PATH={self.collections_path}",
             f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
             "ansible-lint",
             "--profile",
@@ -203,16 +216,18 @@ class CollectionLoader(object):
             stderr=PIPE,
         )
 
+        timedout = False
         try:
             outs, errs = proc.communicate(timeout=self.cfg.ansible_lint_timeout)
         except (
             TimeoutExpired
         ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
+            timedout = True
             self.log.error("Timeout on call to ansible-lint")
             proc.kill()
             outs, errs = proc.communicate()
 
-        self._process_lint_results(proc, outs, errs)
+        self._process_lint_results(proc, outs, errs, timedout=timedout)
 
         self.log.info("...ansible-lint run complete")
 
@@ -230,9 +245,9 @@ class CollectionLoader(object):
 
         role_paths = sorted(role_paths)
         for rp in role_paths:
-            self._lint_role(rp)
+            self._lint_collection_role(rp)
 
-    def _lint_role(self, path):
+    def _lint_collection_role(self, path):
         """Log ansible-lint output.
         ansible-lint stdout are linter violations, they are logged as warnings.
         ansible-lint stderr includes info about vars, file discovery,
@@ -250,15 +265,19 @@ class CollectionLoader(object):
         cmd = [
             "/usr/bin/env",
             f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            f"ANSIBLE_COLLECTIONS_PATH={self.collections_path}",
             "ansible-lint",
             path,
+            "--profile",
+            "production",
             "--parseable",
+            "--nocolor",
             "--skip-list",
             "metadata",
             "--project-dir",
             os.path.dirname(path),
         ]
-        self.log.debug("CMD: " + " ".join(cmd))
+        self.log.info("CMD: " + " ".join(cmd))
         proc = Popen(
             cmd,
             cwd=self.path,
@@ -267,16 +286,18 @@ class CollectionLoader(object):
             stderr=PIPE,
         )
 
+        timedout = False
         try:
             outs, errs = proc.communicate(timeout=self.cfg.ansible_lint_timeout)
         except (
             TimeoutExpired
         ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
+            timedout = True
             self.log.error("Timeout on call to ansible-lint")
             proc.kill()
             outs, errs = proc.communicate()
 
-        self._process_lint_results(proc, outs, errs)
+        self._process_lint_results(proc, outs, errs, timedout=timedout)
 
     def _check_ansible_test_ignore_files(self):  # pragma: no cover
         """Log a warning when ansible test sanity ignore files are present.
