@@ -90,7 +90,7 @@ class CollectionLoader(object):
         self.contents = None
 
         # build the collections path for lint's module resolution
-        paths = self.path.split(os.path.sep)
+        paths = self.path.split(os.sep)
         ix = paths.index("ansible_collections")
         self.collections_path = os.sep.join(paths[: ix + 1])
 
