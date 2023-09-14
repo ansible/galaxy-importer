@@ -55,6 +55,17 @@ class CollectionLoader(object):
         self.docs_blob = None
         self.contents = None
 
+        # build the collections path for lint's module resolution
+        self.collections_path = self.path
+        if not callable(self.path):
+            if hasattr(self.path, "strpath"):
+                paths = self.path.strpath.split(os.sep)
+            else:
+                paths = self.path.split(os.sep)
+            if "ansible_collections" in paths:
+                ix = paths.index("ansible_collections")
+                self.collections_path = os.sep.join(paths[: ix + 1])
+
     def load(self):
         # NOTE: If we knew the chksum for MANIFEST.json, we could check it here first
         self.manifest = self._load_manifest()
@@ -124,6 +135,7 @@ class CollectionLoader(object):
 
         cmd = [
             "/usr/bin/env",
+            f"ANSIBLE_COLLECTIONS_PATH={self.collections_path}",
             f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
             "ansible-lint",
             "--profile",
