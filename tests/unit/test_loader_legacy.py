@@ -18,6 +18,7 @@ dependencies: []
 
 galaxy_info:
   role_name: my_role
+  namespace: my_namespace
   author: John Doe
   description: Some generic role description
   platforms:
@@ -96,6 +97,7 @@ def test_load_values(populated_role_root):
 
     galaxy_info = data.metadata.galaxy_info
     assert galaxy_info.role_name == "my_role"
+    assert galaxy_info.namespace == "my_namespace"
     assert galaxy_info.author == "John Doe"
     assert galaxy_info.description == "Some generic role description"
     assert galaxy_info.platforms == [
