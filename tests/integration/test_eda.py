@@ -40,7 +40,7 @@ def test_eda_import(workdir, local_image_config):
     assert "Running pylint on /extensions/eda/plugins/event_source..." in log
     assert "aws_sqs_queue.py:29: [E0401" in log
     assert "Running pylint on /extensions/eda/plugins/event_filter..." in log
-    assert "insert_hosts_to_meta.py:53: [C0103" in log
+    assert "insert_hosts_to_meta.py:31: [E0401" in log
     assert "EDA linting complete." in log
 
     assert "Removing temporary files, image and container" in log
