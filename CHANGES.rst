@@ -1,3 +1,14 @@
+galaxy-importer 0.4.14 (2023-10-11)
+===================================
+
+Misc
+----
+
+- Add namespace parameter to legacy role schema checks
+- Adding Collection Path Variable to Ansible-Lint Call
+- Increase ansible-lint timeout to 180s
+
+
 galaxy-importer 0.4.13 (2023-08-22)
 ===================================
 
