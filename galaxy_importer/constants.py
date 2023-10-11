@@ -64,7 +64,9 @@ LEGACY_ROLE_NAME_REGEXP = re.compile("^[a-zA-Z0-9_-]{1,55}$")
 # or single hyphens, and cannot begin or end with a hyphen
 # Some roles may contain underscores
 # Maximum of 39 char tested in the validator
-LEGACY_NAMESPACE_REGEXP = re.compile("^([a-zA-Z0-9]+[-_]?)*[a-zA-Z0-9]$")
+# For retrocompatibility with legacy role, allow names
+# finishing with hyphen or underscores, and names containing dots
+LEGACY_NAMESPACE_REGEXP = re.compile("^([a-zA-Z0-9.]+[-_]?)+$")
 
 
 class ContentCategory(enum.Enum):
