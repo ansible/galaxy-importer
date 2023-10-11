@@ -30,6 +30,7 @@ from galaxy_importer.utils.spdx_licenses import is_valid_license_id
 MAX_LENGTH_AUTHOR = 64
 MAX_LENGTH_LICENSE = 32
 MAX_LENGTH_NAME = 64
+MAX_LENGTH_NAMESPACE = 39
 MAX_LENGTH_TAG = 64
 MAX_LENGTH_URL = 2000
 MAX_LENGTH_VERSION = 128
@@ -388,6 +389,7 @@ class LegacyGalaxyInfo(object):
     """Represents legacy role metadata galaxy_info field."""
 
     role_name = attr.ib(default=None)
+    namespace = attr.ib(default=None)
     author = attr.ib(default=None)
     description = attr.ib(default=None)
     company = attr.ib(default=None)
@@ -400,6 +402,7 @@ class LegacyGalaxyInfo(object):
     galaxy_tags = attr.ib(factory=list)
 
     @role_name.validator
+    @namespace.validator
     @author.validator
     @description.validator
     @company.validator
@@ -438,6 +441,15 @@ class LegacyGalaxyInfo(object):
 
         if value is not None and not constants.LEGACY_ROLE_NAME_REGEXP.match(value):
             raise exc.LegacyRoleSchemaError(f"role name {value} is invalid")
+
+    @namespace.validator
+    def _validate_namespace(self, attribute, value):
+        """Ensure namespace matches the regular expression."""
+
+        if value is not None and (
+            not constants.LEGACY_NAMESPACE_REGEXP.match(value) or len(value) > MAX_LENGTH_NAMESPACE
+        ):
+            raise exc.LegacyRoleSchemaError(f"namespace {value} is invalid")
 
     @author.validator
     def _validate_author(self, attribute, value):

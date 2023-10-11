@@ -58,7 +58,15 @@ GITHUB_USERNAME_REGEXP = re.compile(r"^[a-zA-Z\d](?:[a-zA-Z\d]|-(?=[a-zA-Z\d])){
 # Matches role names with any combination of lowercase letters,
 # uppercase letters, numbers, underscores, and hyphens with
 # a length in the inclusive range [1, 55].
-LEGACY_ROLE_NAME_REGEXP = re.compile("^[a-zA-Z0-9-_]{1,55}$")
+LEGACY_ROLE_NAME_REGEXP = re.compile("^[a-zA-Z0-9_-]{1,55}$")
+# Matches namespaces: Namespace names should match any valid
+# GitHub username. Username may only contain alphanumeric characters
+# or single hyphens, and cannot begin or end with a hyphen
+# Some roles may contain underscores
+# Maximum of 39 char tested in the validator
+# For retrocompatibility with legacy role, allow names
+# finishing with hyphen or underscores, and names containing dots
+LEGACY_NAMESPACE_REGEXP = re.compile("^([a-zA-Z0-9.]+[-_]?)+$")
 
 
 class ContentCategory(enum.Enum):
