@@ -53,7 +53,11 @@ ALLOWED_EXTENSION_DIRS = [
     EDA_EVENT_FILTER_NAME,
 ]
 
-GITHUB_USERNAME_REGEXP = re.compile(r"^[a-zA-Z\d](?:[a-zA-Z\d]|-(?=[a-zA-Z\d])){0,38}$")
+# Match github's allowable usernames, but also include underscores
+# because of old-galaxy's preference for replacing hyphens with underscores
+# in namespace names. There are quite a few legacy namespaces with
+# underscores grandfathered in, so we must support those too.
+GITHUB_USERNAME_REGEXP = re.compile(r"^[a-zA-Z\d_](?:[a-zA-Z\d_]|-(?=[a-zA-Z\d])){0,38}$")
 
 # Matches role names with any combination of lowercase letters,
 # uppercase letters, numbers, underscores, and hyphens with
