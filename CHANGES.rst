@@ -1,3 +1,12 @@
+galaxy-importer 0.4.15 (2023-10-31)
+===================================
+
+Bugfixes
+--------
+
+- Allow underscores for old galaxy role namespace names. (`AAH-2820 <https://issues.redhat.com/browse/AAH-2820>`_)
+
+
 galaxy-importer 0.4.14 (2023-10-11)
 ===================================
 
