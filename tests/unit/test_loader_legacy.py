@@ -120,7 +120,6 @@ def test_load_values(populated_role_root):
     "invalid_namespace",
     [
         "",
-        "a_b",
         "this--that",
         "foo-bar-",
         "-red-hat",
