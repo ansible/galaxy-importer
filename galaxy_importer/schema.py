@@ -550,7 +550,7 @@ class LegacyMetadata:
             _dependency = dependency
             if isinstance(dependency, dict):
                 if "role" not in dependency.keys():
-                    raise exc.LegacyRoleSchemaError("dependency must include \'role\' keyword.")
+                    raise exc.LegacyRoleSchemaError("dependency must include 'role' keyword.")
 
                 _dependency = dependency["role"]
 
