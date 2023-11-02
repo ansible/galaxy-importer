@@ -540,9 +540,16 @@ class LegacyMetadata:
         if not isinstance(value, list):
             raise exc.LegacyRoleSchemaError("dependencies must be a list of strings")
         for dependency in value:
-            if not isinstance(dependency, str):
-                raise exc.LegacyRoleSchemaError("dependencies must be a list of strings")
-            if dependency.count(".") != 1:
+            if not isinstance(dependency, str) and not isinstance(dependency, dict):
+                raise exc.LegacyRoleSchemaError(
+                    "Dependencies must be either a list of strings or a list of dictionaries."
+                )
+
+            _dependency = dependency
+            if isinstance(dependency, dict):
+                _dependency = dependency["role"]
+
+            if _dependency.count(".") != 1:
                 raise exc.LegacyRoleSchemaError(
                     f"{dependency} must have namespace and name separated by '.'"
                 )
@@ -584,7 +591,11 @@ class LegacyImportResult(object):
     @metadata.validator
     def _ensure_no_self_dependency(self, attribute, value):
         for dependency in self.metadata.dependencies:
-            namespace, name = dependency.split(".")
+            _dependency = dependency
+            if isinstance(dependency, dict):
+                _dependency = dependency["role"]
+
+            namespace, name = _dependency.split(".")
             if self.namespace == namespace and self.name == name:
                 raise exc.LegacyRoleSchemaError(
                     f"role {self.namespace}.{self.name} cannot depend on itself"
