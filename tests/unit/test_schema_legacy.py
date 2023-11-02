@@ -183,7 +183,10 @@ def test_valid_dependencies(galaxy_info, valid_dependency):
     ],
 )
 def test_invalid_dependency_type(galaxy_info, invalid_dependency):
-    with pytest.raises(exc.LegacyRoleSchemaError, match="must be a list of strings"):
+    with pytest.raises(
+        exc.LegacyRoleSchemaError,
+        match="must be either a list of strings or a list of dictionaries.",
+    ):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dependency)
 
 
