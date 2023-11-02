@@ -212,6 +212,27 @@ def test_invalid_dependency_dict_type(galaxy_info, invalid_dict):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dict)
 
 
+@pytest.mark.parametrize(
+    "dependencies",
+    [
+        ["geerlingguy.nodejs"],
+        [dict(role="foo.bar")],
+        [
+            {
+                "role": "geerlingguy.nodejs",
+                "tags": ["nodejs"],
+                "vars": {"ignore_errors": "{{ ansible_check_mode }}"},
+            }
+        ],
+    ],
+)
+def test_valid_dependency_types(galaxy_info, dependencies):
+    legacy_metadata = LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), dependencies)
+    assert isinstance(legacy_metadata, list)
+    for dep in legacy_metadata.dependencies:
+        assert isinstance(dep, dict) or isinstance(dep, str)
+
+
 def test_invalid_dependency_separation(galaxy_info):
     dependencies = ["foo.bar.baz"]
 
