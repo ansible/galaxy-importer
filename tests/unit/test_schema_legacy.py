@@ -176,9 +176,9 @@ def test_valid_dependencies(galaxy_info, valid_dependency):
 @pytest.mark.parametrize(
     "invalid_dependency",
     [
-        # [dict()],
         "geerlingguy.java",
         {"name": "redhat.ansible"},
+        {"role": "redhat.ansible"},
         [[]],
     ],
 )
@@ -188,6 +188,28 @@ def test_invalid_dependency_type(galaxy_info, invalid_dependency):
         match="must be either a list of strings or a list of dictionaries.",
     ):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dependency)
+
+
+@pytest.mark.parametrize(
+    "invalid_dict",
+    [
+        [dict()],
+        [dict(name="foo.bar")],
+        [
+            {
+                "name": "geerlingguy.nodejs",
+                "tags": ["nodejs"],
+                "vars": {"ignore_errors": "{{ ansible_check_mode }}"},
+            }
+        ],
+    ],
+)
+def test_invalid_dependency_dict_type(galaxy_info, invalid_dict):
+    with pytest.raises(
+        exc.LegacyRoleSchemaError,
+        match="dependency must include 'role' keyword.",
+    ):
+        LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dict)
 
 
 def test_invalid_dependency_separation(galaxy_info):
