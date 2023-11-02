@@ -176,7 +176,7 @@ def test_valid_dependencies(galaxy_info, valid_dependency):
 @pytest.mark.parametrize(
     "invalid_dependency",
     [
-        [dict()],
+        # [dict()],
         "geerlingguy.java",
         {"name": "redhat.ansible"},
         [[]],

@@ -538,15 +538,20 @@ class LegacyMetadata:
     @dependencies.validator
     def _validate_dependencies(self, attribute, value):
         if not isinstance(value, list):
-            raise exc.LegacyRoleSchemaError("dependencies must be a list of strings")
+            raise exc.LegacyRoleSchemaError(
+                "dependencies must be either a list of strings or a list of dictionaries."
+            )
         for dependency in value:
             if not isinstance(dependency, str) and not isinstance(dependency, dict):
                 raise exc.LegacyRoleSchemaError(
-                    "Dependencies must be either a list of strings or a list of dictionaries."
+                    "dependencies must be either a list of strings or a list of dictionaries."
                 )
 
             _dependency = dependency
             if isinstance(dependency, dict):
+                if "role" not in dependency.keys():
+                    raise exc.LegacyRoleSchemaError("dependency must include \'role\' keyword.")
+
                 _dependency = dependency["role"]
 
             if _dependency.count(".") != 1:
@@ -593,7 +598,7 @@ class LegacyImportResult(object):
         for dependency in self.metadata.dependencies:
             _dependency = dependency
             if isinstance(dependency, dict):
-                _dependency = dependency["role"]
+                _dependency = dependency.get("role", "")
 
             namespace, name = _dependency.split(".")
             if self.namespace == namespace and self.name == name:
