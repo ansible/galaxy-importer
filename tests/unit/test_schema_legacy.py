@@ -267,3 +267,38 @@ def test_load_name_regex(galaxy_info, invalid_name):
         exc.LegacyRoleSchemaError, match=re.escape(f"role name {invalid_name} is invalid")
     ):
         LegacyImportResult("my-namespace", invalid_name, LegacyMetadata(galaxy_info, []))
+
+
+# https://github.com/ansible/galaxy-importer/pull/241
+@pytest.mark.parametrize(
+    "invalid_namespace",
+    [
+        "_Harsha_",
+        "mhabrnal@redhat.com",
+        "/etc/ansible/roles/tt-test.nfs",
+        "rohitggarg/docker-swarm#",
+        "-role-name",
+    ],
+)
+def test_invalid_namespace(galaxy_info, invalid_namespace):
+    galaxy_info.update({"namespace": invalid_namespace})
+
+    with pytest.raises(
+        exc.LegacyRoleSchemaError, match=re.escape(f"namespace {invalid_namespace} is invalid")
+    ):
+        LegacyGalaxyInfo(**galaxy_info)
+
+
+@pytest.mark.parametrize(
+    "valid_namespace",
+    [
+        "george.shuklin",
+        "pilou-",
+        "gh_harsha_",
+        "get-external-ip-via-dyndns",
+        "inventory_to_hostname",
+    ],
+)
+def test_valid_namespace(galaxy_info, valid_namespace):
+    galaxy_info.update({"namespace": valid_namespace})
+    assert valid_namespace == LegacyGalaxyInfo(**galaxy_info).namespace
