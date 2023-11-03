@@ -1,3 +1,12 @@
+galaxy-importer 0.4.16 (2023-11-03)
+===================================
+
+Bugfixes
+--------
+
+- Allow dictionary type for role dependencies. (`AAH-2823 <https://issues.redhat.com/browse/AAH-2823>`_)
+
+
 galaxy-importer 0.4.15 (2023-10-31)
 ===================================
 
