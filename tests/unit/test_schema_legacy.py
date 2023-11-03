@@ -176,15 +176,61 @@ def test_valid_dependencies(galaxy_info, valid_dependency):
 @pytest.mark.parametrize(
     "invalid_dependency",
     [
-        [dict()],
         "geerlingguy.java",
         {"name": "redhat.ansible"},
+        {"role": "redhat.ansible"},
         [[]],
     ],
 )
 def test_invalid_dependency_type(galaxy_info, invalid_dependency):
-    with pytest.raises(exc.LegacyRoleSchemaError, match="must be a list of strings"):
+    with pytest.raises(
+        exc.LegacyRoleSchemaError,
+        match="must be either a list of strings or a list of dictionaries.",
+    ):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dependency)
+
+
+@pytest.mark.parametrize(
+    "invalid_dict",
+    [
+        [dict()],
+        [dict(name="foo.bar")],
+        [
+            {
+                "name": "geerlingguy.nodejs",
+                "tags": ["nodejs"],
+                "vars": {"ignore_errors": "{{ ansible_check_mode }}"},
+            }
+        ],
+    ],
+)
+def test_invalid_dependency_dict_type(galaxy_info, invalid_dict):
+    with pytest.raises(
+        exc.LegacyRoleSchemaError,
+        match="dependency must include 'role' keyword.",
+    ):
+        LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dict)
+
+
+@pytest.mark.parametrize(
+    "dependencies",
+    [
+        ["geerlingguy.nodejs"],
+        [dict(role="foo.bar")],
+        [
+            {
+                "role": "geerlingguy.nodejs",
+                "tags": ["nodejs"],
+                "vars": {"ignore_errors": "{{ ansible_check_mode }}"},
+            }
+        ],
+    ],
+)
+def test_valid_dependency_types(galaxy_info, dependencies):
+    legacy_metadata = LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), dependencies)
+    assert isinstance(legacy_metadata.dependencies, list)
+    for dep in legacy_metadata.dependencies:
+        assert isinstance(dep, dict) or isinstance(dep, str)
 
 
 def test_invalid_dependency_separation(galaxy_info):
@@ -221,3 +267,38 @@ def test_load_name_regex(galaxy_info, invalid_name):
         exc.LegacyRoleSchemaError, match=re.escape(f"role name {invalid_name} is invalid")
     ):
         LegacyImportResult("my-namespace", invalid_name, LegacyMetadata(galaxy_info, []))
+
+
+# https://github.com/ansible/galaxy-importer/pull/241
+@pytest.mark.parametrize(
+    "invalid_namespace",
+    [
+        "_Harsha_",
+        "mhabrnal@redhat.com",
+        "/etc/ansible/roles/tt-test.nfs",
+        "rohitggarg/docker-swarm#",
+        "-role-name",
+    ],
+)
+def test_invalid_namespace(galaxy_info, invalid_namespace):
+    galaxy_info.update({"namespace": invalid_namespace})
+
+    with pytest.raises(
+        exc.LegacyRoleSchemaError, match=re.escape(f"namespace {invalid_namespace} is invalid")
+    ):
+        LegacyGalaxyInfo(**galaxy_info)
+
+
+@pytest.mark.parametrize(
+    "valid_namespace",
+    [
+        "george.shuklin",
+        "pilou-",
+        "gh_harsha_",
+        "get-external-ip-via-dyndns",
+        "inventory_to_hostname",
+    ],
+)
+def test_valid_namespace(galaxy_info, valid_namespace):
+    galaxy_info.update({"namespace": valid_namespace})
+    assert valid_namespace == LegacyGalaxyInfo(**galaxy_info).namespace
