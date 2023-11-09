@@ -549,10 +549,16 @@ class LegacyMetadata:
 
             _dependency = dependency
             if isinstance(dependency, dict):
-                if "role" not in dependency.keys():
-                    raise exc.LegacyRoleSchemaError("dependency must include 'role' keyword.")
-
-                _dependency = dependency["role"]
+                if "role" in dependency:
+                    _dependency = dependency.get("role", "")
+                elif "name" in dependency:
+                    _dependency = dependency.get("name", "")
+                elif "src" in dependency:
+                    _dependency = dependency.get("src", "")
+                else:
+                    raise exc.LegacyRoleSchemaError(
+                        "dependency must include either the 'role,' 'name,' or 'src' keyword."
+                    )
 
             if _dependency.count(".") != 1:
                 raise exc.LegacyRoleSchemaError(
@@ -598,7 +604,12 @@ class LegacyImportResult(object):
         for dependency in self.metadata.dependencies:
             _dependency = dependency
             if isinstance(dependency, dict):
-                _dependency = dependency.get("role", "")
+                if "role" in dependency:
+                    _dependency = dependency.get("role", "")
+                elif "name" in dependency:
+                    _dependency = dependency.get("name", "")
+                elif "src" in dependency:
+                    _dependency = dependency.get("src", "")
 
             namespace, name = _dependency.split(".")
             if self.namespace == namespace and self.name == name:

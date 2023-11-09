@@ -194,10 +194,9 @@ def test_invalid_dependency_type(galaxy_info, invalid_dependency):
     "invalid_dict",
     [
         [dict()],
-        [dict(name="foo.bar")],
+        [dict(role_name="foo.bar")],
         [
             {
-                "name": "geerlingguy.nodejs",
                 "tags": ["nodejs"],
                 "vars": {"ignore_errors": "{{ ansible_check_mode }}"},
             }
@@ -207,7 +206,7 @@ def test_invalid_dependency_type(galaxy_info, invalid_dependency):
 def test_invalid_dependency_dict_type(galaxy_info, invalid_dict):
     with pytest.raises(
         exc.LegacyRoleSchemaError,
-        match="dependency must include 'role' keyword.",
+        match="dependency must include either the 'role,' 'name,' or 'src' keyword.",
     ):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dict)
 
@@ -217,6 +216,8 @@ def test_invalid_dependency_dict_type(galaxy_info, invalid_dict):
     [
         ["geerlingguy.nodejs"],
         [dict(role="foo.bar")],
+        [{"name": "geerlingguy.docker"}],
+        [{"src": "galaxy.role,version,name"}],
         [
             {
                 "role": "geerlingguy.nodejs",
