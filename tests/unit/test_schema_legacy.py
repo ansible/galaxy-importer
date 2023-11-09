@@ -241,8 +241,16 @@ def test_invalid_dependency_separation(galaxy_info):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), dependencies)
 
 
-def test_self_dependency(galaxy_info):
-    dependencies = ["someone.my_role"]
+@pytest.mark.parametrize(
+    "dependencies",
+    [
+        ["someone.my_role"],
+        [dict(role="someone.my_role")],
+        [{"name": "someone.my_role"}],
+        [{"src": "someone.my_role"}],
+    ],
+)
+def test_self_dependency(galaxy_info, dependencies):
     with pytest.raises(exc.LegacyRoleSchemaError, match="cannot depend on itself"):
         LegacyImportResult(
             "someone",
