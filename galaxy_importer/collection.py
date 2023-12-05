@@ -160,6 +160,12 @@ def _import_collection(file, filename, file_url, logger, cfg):
 def _extract_archive(fileobj, extract_dir):
     fileobj.seek(0)
     with tarfile.open(fileobj=fileobj, mode="r") as tf:
-        if any((item.startswith("/") or item.startswith("../")) for item in tf.getnames()):
-            raise exc.ImporterError("Invalid file paths detected.")
+        for item in tf.getmembers():
+            if item.name.startswith("/") or "../" in item.name:
+                raise exc.ImporterError("Invalid file paths detected.")
+            if item.linkname:
+                # Ensure the link target is within the extraction root
+                link_target = os.path.normpath(os.path.join(extract_dir, item.linkname))
+                if not link_target.startswith(os.path.abspath(extract_dir)):
+                    raise exc.ImporterError("Invalid link target detected.")
         tf.extractall(extract_dir)
