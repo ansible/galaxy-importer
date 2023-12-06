@@ -165,7 +165,9 @@ def _extract_archive(fileobj, extract_dir):
                 raise exc.ImporterError("Invalid file paths detected.")
             if item.linkname:
                 # Ensure the link target is within the extraction root
-                link_target = os.path.normpath(os.path.join(extract_dir, item.linkname))
+                link_target = os.path.normpath(
+                    os.path.join(extract_dir, os.path.dirname(item.name), item.linkname)
+                )
                 if not link_target.startswith(os.path.abspath(extract_dir)):
                     raise exc.ImporterError("Invalid link target detected.")
         tf.extractall(extract_dir)

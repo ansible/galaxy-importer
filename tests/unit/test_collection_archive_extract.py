@@ -119,3 +119,39 @@ class TestCollectionExtractArchive(unittest.TestCase):
 
         # Clean up the temporary extraction directory
         os.rmdir(extract_dir)
+
+    def test_valid_relative_symlink_in_subdir(self):
+        # Create a valid archive with a relative symlink in a subdir
+        # and the target in the top dir
+        archive_data = b"testfile content"
+        archive_file = BytesIO()
+        with tarfile.open(fileobj=archive_file, mode="w") as tf:
+            tarinfo = tarfile.TarInfo(".")
+            tarinfo.type = tarfile.DIRTYPE
+            tarinfo.mode = 493
+            tf.addfile(tarinfo, BytesIO(archive_data))
+            tarinfo.name = "testdir1"
+            tf.addfile(tarinfo, BytesIO(archive_data))
+            tarinfo.name = "testdir2"
+            tf.addfile(tarinfo, BytesIO(archive_data))
+            tarinfo.name = "testdir2/link"
+            tarinfo.type = tarfile.SYMTYPE
+            tarinfo.mode = 511
+            tarinfo.linkname = "../testdir1"
+            tf.addfile(tarinfo, BytesIO(archive_data))
+        archive_file.seek(0)
+
+        # Create a temporary extraction directory
+        extract_dir = tempfile.mkdtemp(prefix="collection-archive-extract-test-")
+        os.makedirs(extract_dir, exist_ok=True)
+
+        try:
+            _extract_archive(archive_file, extract_dir)
+        finally:
+            pass
+
+        extracted_file_path = os.path.join(extract_dir, "testdir2/link")
+        self.assertTrue(os.path.islink(extracted_file_path))
+
+        # Clean up the temporary extraction directory
+        shutil.rmtree(extract_dir)
