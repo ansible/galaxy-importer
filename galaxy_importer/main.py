@@ -22,7 +22,7 @@ import os
 import re
 import sys
 
-from galaxy_importer import collection, legacy_role
+from galaxy_importer import collection, legacy_role, markdown
 from galaxy_importer import config
 from galaxy_importer.exceptions import ImporterError
 
@@ -97,6 +97,12 @@ def parse_args(args):
     parser.add_argument(
         "--namespace", dest="namespace", help="namespace of the legacy role to import"
     )
+    parser.add_argument(
+        "--markdown",
+        dest="markdown",
+        action="store_true",
+        help="returns html preview of README.md",
+    )
     return parser.parse_args(args=args)
 
 
@@ -122,6 +128,17 @@ def call_importer(args, cfg):  # pragma: no cover
         except Exception as e:
             logger.exception(f"Unexpected error occurred: {str(e)}")
             return None
+    elif args.markdown:
+        if args.file is None:
+            logger.error("Must supply the directory of README.md")
+            return None
+        try:
+            data = markdown.convert_markdown(args.file, logger=logger)
+        except ImporterError as e:
+            logger.error(f"The markdown conversion failed for the following reason: {str(e)}")
+            return None
+        except Exception as e:
+            logger.exception(f"Unexpected error occurred: {str(e)}")
     else:
         if not args.file:
             return collection.import_collection(

@@ -22,6 +22,10 @@ Supports legacy roles (note: must be in the parent directory of the legacy role)
 
 `python -m galaxy_importer.main --legacy-role [legacy_role_directory] --namespace [namespace]`
 
+Supports converting markdown to html:
+
+`python -m galaxy_importer.main --markdown [readme_md_directory]`
+
 View log output in terminal, and view the importer result in the written file `importer_result.json`
 
 #### Structure of Output
