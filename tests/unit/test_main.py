@@ -58,3 +58,11 @@ def test_legacy_missing_namespace(caplog):
     assert data is None
     assert "requires explicit namespace" in caplog.text
     assert len(caplog.records) == 1
+
+
+def test_markdown_no_directory(caplog):
+    args = main.parse_args(["--markdown"])
+    data = main.call_importer(args, None)
+    assert data is None
+    assert "Must supply the directory of README" in caplog.text
+    assert len(caplog.records) == 1
