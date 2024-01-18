@@ -1,1 +1,0 @@
-Ignore certain linter rules for ruff and pylint inside the EDA tox tests. 
