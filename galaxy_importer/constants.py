@@ -24,12 +24,14 @@ ANSIBLE_DOC_SUPPORTED_TYPES = [
     "callback",
     "cliconf",
     "connection",
+    "filter",
     "httpapi",
     "inventory",
     "lookup",
     "shell",
     "module",
     "strategy",
+    "test",
     "vars",
 ]
 ANSIBLE_DOC_PLUGIN_MAP = {"module": "modules"}
