@@ -60,6 +60,20 @@ class DocStringLoader:
 
         return docs
 
+    @property
+    def _collections_path(self):
+        return "/".join(self.path.split("/")[:-3])
+
+    @property
+    def _base_ansible_doc_cmd(self):
+        return [
+            "/usr/bin/env",
+            f"ANSIBLE_COLLECTIONS_PATHS={self._collections_path}",
+            f"ANSIBLE_COLLECTIONS_PATH={self._collections_path}",
+            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            "ansible-doc",
+        ]
+
     def _get_plugins(self, plugin_dir):
         """Get list of fully qualified plugin names inside directory.
 
@@ -84,12 +98,7 @@ class DocStringLoader:
 
     def _run_ansible_doc_list(self, plugin_type):
         """Use ansible-doc to get a list of plugins for the collection by type."""
-        collections_path = "/".join(self.path.split("/")[:-3])
-        cmd = [
-            "/usr/bin/env",
-            f"ANSIBLE_COLLECTIONS_PATHS={collections_path}",
-            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
-            "ansible-doc",
+        cmd = self._base_ansible_doc_cmd + [
             "--list",
             "--type",
             plugin_type,
@@ -97,7 +106,7 @@ class DocStringLoader:
             self.fq_collection_name,
         ]
         self.log.debug("CMD: {}".format(" ".join(cmd)))
-        proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
+        proc = Popen(cmd, cwd=self._collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode != 0:
             self.log.error(
@@ -109,18 +118,17 @@ class DocStringLoader:
         return json.loads(stdout)
 
     def _run_ansible_doc(self, plugin_type, plugins):
-        collections_path = "/".join(self.path.split("/")[:-3])
-        cmd = [
-            "/usr/bin/env",
-            f"ANSIBLE_COLLECTIONS_PATHS={collections_path}",
-            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
-            "ansible-doc",
-            "--type",
-            plugin_type,
-            "--json",
-        ] + plugins
+        cmd = (
+            self._base_ansible_doc_cmd
+            + [
+                "--type",
+                plugin_type,
+                "--json",
+            ]
+            + plugins
+        )
         self.log.debug("CMD: {}".format(" ".join(cmd)))
-        proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
+        proc = Popen(cmd, cwd=self._collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode != 0:
             self.log.error(
