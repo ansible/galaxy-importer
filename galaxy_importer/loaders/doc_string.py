@@ -49,7 +49,9 @@ class DocStringLoader:
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
             plugin_dir_name = constants.ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
 
-            plugins = self._get_plugins(os.path.join(self.path, "plugins", plugin_dir_name))
+            # use ansible-doc to list all the plugins of this type
+            found_plugins = self._run_ansible_doc_list(plugin_type)
+            plugins = sorted(list(found_plugins.keys()))
 
             if not plugins:
                 continue
@@ -79,7 +81,34 @@ class DocStringLoader:
                 fq_name_parts.append(os.path.basename(file_path)[:-3])
 
                 plugins.append(".".join(fq_name_parts))
+
         return plugins
+
+    def _run_ansible_doc_list(self, plugin_type):
+        """Use ansible-doc to get a list of plugins for the collection by type."""
+        collections_path = "/".join(self.path.split("/")[:-3])
+        cmd = [
+            "/usr/bin/env",
+            f"ANSIBLE_COLLECTIONS_PATHS={collections_path}",
+            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            "ansible-doc",
+            "--list",
+            "--type",
+            plugin_type,
+            "--json",
+            self.fq_collection_name
+        ]
+        self.log.debug("CMD: {}".format(" ".join(cmd)))
+        proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
+        if proc.returncode != 0:
+            self.log.error(
+                'Error running ansible-doc: cmd="{cmd}" returncode="{rc}" {err}'.format(
+                    cmd=" ".join(cmd), rc=proc.returncode, err=stderr
+                )
+            )
+            return {}
+        return json.loads(stdout)
 
     def _run_ansible_doc(self, plugin_type, plugins):
         collections_path = "/".join(self.path.split("/")[:-3])
