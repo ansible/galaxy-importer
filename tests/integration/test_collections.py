@@ -30,7 +30,7 @@ def test_collection_community_general_import(workdir, local_fast_config):
     log = pid.stdout.decode("utf-8")
 
     # should have no errors
-    assert 'error' not in log.lower()
+    assert "error" not in log.lower()
 
     # should have skipped ansible-test
     assert "skip ansible-test sanity test" in log
@@ -51,35 +51,37 @@ def test_collection_community_general_import(workdir, local_fast_config):
     assert results["requires_ansible"] == ">=2.13.0"
 
     # make sure it found all the files
-    contents = dict(((x['content_type'],x['name']), x) for x in results['contents'])
+    contents = dict(((x["content_type"], x["name"]), x) for x in results["contents"])
     assert len(contents.keys()) == 831
 
     # check a small sample
-    assert ('test', 'a_module') in contents
-    assert ('module_utils', 'version') in contents
-    assert ('module', 'xfconf') in contents
-    assert ('module', 'jabber') in contents
-    assert ('filter', 'time') in contents
-    assert ('doc_fragments', 'nomad') in contents
-    assert ('connection', 'lxc') in contents
-    assert ('callback', 'yaml') in contents
-    assert ('cache', 'yaml') in contents
-    assert ('become', 'pbrun') in contents
-    assert ('action', 'shutdown') in contents
+    assert ("test", "a_module") in contents
+    assert ("module_utils", "version") in contents
+    assert ("module", "xfconf") in contents
+    assert ("module", "jabber") in contents
+    assert ("filter", "time") in contents
+    assert ("doc_fragments", "nomad") in contents
+    assert ("connection", "lxc") in contents
+    assert ("callback", "yaml") in contents
+    assert ("cache", "yaml") in contents
+    assert ("become", "pbrun") in contents
+    assert ("action", "shutdown") in contents
 
     # make sure it found all the docs
-    docs_contents = dict(((x['content_type'],x['content_name']), x) for x in results['docs_blob']['contents'])
+    docs_contents = dict(
+        ((x["content_type"], x["content_name"]), x) for x in results["docs_blob"]["contents"]
+    )
     assert len(docs_contents.keys()) == 831
 
     # check a small sample
-    assert ('test', 'a_module') in docs_contents
-    assert ('module_utils', 'version') in docs_contents
-    assert ('module', 'xfconf') in docs_contents
-    assert ('module', 'jabber') in docs_contents
-    assert ('filter', 'time') in docs_contents
-    assert ('doc_fragments', 'nomad') in docs_contents
-    assert ('connection', 'lxc') in docs_contents
-    assert ('callback', 'yaml') in docs_contents
-    assert ('cache', 'yaml') in docs_contents
-    assert ('become', 'pbrun') in docs_contents
-    assert ('action', 'shutdown') in docs_contents
+    assert ("test", "a_module") in docs_contents
+    assert ("module_utils", "version") in docs_contents
+    assert ("module", "xfconf") in docs_contents
+    assert ("module", "jabber") in docs_contents
+    assert ("filter", "time") in docs_contents
+    assert ("doc_fragments", "nomad") in docs_contents
+    assert ("connection", "lxc") in docs_contents
+    assert ("callback", "yaml") in docs_contents
+    assert ("cache", "yaml") in docs_contents
+    assert ("become", "pbrun") in docs_contents
+    assert ("action", "shutdown") in docs_contents
