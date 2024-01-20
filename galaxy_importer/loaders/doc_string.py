@@ -47,8 +47,6 @@ class DocStringLoader:
             return docs
 
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
-            plugin_dir_name = constants.ANSIBLE_DOC_PLUGIN_MAP.get(plugin_type, plugin_type)
-
             # use ansible-doc to list all the plugins of this type
             found_plugins = self._run_ansible_doc_list(plugin_type)
             plugins = sorted(list(found_plugins.keys()))
@@ -96,7 +94,7 @@ class DocStringLoader:
             "--type",
             plugin_type,
             "--json",
-            self.fq_collection_name
+            self.fq_collection_name,
         ]
         self.log.debug("CMD: {}".format(" ".join(cmd)))
         proc = Popen(cmd, cwd=collections_path, stdout=PIPE, stderr=PIPE)
