@@ -39,6 +39,28 @@ def local_config():
 
 
 @pytest.fixture
+def local_fast_config():
+    """Disable the slow stuff."""
+    config = [
+        "[galaxy-importer]",
+        "RUN_ANSIBLE_TEST=False",
+        "RUN_ANSIBLE_LINT=False",
+        "ANSIBLE_TEST_LOCAL_IMAGE=False",
+        "LOCAL_IMAGE_DOCKER=False",
+    ]
+    config = "\n".join(config)
+
+    tdir = tempfile.mkdtemp()
+    atexit.register(clean_files, tdir)
+
+    config_path = os.path.join(tdir, "galaxy-importer.cfg")
+    with open(config_path, "w") as f:
+        f.write(config)
+
+    return {"GALAXY_IMPORTER_CONFIG": config_path}
+
+
+@pytest.fixture
 def local_image_config():
     config = [
         "[galaxy-importer]",
