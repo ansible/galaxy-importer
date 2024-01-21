@@ -196,7 +196,6 @@ def test_check_artifact_file_bad_chksum(populated_collection_root, readme_artifa
         chksums_utils.check_artifact_file(populated_collection_root, readme_artifact_file)
 
 
-@pytest.mark.skip(reason="FIXME")
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
 def test_manifest_success(_build_docs_blob, populated_collection_root):
     _build_docs_blob.return_value = {}
@@ -205,7 +204,11 @@ def test_manifest_success(_build_docs_blob, populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=populated_collection_root,
+        ),
     ).load()
     assert data.metadata.namespace == "my_namespace"
     assert data.metadata.name == "my_collection"
@@ -366,7 +369,6 @@ def test_build_docs_blob_no_readme(get_readme_doc_file):
         collection_loader._build_docs_blob()
 
 
-@pytest.mark.skip(reason="FIXME")
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
 def test_filename_empty_value(_build_docs_blob, populated_collection_root):
     _build_docs_blob.return_value = {}
@@ -377,14 +379,17 @@ def test_filename_empty_value(_build_docs_blob, populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=populated_collection_root,
+        ),
     ).load()
     assert data.metadata.namespace == "my_namespace"
     assert data.metadata.name == "my_collection"
     assert data.metadata.version == "2.0.2"
 
 
-@pytest.mark.skip(reason="FIXME")
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
 def test_filename_none(_build_docs_blob, populated_collection_root):
     _build_docs_blob.return_value = {}
@@ -393,7 +398,11 @@ def test_filename_none(_build_docs_blob, populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=populated_collection_root,
+        ),
     ).load()
     assert data.metadata.namespace == "my_namespace"
     assert data.metadata.name == "my_collection"
@@ -406,7 +415,6 @@ def test_filename_not_match_metadata(populated_collection_root):
         CollectionLoader(populated_collection_root, filename).load()
 
 
-@pytest.mark.skip(reason="FIXME")
 def test_license_file(populated_collection_root):
     with open(os.path.join(populated_collection_root, "MANIFEST.json"), "w") as fh:
         manifest = json.loads(MANIFEST_JSON)
@@ -417,7 +425,11 @@ def test_license_file(populated_collection_root):
     data = CollectionLoader(
         populated_collection_root,
         filename=None,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=populated_collection_root,
+        ),
     ).load()
     assert data.metadata.license_file == "LICENSE"
 
@@ -450,7 +462,6 @@ def test_changelog(changelog_path, tmpdir, caplog):
     assert len(caplog.records) == 0
 
 
-@pytest.mark.skip(reason="FIXME")
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
 def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
     _build_docs_blob.return_value = {}
@@ -458,7 +469,11 @@ def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
     CollectionLoader(
         populated_collection_root,
         filename=None,
-        cfg=SimpleNamespace(run_ansible_doc=True, run_ansible_lint=False),
+        cfg=SimpleNamespace(
+            run_ansible_doc=True,
+            run_ansible_lint=False,
+            ansible_local_tmp=populated_collection_root,
+        ),
     ).load()
     assert (
         "No changelog found. "
