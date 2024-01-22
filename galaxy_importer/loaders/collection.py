@@ -98,7 +98,6 @@ class CollectionLoader(object):
             ).load()
 
         self.content_objs = list(self._load_contents())
-        # import epdb; epdb.st()
 
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
@@ -361,10 +360,7 @@ class CollectionLoader(object):
     def _load_contents(self):
         """Find and load data for each content inside the collection."""
         found_contents = ContentFinder().find_contents(self.path, self.log)
-        #flist = list(found_contents)
-        #import epdb; epdb.st()
         for content_type, content_name, rel_path in found_contents:
-            print(f'# {content_type} {rel_path}')
             loader_cls = loaders.get_loader_cls(content_type)
             loader = loader_cls(
                 content_type=content_type,
@@ -377,19 +373,10 @@ class CollectionLoader(object):
             )
             content_obj = loader.load()
 
-            # the plugin name must be set somehow ...
-            # import epdb; epdb.st()
-            #if content_type.name == 'FILTER_PLUGIN':
-            #    import epdb; epdb.st()
-
             yield content_obj
 
     def _build_contents_blob(self):
         """Build importer result contents from Content objects."""
-        for x in self.content_objs:
-            if not hasattr(x, 'content_name'):
-                import epdb; epdb.st()
-
         return [
             schema.ResultContentItem(
                 #name=c.name,
