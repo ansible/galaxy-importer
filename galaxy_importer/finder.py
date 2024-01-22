@@ -58,7 +58,6 @@ class ContentFinder(object):
         self.log.info("Finding content inside collection")
         contents = self._find_content()
 
-        # import epdb; epdb.st()
         try:
             first = next(contents)
         except StopIteration:
@@ -77,7 +76,7 @@ class ContentFinder(object):
 
         # use the galaxy-importer finder code to find content that ansible-doc can not
         for content_type, directory, func in self._content_type_dirs():
-            # let 
+            # let ansible-doc handle these
             if content_type in ansible_doc_types:
                 continue
             content_path = os.path.join(self.path, directory)
