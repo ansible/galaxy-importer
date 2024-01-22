@@ -43,30 +43,6 @@ class ContentFinder(object):
 
     galaxy_cli = None
 
-    '''
-    def find_contents(self, path, logger=None):
-        """Finds contents in path and return the results.
-
-        :rtype: Iterator[Result]
-        :return: Iterator of find results.
-        """
-
-        self.path = path
-        self.log = logger or default_logger
-
-        self.log.info("Finding content inside collection")
-        contents = self._find_content()
-
-        import epdb; epdb.st()
-
-        try:
-            first = next(contents)
-        except StopIteration:
-            return []
-        else:
-            return itertools.chain([first], contents)
-    '''
-
     def find_contents(self, path, logger=None):
         """Finds contents in path and return the results.
 
@@ -76,6 +52,7 @@ class ContentFinder(object):
         self.path = path
         self.log = logger or default_logger
 
+        # init the galaxy wrapper
         self.galaxy_cli = GalaxyCLIWrapper(path=path, logger=logger)
 
         self.log.info("Finding content inside collection")
@@ -89,39 +66,20 @@ class ContentFinder(object):
         else:
             return itertools.chain([first], contents)
 
-    '''
-    def _find_content(self):
-        for content_type, directory, func in self._content_type_dirs():
-            content_path = os.path.join(self.path, directory)
-            if not os.path.exists(content_path):
-                continue
-            yield from func(content_type, content_path)
-    '''
-
     def _find_content(self):
         """Return an iterable of Result(s)."""
 
-        '''
-        content_type_map = {}
-        for x in dir(constants.ContentType):
-            y = x.lower().replace('_plugin', '')
-            content_type_map[x] = y
-        '''
-        content_type_map = {}
+        # map out the plugin types ansible-doc can handle
+        ansible_doc_types = {}
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
-            print(plugin_type)
             content_type = constants.ContentType(plugin_type)
-            content_type_map[content_type] = plugin_type
-            print(f'\t{plugin_type} {content_type}')
-        #import epdb; epdb.st()
+            ansible_doc_types[content_type] = plugin_type
 
-        # Result(content_type=<ContentType.LOOKUP_PLUGIN: 'lookup'>, path='plugins/lookup/random_string.py')
-        # Result(content_type=<ContentType.TEST_PLUGIN: 'test'>, path='plugins/test/fqdn_valid.py')
-        old = []
+        # use the galaxy-importer finder code to find content that ansible-doc can not
         for content_type, directory, func in self._content_type_dirs():
-            if content_type in content_type_map:
+            # let 
+            if content_type in ansible_doc_types:
                 continue
-            # import epdb; epdb.st()
             content_path = os.path.join(self.path, directory)
             if not os.path.exists(content_path):
                 continue
@@ -129,8 +87,7 @@ class ContentFinder(object):
                 # old.append(x)
                 yield x
 
-        # this gets plugins but it doesn't get PLAYBOOKS/EDA/MODULE_UTILS/ etc ...
-        new = []
+        # use ansible-doc to get all the supported plugin types
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
             ctype = constants.ContentType(plugin_type)
             plugins_docs = self.galaxy_cli.list_files(plugin_type)
@@ -138,8 +95,6 @@ class ContentFinder(object):
                 name = key[1].replace(self.galaxy_cli.fq_collection_name + '.', '')
                 rel_path = path.replace(self.path + '/', '')
                 yield Result(ctype, name, rel_path)
-
-        #import epdb; epdb.st()
 
     def _find_plugins(self, content_type, content_dir):
         """Find all python files anywhere inside content_dir."""
