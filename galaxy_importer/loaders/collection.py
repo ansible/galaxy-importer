@@ -98,6 +98,7 @@ class CollectionLoader(object):
             ).load()
 
         self.content_objs = list(self._load_contents())
+        import epdb; epdb.st()
 
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
@@ -360,12 +361,19 @@ class CollectionLoader(object):
     def _load_contents(self):
         """Find and load data for each content inside the collection."""
         found_contents = ContentFinder().find_contents(self.path, self.log)
-        for content_type, rel_path in found_contents:
+        #flist = list(found_contents)
+        #import epdb; epdb.st()
+        for content_type, content_name, rel_path in found_contents:
+            print(f'# {content_type} {rel_path}')
             loader_cls = loaders.get_loader_cls(content_type)
             loader = loader_cls(
                 content_type, rel_path, self.path, self.doc_strings, self.cfg, self.log
             )
             content_obj = loader.load()
+
+            # import epdb; epdb.st()
+            if content_type.name == 'FILTER_PLUGIN':
+                import epdb; epdb.st()
 
             yield content_obj
 

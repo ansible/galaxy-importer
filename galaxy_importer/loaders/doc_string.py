@@ -47,6 +47,7 @@ class DocStringLoader:
             return docs
 
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
+
             # use ansible-doc to list all the plugins of this type
             found_plugins = self._run_ansible_doc_list(plugin_type)
             plugins = sorted(list(found_plugins.keys()))
@@ -74,6 +75,7 @@ class DocStringLoader:
             "ansible-doc",
         ]
 
+    '''
     def _get_plugins(self, plugin_dir):
         """Get list of fully qualified plugin names inside directory.
 
@@ -95,6 +97,7 @@ class DocStringLoader:
                 plugins.append(".".join(fq_name_parts))
 
         return plugins
+    '''
 
     def _run_ansible_doc_list(self, plugin_type):
         """Use ansible-doc to get a list of plugins for the collection by type."""
@@ -106,6 +109,7 @@ class DocStringLoader:
             self.fq_collection_name,
         ]
         self.log.debug("CMD: {}".format(" ".join(cmd)))
+        import q; q(cmd)
         proc = Popen(cmd, cwd=self._collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode != 0:
@@ -115,6 +119,7 @@ class DocStringLoader:
                 )
             )
             return {}
+        import q; q(stdout)
         return json.loads(stdout)
 
     def _run_ansible_doc(self, plugin_type, plugins):

@@ -17,18 +17,23 @@
 
 import collections
 import itertools
+import json
 import logging
 import os
 
 import attr
 
+from subprocess import Popen
+from subprocess import PIPE
+
 from galaxy_importer import constants
 from galaxy_importer.file_parser import ExtensionsFileParser
+from galaxy_importer.galaxy_cli import GalaxyCLIWrapper
 
 
 default_logger = logging.getLogger(__name__)
 
-Result = collections.namedtuple("Result", ["content_type", "path"])
+Result = collections.namedtuple("Result", ["content_type", "name", "path"])
 
 ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 
@@ -36,6 +41,9 @@ ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 class ContentFinder(object):
     """Searches for content in directories inside collection."""
 
+    galaxy_cli = None
+
+    '''
     def find_contents(self, path, logger=None):
         """Finds contents in path and return the results.
 
@@ -49,6 +57,31 @@ class ContentFinder(object):
         self.log.info("Finding content inside collection")
         contents = self._find_content()
 
+        import epdb; epdb.st()
+
+        try:
+            first = next(contents)
+        except StopIteration:
+            return []
+        else:
+            return itertools.chain([first], contents)
+    '''
+
+    def find_contents(self, path, logger=None):
+        """Finds contents in path and return the results.
+
+        :rtype: Iterator[Result]
+        :return: Iterator of find results.
+        """
+        self.path = path
+        self.log = logger or default_logger
+
+        self.galaxy_cli = GalaxyCLIWrapper(path=path, logger=logger)
+
+        self.log.info("Finding content inside collection")
+        contents = self._find_content()
+
+        # import epdb; epdb.st()
         try:
             first = next(contents)
         except StopIteration:
@@ -56,12 +89,57 @@ class ContentFinder(object):
         else:
             return itertools.chain([first], contents)
 
+    '''
     def _find_content(self):
         for content_type, directory, func in self._content_type_dirs():
             content_path = os.path.join(self.path, directory)
             if not os.path.exists(content_path):
                 continue
             yield from func(content_type, content_path)
+    '''
+
+    def _find_content(self):
+        """Return an iterable of Result(s)."""
+
+        '''
+        content_type_map = {}
+        for x in dir(constants.ContentType):
+            y = x.lower().replace('_plugin', '')
+            content_type_map[x] = y
+        '''
+        content_type_map = {}
+        for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
+            print(plugin_type)
+            content_type = constants.ContentType(plugin_type)
+            content_type_map[content_type] = plugin_type
+            print(f'\t{plugin_type} {content_type}')
+        #import epdb; epdb.st()
+
+        # Result(content_type=<ContentType.LOOKUP_PLUGIN: 'lookup'>, path='plugins/lookup/random_string.py')
+        # Result(content_type=<ContentType.TEST_PLUGIN: 'test'>, path='plugins/test/fqdn_valid.py')
+        old = []
+        for content_type, directory, func in self._content_type_dirs():
+            if content_type in content_type_map:
+                continue
+            # import epdb; epdb.st()
+            content_path = os.path.join(self.path, directory)
+            if not os.path.exists(content_path):
+                continue
+            for x in func(content_type, content_path):
+                # old.append(x)
+                yield x
+
+        # this gets plugins but it doesn't get PLAYBOOKS/EDA/MODULE_UTILS/ etc ...
+        new = []
+        for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
+            ctype = constants.ContentType(plugin_type)
+            plugins_docs = self.galaxy_cli._run_ansible_doc_list_files(plugin_type)
+            for key, path in plugins_docs.items():
+                name = key[1].replace(self.galaxy_cli.fq_collection_name + '.', '')
+                rel_path = path.replace(self.path + '/', '')
+                yield Result(ctype, name, rel_path)
+
+        import epdb; epdb.st()
 
     def _find_plugins(self, content_type, content_dir):
         """Find all python files anywhere inside content_dir."""
@@ -71,7 +149,8 @@ class ContentFinder(object):
                     continue
                 file_path = os.path.join(path, file)
                 rel_path = os.path.relpath(file_path, self.path)
-                yield Result(content_type, rel_path)
+                base_name = os.path.basename(rel_path).rstrip('.py')
+                yield Result(content_type, base_name, rel_path)
 
     def _find_roles(self, content_type, content_dir):
         """Find all dirs inside roles dir where contents match a role."""
@@ -87,7 +166,8 @@ class ContentFinder(object):
             """Iterate over all subdirs and yield roles."""
             if is_dir_a_role(path):
                 rel_path = os.path.relpath(path, self.path)
-                yield Result(content_type, rel_path)
+                base_name = os.path.basename(rel_path)
+                yield Result(content_type, base_name, rel_path)
                 return
             path, dirs, _ = next(os.walk(path))
             for dir in dirs:
