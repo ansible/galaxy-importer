@@ -24,6 +24,23 @@ from galaxy_importer import config
 from galaxy_importer import loaders
 
 
+ANSIBLE_DOC_OUTPUT = json.loads("""
+    {
+        "my_module": {
+            "return": {
+                "message": {
+                    "description": ["The output message the sample module generates"]
+                },
+                "original_message": {
+                    "description": ["The original name param that was passed in"],
+                    "type": "str"
+                }
+            }
+        }
+    }
+""")
+
+
 @pytest.fixture
 def doc_string_loader():
     cfg = config.Config(config_data=config.ConfigFile.load())
@@ -345,25 +362,10 @@ def test_transform_doc_strings_nested_suboptions(doc_string_loader):
     ]
 
 
-@pytest.mark.skip(reason="FIXME")
-@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc")
-def test_load(mocked_run_ansible_doc, doc_string_loader, tmpdir):
-    ansible_doc_output = """
-        {
-            "my_module": {
-                "return": {
-                    "message": {
-                        "description": ["The output message the sample module generates"]
-                    },
-                    "original_message": {
-                        "description": ["The original name param that was passed in"],
-                        "type": "str"
-                    }
-                }
-            }
-        }
-    """
-    mocked_run_ansible_doc.return_value = json.loads(ansible_doc_output)
+@mock.patch('galaxy_importer.loaders.doc_string.constants.ANSIBLE_DOC_SUPPORTED_TYPES', ['module'])
+@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc_list", return_value={'my_module': {}})
+@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc", return_value=ANSIBLE_DOC_OUTPUT)
+def test_load_function(mocked_run_ansible_doc_list, mocked_run_ansible_doc, doc_string_loader, tmpdir):
 
     doc_string_loader.path = str(tmpdir)
     tmpdir.mkdir("plugins").mkdir("modules").join("my_module.py").write("")
