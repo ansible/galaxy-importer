@@ -33,7 +33,16 @@ default_logger = logging.getLogger(__name__)
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
-    def __init__(self, content_type=None, rel_path=None, root=None, content_name=None, doc_strings=None, cfg=None, logger=None):
+    def __init__(
+        self,
+        content_type=None,
+        rel_path=None,
+        root=None,
+        content_name=None,
+        doc_strings=None,
+        cfg=None,
+        logger=None,
+    ):
         """
         :param content_type: Content type.
         :param content_name: Name of the plugin.
@@ -123,7 +132,6 @@ class PluginLoader(ContentLoader):
 
     def _get_plugin_doc_strings(self):
         """Return plugin doc_strings, if exists, from collection doc_strings."""
-        # import epdb; epdb.st()
         fq_name = self._get_fq_name(self.root, self.path_name)
         try:
             return self.doc_strings[self.content_type.value][fq_name]

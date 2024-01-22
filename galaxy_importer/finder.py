@@ -17,14 +17,10 @@
 
 import collections
 import itertools
-import json
 import logging
 import os
 
 import attr
-
-from subprocess import Popen
-from subprocess import PIPE
 
 from galaxy_importer import constants
 from galaxy_importer.file_parser import ExtensionsFileParser
@@ -91,8 +87,8 @@ class ContentFinder(object):
             ctype = constants.ContentType(plugin_type)
             plugins_docs = self.galaxy_cli.list_files(plugin_type)
             for key, path in plugins_docs.items():
-                name = key[1].replace(self.galaxy_cli.fq_collection_name + '.', '')
-                rel_path = path.replace(self.path + '/', '')
+                name = key[1].replace(self.galaxy_cli.fq_collection_name + ".", "")
+                rel_path = path.replace(self.path + "/", "")
                 yield Result(ctype, name, rel_path)
 
     def _find_plugins(self, content_type, content_dir):
@@ -103,7 +99,7 @@ class ContentFinder(object):
                     continue
                 file_path = os.path.join(path, file)
                 rel_path = os.path.relpath(file_path, self.path)
-                base_name = os.path.basename(rel_path).rstrip('.py')
+                base_name = os.path.basename(rel_path).rstrip(".py")
                 yield Result(content_type, base_name, rel_path)
 
     def _find_roles(self, content_type, content_dir):

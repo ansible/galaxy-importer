@@ -18,7 +18,6 @@
 from copy import deepcopy
 import json
 import logging
-import os
 import shutil
 from subprocess import Popen, PIPE
 
@@ -75,30 +74,6 @@ class DocStringLoader:
             "ansible-doc",
         ]
 
-    '''
-    def _get_plugins(self, plugin_dir):
-        """Get list of fully qualified plugin names inside directory.
-
-        Ex: ['google.gcp.service_facts', 'google.gcp.storage.subdir2.gc_storage']
-        """
-        plugins = []
-        for root, _, files in os.walk(plugin_dir):
-            for filename in files:
-                if not filename.endswith(".py") or filename == "__init__.py":
-                    continue
-                file_path = os.path.join(root, filename)
-                sub_dirs = os.path.relpath(root, plugin_dir)
-
-                fq_name_parts = [self.fq_collection_name]
-                if sub_dirs and sub_dirs != ".":
-                    fq_name_parts.extend(sub_dirs.split("/"))
-                fq_name_parts.append(os.path.basename(file_path)[:-3])
-
-                plugins.append(".".join(fq_name_parts))
-
-        return plugins
-    '''
-
     def _run_ansible_doc_list(self, plugin_type):
         """Use ansible-doc to get a list of plugins for the collection by type."""
         cmd = self._base_ansible_doc_cmd + [
@@ -109,7 +84,6 @@ class DocStringLoader:
             self.fq_collection_name,
         ]
         self.log.debug("CMD: {}".format(" ".join(cmd)))
-        import q; q(cmd)
         proc = Popen(cmd, cwd=self._collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if proc.returncode != 0:
@@ -119,7 +93,6 @@ class DocStringLoader:
                 )
             )
             return {}
-        import q; q(stdout)
         return json.loads(stdout)
 
     def _run_ansible_doc(self, plugin_type, plugins):
