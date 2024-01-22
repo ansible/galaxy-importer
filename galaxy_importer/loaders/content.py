@@ -33,9 +33,10 @@ default_logger = logging.getLogger(__name__)
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
-    def __init__(self, content_type, rel_path, root, doc_strings=None, cfg=None, logger=None):
+    def __init__(self, content_type=None, rel_path=None, root=None, content_name=None, doc_strings=None, cfg=None, logger=None):
         """
         :param content_type: Content type.
+        :param content_name: Name of the plugin.
         :param rel_path: Path to content file or dir, relative to root path.
         :param root: Collection root path.
         :param doc_strings: ansible-doc output for all plugins in collection
@@ -51,11 +52,15 @@ class ContentLoader(metaclass=abc.ABCMeta):
             path_name: storage.another_subdir.s3
             fq_name: my_namespace.nginx.storage.another_subdir.s3
         """
+        self.content_name = content_name
         self.content_type = content_type
         self.rel_path = rel_path
         self.root = root
 
         self.name = self._make_name(self.rel_path)
+        if not self.content_name:
+            self.content_name = self.name
+
         self._validate_name()
         self.path_name = self._make_path_name(self.rel_path, self.name)
 
@@ -111,12 +116,14 @@ class PluginLoader(ContentLoader):
 
         return schema.Content(
             name=self.path_name,
+            content_name=self.content_name,
             content_type=self.content_type,
             doc_strings=doc_strings,
         )
 
     def _get_plugin_doc_strings(self):
         """Return plugin doc_strings, if exists, from collection doc_strings."""
+        # import epdb; epdb.st()
         fq_name = self._get_fq_name(self.root, self.path_name)
         try:
             return self.doc_strings[self.content_type.value][fq_name]

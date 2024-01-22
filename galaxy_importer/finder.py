@@ -133,13 +133,13 @@ class ContentFinder(object):
         new = []
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
             ctype = constants.ContentType(plugin_type)
-            plugins_docs = self.galaxy_cli._run_ansible_doc_list_files(plugin_type)
+            plugins_docs = self.galaxy_cli.list_files(plugin_type)
             for key, path in plugins_docs.items():
                 name = key[1].replace(self.galaxy_cli.fq_collection_name + '.', '')
                 rel_path = path.replace(self.path + '/', '')
                 yield Result(ctype, name, rel_path)
 
-        import epdb; epdb.st()
+        #import epdb; epdb.st()
 
     def _find_plugins(self, content_type, content_dir):
         """Find all python files anywhere inside content_dir."""

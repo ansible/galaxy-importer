@@ -41,7 +41,7 @@ class GalaxyCLIWrapper:
             "ansible-doc",
         ]
 
-    def _run_ansible_doc_list_files(self, plugin_type):
+    def list_files(self, plugin_type):
         """Use ansible-doc to get a list of plugins for the collection by type."""
         cmd = self._base_ansible_doc_cmd + [
             "--list_files",
