@@ -8,7 +8,6 @@ default_logger = logging.getLogger(__name__)
 
 
 class GalaxyCLIWrapper:
-
     def __init__(self, path=None, fq_collection_name=None, logger=None):
 
         self.log = logger or default_logger
@@ -19,10 +18,9 @@ class GalaxyCLIWrapper:
         # collection FQCN but can be enumerated from path
         self.fq_collection_name = fq_collection_name or self._fq_collection_name
 
-
     @property
     def _fq_collection_name(self):
-        parts = self.path.split('/')
+        parts = self.path.split("/")
         namespace = parts[-2]
         name = parts[-1]
         return namespace + "." + name
@@ -60,13 +58,11 @@ class GalaxyCLIWrapper:
             )
             return {}
 
-        # plugins = dict(((plugin_type, x[0]), x[1]) for x in stdout.decode('utf-8').split('\n') if x)
         plugins = {}
-        for line in stdout.decode('utf-8').split('\n'):
+        for line in stdout.decode("utf-8").split("\n"):
             if not line:
                 continue
             words = line.split()
             plugins[(plugin_type, words[0])] = words[1]
 
-        # import epdb; epdb.st()
         return plugins
