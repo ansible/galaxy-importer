@@ -88,10 +88,10 @@ def test_run_ansible_doc_exception(mocked_popen, doc_string_loader):
     assert not res
 
 
-@pytest.mark.skip(reason="FIXME")
-@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc")
-def test_ansible_doc_no_output(mocked_run_ansible_doc, doc_string_loader):
-    mocked_run_ansible_doc.return_value = ""
+@mock.patch('galaxy_importer.loaders.doc_string.constants.ANSIBLE_DOC_SUPPORTED_TYPES', ['module'])
+@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc_list", return_value={})
+@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc", return_value={})
+def test_ansible_doc_no_output(mocked_run_ansible_doc_list, mocked_run_ansible_doc, doc_string_loader):
     assert doc_string_loader.load() == {}
 
 
@@ -390,9 +390,10 @@ def test_load_function(mocked_run_ansible_doc_list, mocked_run_ansible_doc, doc_
     }
 
 
-@pytest.mark.skip(reason="FIXME")
+@mock.patch('galaxy_importer.loaders.doc_string.constants.ANSIBLE_DOC_SUPPORTED_TYPES', ['inventory'])
+@mock.patch.object(loaders.DocStringLoader, "_run_ansible_doc_list", return_value={'my_plugin': {}})
 @mock.patch("galaxy_importer.loaders.doc_string.Popen")
-def test_load_ansible_doc_error(mocked_popen, doc_string_loader, tmpdir):
+def test_load_ansible_doc_error(mocked_popen, mocked_doc_list, doc_string_loader, tmpdir):
     mocked_popen.return_value.communicate.return_value = (
         "output",
         "error that causes exception",
