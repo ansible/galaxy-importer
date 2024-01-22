@@ -34,7 +34,6 @@ ANSIBLE_DOC_SUPPORTED_TYPES = [
     "test",
     "vars",
 ]
-# ANSIBLE_DOC_SUPPORTED_TYPES = ["filter"]
 ANSIBLE_DOC_PLUGIN_MAP = {"module": "modules"}
 ANSIBLE_DOC_KEYS = ["doc", "metadata", "examples", "return"]
 ANSIBLE_LINT_ERROR_PREFIXES = ("CRITICAL", "ERROR")
