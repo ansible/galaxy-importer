@@ -379,7 +379,6 @@ class CollectionLoader(object):
         """Build importer result contents from Content objects."""
         return [
             schema.ResultContentItem(
-                #name=c.name,
                 name=c.content_name,
                 content_type=c.content_type.value,
                 description=c.description,
