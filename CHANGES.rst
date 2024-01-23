@@ -1,3 +1,19 @@
+galaxy-importer 0.4.18 (2024-01-18)
+===================================
+
+Features
+--------
+
+- enable docs rendering for filter and test plugins (`AAH-2854 <https://issues.redhat.com/browse/AAH-2854>`_)
+- Add command to convert markdown to html (`AAH-3009 <https://issues.redhat.com/browse/AAH-3009>`_)
+
+
+Bugfixes
+--------
+
+- Ignore certain linter rules for ruff and pylint inside the EDA tox tests. (`AAH-2997 <https://issues.redhat.com/browse/AAH-2997>`_)
+
+
 galaxy-importer 0.4.18 (2023-12-06)
 ===================================
 
