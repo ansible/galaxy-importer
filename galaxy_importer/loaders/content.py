@@ -197,6 +197,7 @@ class RoleLoader(ContentLoader):
 
         return schema.Content(
             name=self.path_name,
+            content_name=self.path_name,
             content_type=self.content_type,
             description=description,
             readme_file=readme.name,
