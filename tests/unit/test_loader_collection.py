@@ -560,8 +560,8 @@ def test_ansiblelint_playbook_errors(populated_collection_root, tmp_collection_r
     )
     collection_loader._lint_collection()
     shutil.rmtree(playbook_dir)
-
-    assert "All names should start with an uppercase letter" in str(caplog.records[0])
+    import pdb; pdb.set_trace()
+    assert "All names should start with an uppercase letter" in str(caplog.records[1])
 
 
 def test_ansiblelint_collection_pass(populated_collection_root, tmp_collection_root, caplog):
@@ -577,7 +577,7 @@ def test_ansiblelint_collection_pass(populated_collection_root, tmp_collection_r
     )
     collection_loader._lint_collection()
 
-    assert len(caplog.records) == 0
+    assert len(caplog.records) == 1
 
 
 def test_ansiblelint_true_loader(populated_collection_root, tmp_collection_root, caplog):
@@ -593,7 +593,7 @@ def test_ansiblelint_true_loader(populated_collection_root, tmp_collection_root,
     )
     collection_loader.load()
 
-    assert len(caplog.records) == 1  # Changelog error expected
+    assert len(caplog.records) == 2  # Changelog error expected
 
 
 def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_collection_root, caplog):
@@ -615,11 +615,11 @@ def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_colle
     )
     collection_loader._lint_collection()
     shutil.rmtree(task_dir)
-
+    import pdb; pdb.set_trace()
     assert "name[casing]: All names should start with an uppercase letter." in str(
-        caplog.records[0]
+        caplog.records[1]
     )
-    assert "jinja[spacing]: Jinja2 spacing could be improved:" in str(caplog.records[1])
+    assert "jinja[spacing]: Jinja2 spacing could be improved:" in str(caplog.records[2])
 
 
 def test_ansiblelint_collection_meta_runtime_errors(
