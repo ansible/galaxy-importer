@@ -52,14 +52,15 @@ def test_collection_community_general_import(workdir, local_fast_config):
 
     # make sure it found all the files
     contents = dict(((x["content_type"], x["name"]), x) for x in results["contents"])
-    assert len(contents.keys()) == 831
+    assert len(contents.keys()) == 838
 
     # check a small sample
     assert ("test", "a_module") in contents
     assert ("module_utils", "version") in contents
     assert ("module", "xfconf") in contents
     assert ("module", "jabber") in contents
-    assert ("filter", "time") in contents
+    assert ("filter", "to_hours") in contents
+    assert ("filter", "to_days") in contents
     assert ("doc_fragments", "nomad") in contents
     assert ("connection", "lxc") in contents
     assert ("callback", "yaml") in contents
@@ -71,14 +72,20 @@ def test_collection_community_general_import(workdir, local_fast_config):
     docs_contents = dict(
         ((x["content_type"], x["content_name"]), x) for x in results["docs_blob"]["contents"]
     )
-    assert len(docs_contents.keys()) == 831
+    assert len(docs_contents.keys()) == 838
+
+    for ckey in contents.keys():
+        if ckey not in docs_contents and ckey[0] == 'filter':
+            print(f'missing docs: {ckey}')
 
     # check a small sample
     assert ("test", "a_module") in docs_contents
     assert ("module_utils", "version") in docs_contents
     assert ("module", "xfconf") in docs_contents
     assert ("module", "jabber") in docs_contents
-    assert ("filter", "time") in docs_contents
+    # assert ("filter", "time") in docs_contents
+    assert ("filter", "dict") in docs_contents
+    assert ("filter", "to_ini") in docs_contents
     assert ("doc_fragments", "nomad") in docs_contents
     assert ("connection", "lxc") in docs_contents
     assert ("callback", "yaml") in docs_contents

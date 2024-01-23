@@ -63,6 +63,13 @@ class GalaxyCLIWrapper:
                 )
             )
             return {}
+
+        '''
+        res = json.loads(stdout)
+        if plugin_type == 'filter':
+            import epdb; epdb.st()
+        '''
+
         return json.loads(stdout)
 
     def list(self, plugin_type, fqcn=None):
@@ -84,6 +91,7 @@ class GalaxyCLIWrapper:
                 )
             )
             return {}
+
         return json.loads(stdout)
 
     def list_files(self, plugin_type, fqcn=None):

@@ -372,6 +372,8 @@ class CollectionLoader(object):
                 logger=self.log,
             )
             content_obj = loader.load()
+            #if content_name == 'to_years':
+            #    import epdb; epdb.st()
 
             yield content_obj
 
@@ -379,7 +381,7 @@ class CollectionLoader(object):
         """Build importer result contents from Content objects."""
         return [
             schema.ResultContentItem(
-                name=c.content_name,
+                name=c.content_name or c.name,
                 content_type=c.content_type.value,
                 description=c.description,
             )

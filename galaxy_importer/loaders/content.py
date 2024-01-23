@@ -124,7 +124,7 @@ class PluginLoader(ContentLoader):
                 self.log.warning(line)
 
         return schema.Content(
-            name=self.path_name,
+            name=self.content_name or self.path_name,
             content_name=self.content_name,
             content_type=self.content_type,
             doc_strings=doc_strings,
