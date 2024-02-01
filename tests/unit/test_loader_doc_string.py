@@ -24,7 +24,8 @@ from galaxy_importer import config
 from galaxy_importer import loaders
 
 
-ANSIBLE_DOC_OUTPUT = json.loads("""
+ANSIBLE_DOC_OUTPUT = json.loads(
+    """
     {
         "my_module": {
             "return": {
@@ -38,7 +39,8 @@ ANSIBLE_DOC_OUTPUT = json.loads("""
             }
         }
     }
-""")
+"""
+)
 
 
 @pytest.fixture
