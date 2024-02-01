@@ -84,6 +84,8 @@ def test_collection_community_general_import(workdir, local_fast_config):
     assert ("module", "xfconf") in docs_contents
     assert ("module", "jabber") in docs_contents
     # assert ("filter", "time") in docs_contents
+    assert ("filter", "to_hours") in docs_contents
+    assert ("filter", "to_days") in docs_contents
     assert ("filter", "dict") in docs_contents
     assert ("filter", "to_ini") in docs_contents
     assert ("doc_fragments", "nomad") in docs_contents
@@ -92,3 +94,7 @@ def test_collection_community_general_import(workdir, local_fast_config):
     assert ("cache", "yaml") in docs_contents
     assert ("become", "pbrun") in docs_contents
     assert ("action", "shutdown") in docs_contents
+
+    # check doc strings for the nested filter plugins ...
+    assert docs_contents[("filter", "to_days")]['doc_strings'] is not None
+    # import epdb; epdb.st()
