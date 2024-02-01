@@ -74,10 +74,6 @@ def test_collection_community_general_import(workdir, local_fast_config):
     )
     assert len(docs_contents.keys()) == 838
 
-    for ckey in contents.keys():
-        if ckey not in docs_contents and ckey[0] == 'filter':
-            print(f'missing docs: {ckey}')
-
     # check a small sample
     assert ("test", "a_module") in docs_contents
     assert ("module_utils", "version") in docs_contents
@@ -96,5 +92,4 @@ def test_collection_community_general_import(workdir, local_fast_config):
     assert ("action", "shutdown") in docs_contents
 
     # check doc strings for the nested filter plugins ...
-    assert docs_contents[("filter", "to_days")]['doc_strings'] is not None
-    # import epdb; epdb.st()
+    assert docs_contents[("filter", "to_days")]["doc_strings"] is not None

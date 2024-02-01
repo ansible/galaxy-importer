@@ -57,11 +57,6 @@ class DocStringLoader:
             # get the plugin docs with galaxy
             data = self.galaxy_cli.doc(plugin_type, plugins)
 
-            if plugin_type == 'filter':
-                for fqn in plugins:
-                    if fqn not in data:
-                        import epdb; epdb.st()
-
             # make ui suitable data
             data = self._process_doc_strings(data)
 
