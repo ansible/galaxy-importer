@@ -96,11 +96,19 @@ class CollectionLoader(object):
                 logger=self.log,
                 cfg=self.cfg,
             ).load()
+        assert self.doc_strings['filter']['community.filters.to_years']
+        for key in self.doc_strings['filter']:
+            assert self.doc_strings['filter'][key], f"1. {key} missing doc strings"
 
         self.content_objs = list(self._load_contents())
-
         self.contents = self._build_contents_blob()
+
         self.docs_blob = self._build_docs_blob()
+        # the res.docs_blob should have doc strings for all the filters ...
+        for bcontent in self.docs_blob.contents:
+            assert bcontent.doc_strings, f"2. {bcontent} missing doc strings"
+            # import epdb; epdb.st()
+
         self.requires_ansible = file_parser.RuntimeFileParser(self.path).get_requires_ansible()
         self._check_ee_yml_dep_files()
         self._check_collection_changelog()
@@ -108,6 +116,18 @@ class CollectionLoader(object):
         if self.cfg.run_ansible_lint:
             self._lint_collection()
         self._check_ansible_test_ignore_files()
+
+        res = schema.ImportResult(
+            metadata=self.metadata,
+            docs_blob=self.docs_blob,
+            contents=self.contents,
+            requires_ansible=self.requires_ansible,
+        )
+
+        # the res.docs_blob should have doc strings for all the filters ...
+        for bcontent in res.docs_blob.contents:
+            assert bcontent.doc_strings, f"3. {bcontent} missing doc strings"
+            # import epdb; epdb.st()
 
         return schema.ImportResult(
             metadata=self.metadata,
@@ -372,9 +392,6 @@ class CollectionLoader(object):
                 logger=self.log,
             )
             content_obj = loader.load()
-            #if content_name == 'to_years':
-            #    import epdb; epdb.st()
-
             yield content_obj
 
     def _build_contents_blob(self):
@@ -402,6 +419,20 @@ class CollectionLoader(object):
         if not self.cfg.run_ansible_doc:
             return docs_blob
 
+        '''
+        for _c in self.content_objs:
+            print(_c)
+            citem = schema.DocsBlobContentItem(
+                content_name=_c.name,
+                content_type=_c.content_type.value,
+                doc_strings=_c.doc_strings,
+                readme_file=_c.readme_file,
+                readme_html=_c.readme_html,
+            )
+            if not citem.doc_strings:
+                import epdb; epdb.st()
+        '''
+
         contents = [
             schema.DocsBlobContentItem(
                 content_name=c.name,
@@ -412,6 +443,18 @@ class CollectionLoader(object):
             )
             for c in self.content_objs
         ]
+
+        '''
+        for _content in contents:
+
+            if not _content.doc_strings:
+                matches = [x for x in self.content_objs if x.content_name==_content.content_name]
+                import epdb; epdb.st()
+
+            assert _content.doc_strings, f'{_content} missing doc strings'
+
+        import epdb; epdb.st()
+        '''
 
         readme = markup_utils.get_readme_doc_file(self.path)
         if not readme:

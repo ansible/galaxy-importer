@@ -111,7 +111,10 @@ class ContentLoader(metaclass=abc.ABCMeta):
             )
 
     def _log_loading(self):
-        self.log.info(f"Loading {self.content_type.value} {self.path_name}")
+        if self.path_name == self.content_name:
+            self.log.info(f"Loading {self.content_type.value} {self.path_name}")
+            return
+        self.log.info(f"Loading {self.content_type.value} {self.path_name}:{self.content_name}")
 
 
 class PluginLoader(ContentLoader):
@@ -132,10 +135,14 @@ class PluginLoader(ContentLoader):
 
     def _get_plugin_doc_strings(self):
         """Return plugin doc_strings, if exists, from collection doc_strings."""
-        fq_name = self._get_fq_name(self.root, self.path_name)
+        if self.content_name == self.path_name:
+            fq_name = self._get_fq_name(self.root, self.path_name)
+        else:
+            fq_name = self._get_fq_name(self.root, self.content_name)
         try:
             return self.doc_strings[self.content_type.value][fq_name]
         except KeyError:
+            import epdb; epdb.st()
             return None
 
     def _run_flake8(self, path):
