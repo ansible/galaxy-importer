@@ -79,7 +79,6 @@ class ContentFinder(object):
             if not os.path.exists(content_path):
                 continue
             for x in func(content_type, content_path):
-                # old.append(x)
                 yield x
 
         # use ansible-doc to get all the supported plugin types

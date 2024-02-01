@@ -73,8 +73,6 @@ class DocStringLoader:
         processed_doc_strings = {}
         for plugin_key, value in doc_strings.items():
             processed_doc_strings[plugin_key] = self._transform_doc_strings(value, self.log)
-            #if 'to_minutes' in plugin_key:
-            #    import epdb; epdb.st()
         return processed_doc_strings
 
     @staticmethod

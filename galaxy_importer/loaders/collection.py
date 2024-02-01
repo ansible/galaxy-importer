@@ -398,20 +398,6 @@ class CollectionLoader(object):
         if not self.cfg.run_ansible_doc:
             return docs_blob
 
-        '''
-        for _c in self.content_objs:
-            print(_c)
-            citem = schema.DocsBlobContentItem(
-                content_name=_c.name,
-                content_type=_c.content_type.value,
-                doc_strings=_c.doc_strings,
-                readme_file=_c.readme_file,
-                readme_html=_c.readme_html,
-            )
-            if not citem.doc_strings:
-                import epdb; epdb.st()
-        '''
-
         contents = [
             schema.DocsBlobContentItem(
                 content_name=c.name,
@@ -422,18 +408,6 @@ class CollectionLoader(object):
             )
             for c in self.content_objs
         ]
-
-        '''
-        for _content in contents:
-
-            if not _content.doc_strings:
-                matches = [x for x in self.content_objs if x.content_name==_content.content_name]
-                import epdb; epdb.st()
-
-            assert _content.doc_strings, f'{_content} missing doc strings'
-
-        import epdb; epdb.st()
-        '''
 
         readme = markup_utils.get_readme_doc_file(self.path)
         if not readme:
