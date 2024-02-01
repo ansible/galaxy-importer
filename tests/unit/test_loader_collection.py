@@ -269,8 +269,8 @@ def test_manifest_fail(manifest_text, new_text, error_subset, tmp_collection_roo
 def test_build_contents_blob():
     collection_loader = CollectionLoader("/tmpdir", "filename")
     collection_loader.content_objs = [
-        schema.Content(name="my_module", content_type=ContentType.MODULE),
-        schema.Content(name="my_role", content_type=ContentType.ROLE),
+        schema.Content(name="my_module", content_name="my_module", content_type=ContentType.MODULE),
+        schema.Content(name="my_role", content_name="my_role", content_type=ContentType.ROLE),
     ]
     res = collection_loader._build_contents_blob()
     assert [attr.asdict(item) for item in res] == [
@@ -288,8 +288,8 @@ def test_build_docs_blob_contents(get_readme_doc_file, get_html):
         "/tmpdir", "filename", cfg=SimpleNamespace(run_ansible_doc=True)
     )
     collection_loader.content_objs = [
-        schema.Content(name="my_module", content_type=ContentType.MODULE),
-        schema.Content(name="my_role", content_type=ContentType.ROLE),
+        schema.Content(name="my_module", content_name="my_module", content_type=ContentType.MODULE),
+        schema.Content(name="my_role", content_name="my_role", content_type=ContentType.ROLE),
     ]
     res = collection_loader._build_docs_blob()
     assert attr.asdict(res) == {
