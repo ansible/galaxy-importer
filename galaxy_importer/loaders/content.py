@@ -142,7 +142,6 @@ class PluginLoader(ContentLoader):
         try:
             return self.doc_strings[self.content_type.value][fq_name]
         except KeyError:
-            import epdb; epdb.st()
             return None
 
     def _run_flake8(self, path):
