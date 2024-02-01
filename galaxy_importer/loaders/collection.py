@@ -96,19 +96,10 @@ class CollectionLoader(object):
                 logger=self.log,
                 cfg=self.cfg,
             ).load()
-        # assert self.doc_strings['filter']['community.filters.to_years']
-        #for key in self.doc_strings['filter']:
-        #    assert self.doc_strings['filter'][key], f"1. {key} missing doc strings"
 
         self.content_objs = list(self._load_contents())
         self.contents = self._build_contents_blob()
-
         self.docs_blob = self._build_docs_blob()
-        # the res.docs_blob should have doc strings for all the filters ...
-        #for bcontent in self.docs_blob.contents:
-        #    assert bcontent.doc_strings, f"2. {bcontent} missing doc strings"
-        #    # import epdb; epdb.st()
-
         self.requires_ansible = file_parser.RuntimeFileParser(self.path).get_requires_ansible()
         self._check_ee_yml_dep_files()
         self._check_collection_changelog()
@@ -116,18 +107,6 @@ class CollectionLoader(object):
         if self.cfg.run_ansible_lint:
             self._lint_collection()
         self._check_ansible_test_ignore_files()
-
-        res = schema.ImportResult(
-            metadata=self.metadata,
-            docs_blob=self.docs_blob,
-            contents=self.contents,
-            requires_ansible=self.requires_ansible,
-        )
-
-        # the res.docs_blob should have doc strings for all the filters ...
-        #for bcontent in res.docs_blob.contents:
-        #    assert bcontent.doc_strings, f"3. {bcontent} missing doc strings"
-        #    # import epdb; epdb.st()
 
         return schema.ImportResult(
             metadata=self.metadata,
