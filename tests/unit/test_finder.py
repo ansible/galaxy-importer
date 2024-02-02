@@ -22,7 +22,6 @@ import tempfile
 import unittest
 
 import pytest
-import requests
 
 from galaxy_importer.finder import ContentFinder, FileWalker
 
@@ -43,7 +42,7 @@ extensions:
 class TestContentFinder(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
-        self.base_dir = os.path.join(self.temp_dir, 'ansible_collections', 'foo', 'bar')
+        self.base_dir = os.path.join(self.temp_dir, "ansible_collections", "foo", "bar")
         os.makedirs(self.base_dir)
 
         os.mkdir(os.path.join(self.base_dir, "plugins"))
