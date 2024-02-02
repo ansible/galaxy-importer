@@ -57,6 +57,7 @@ def test_config_set_from_file(temp_config_file):
         assert cfg.log_level_main == "INFO"
         assert cfg.run_ansible_test is True
         assert cfg.ansible_test_local_image is True
+        assert cfg.check_changelog is True
         assert cfg.local_image_docker is True
         assert cfg.infra_osd is False
         assert cfg.tmp_root_dir == "/tmp"
