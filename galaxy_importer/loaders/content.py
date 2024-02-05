@@ -178,12 +178,17 @@ class PluginLoader(ContentLoader):
 
     @staticmethod
     def _make_name(rel_path):
-        return os.path.splitext(os.path.basename(rel_path))[0]
+        paths = Path(os.path.dirname(rel_path)).parts[2:]
+        name = os.path.splitext(os.path.basename(rel_path))[0]
+        full_path = list(paths) + [name]
+        return ".".join(full_path)
 
     @staticmethod
     def _make_path_name(rel_path, name):
-        dirname_parts = Path(os.path.dirname(rel_path)).parts[2:]
-        return ".".join(list(dirname_parts) + [name])
+        paths = Path(os.path.dirname(rel_path)).parts[2:]
+        name = os.path.splitext(os.path.basename(rel_path))[0]
+        full_path = list(paths) + [name]
+        return ".".join(full_path)
 
 
 class ExtensionLoader(PluginLoader):
