@@ -192,12 +192,19 @@ class PluginLoader(ContentLoader):
 
 
 class ExtensionLoader(PluginLoader):
+
+    @staticmethod
+    def _make_name(rel_path):
+        ext_name = os.path.splitext(os.path.basename(rel_path))[0]
+        return ext_name
+
     @staticmethod
     def _make_path_name(rel_path, name):
         """Not expecting extensions to exist in subdirs like other content types,
         can simply return name
         """
-        return name
+        ext_name = os.path.splitext(os.path.basename(rel_path))[0]
+        return ext_name
 
 
 class RoleLoader(ContentLoader):
