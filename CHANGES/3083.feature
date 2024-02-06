@@ -1,1 +1,0 @@
-Expand changelog check to the docs/ dir and add config option (default=True)

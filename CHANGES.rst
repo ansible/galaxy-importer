@@ -1,3 +1,12 @@
+galaxy-importer 0.4.19 (2024-02-06)
+===================================
+
+Features
+--------
+
+- Expand changelog check to the docs/ dir and add config option (default=True) (`AAH-3083 <https://issues.redhat.com/browse/AAH-3083>`_)
+
+
 galaxy-importer 0.4.18 (2024-01-18)
 ===================================
 
