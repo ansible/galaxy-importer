@@ -65,14 +65,29 @@ RUN_ANSIBLE_TEST = False
 ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 ```
 
-- `RUN_ANSIBLE_TEST` - Set to `True` to run `ansible-test` during collection import. Defaults to `False`.
+- `ANSIBLE_LOCAL_TMP` - Set to any desired local Ansible temp directory. Defaults to `~/.ansible/tmp`.
 
 - `ANSIBLE_TEST_LOCAL_IMAGE` - Set to `True` to run `ansible-test` sandboxed within a container image. Requires installation of either Podman or Docker to run the container. Defaults to `False`.
 
-- `LOCAL_IMAGE_DOCKER` - Set to `True` to run the `ansible-test` container image via Docker; otherwise, Podman will be used. Defaults to `False`.
-
 - `CHECK_CHANGELOG` - Set to `False` to not check for a `CHANGELOG.rst or` `CHANGELOG.md` file under the collection root or `docs/` dir, or a `changelogs/changelog.yml` file. Defaults to `True`. 
 
+- `CHECK_REQUIRED_TAGS` - Set to `True` to check for a set of tags required for Ansible collection certification. Defaults to `False`. 
+
+- `LOCAL_IMAGE_DOCKER` - Set to `True` to run the `ansible-test` container image via Docker; otherwise, Podman will be used. Defaults to `False`.
+
+- `LOG_LEVEL_MAIN` - Set to the desired log level. Defaults to `INFO`. 
+
+- `OFFLINE_ANSIBLE_LINT` - Set to `False` if you want `ansible-lint` to check for a new version. Defaults to `True`.
+
+- `REQUIRE_V1_OR_LATER` - Set to `True` to require a version number `1.0.0` or greater. Defaults to `False`.
+
+- `RUN_ANSIBLE_DOC` - Set to `False` to skip `ansible-doc`. Defaults to `True`.
+
+- `RUN_ANSIBLE_LINT` - Set to `False` to skip running `ansible-lint --profile production` over the whole collection. Defaults to `True`. 
+
+- `RUN_ANSIBLE_TEST` - Set to `True` to run `ansible-test` during collection import. Defaults to `False`.
+
+- `RUN_FLAKE8` - Set to `True` to run flake8. Defaults to `False`. 
 
 
 ### Issues and Process
