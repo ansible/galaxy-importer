@@ -71,6 +71,8 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 - `LOCAL_IMAGE_DOCKER` - Set to `True` to run the `ansible-test` container image via Docker; otherwise, Podman will be used. Defaults to `False`.
 
+- `CHECK_CHANGELOG` - Set to `False` to not check for a `CHANGELOG.rst or` `CHANGELOG.md` file under the collection root or `docs/` dir, or a `changelogs/changelog.yml` file. Defaults to `True`. 
+
 
 
 ### Issues and Process
@@ -78,3 +80,8 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 To file an issue, visit the [Automation Hub Jira project](https://issues.redhat.com/projects/AAH/issues)
 
 Process details for `galaxy-importer`: [PROCESS.md](PROCESS.md)
+
+
+### Additional Notes
+
+Place `.md` files in the `docs/` dir to have them show up in an imported collection's "Documentation" tab on Galaxy or Automation Hub.  

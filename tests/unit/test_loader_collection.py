@@ -207,6 +207,7 @@ def test_manifest_success(_build_docs_blob, populated_collection_root):
         cfg=SimpleNamespace(
             run_ansible_doc=True,
             run_ansible_lint=False,
+            check_changelog=False,
             ansible_local_tmp=populated_collection_root,
         ),
     ).load()
@@ -382,6 +383,7 @@ def test_filename_empty_value(_build_docs_blob, populated_collection_root):
         cfg=SimpleNamespace(
             run_ansible_doc=True,
             run_ansible_lint=False,
+            check_changelog=False,
             ansible_local_tmp=populated_collection_root,
         ),
     ).load()
@@ -400,6 +402,7 @@ def test_filename_none(_build_docs_blob, populated_collection_root):
         filename,
         cfg=SimpleNamespace(
             run_ansible_doc=True,
+            check_changelog=False,
             run_ansible_lint=False,
             ansible_local_tmp=populated_collection_root,
         ),
@@ -428,6 +431,7 @@ def test_license_file(populated_collection_root):
         cfg=SimpleNamespace(
             run_ansible_doc=True,
             run_ansible_lint=False,
+            check_changelog=False,
             ansible_local_tmp=populated_collection_root,
         ),
     ).load()
@@ -446,7 +450,14 @@ def test_missing_readme(populated_collection_root):
 
 
 @pytest.mark.parametrize(
-    "changelog_path", ["CHANGELOG.rst", "CHANGELOG.md", "changelogs/changelog.yaml"]
+    "changelog_path",
+    [
+        "CHANGELOG.rst",
+        "docs/CHANGELOG.rst",
+        "docs/CHANGELOG.md",
+        "CHANGELOG.md",
+        "changelogs/changelog.yaml",
+    ],
 )
 def test_changelog(changelog_path, tmpdir, caplog):
     dirname = os.path.dirname(changelog_path)
@@ -472,13 +483,14 @@ def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
         cfg=SimpleNamespace(
             run_ansible_doc=True,
             run_ansible_lint=False,
+            check_changelog=True,
             ansible_local_tmp=populated_collection_root,
         ),
     ).load()
     assert (
         "No changelog found. "
-        "Add a CHANGELOG.rst, CHANGELOG.md, or changelogs/changelog.yaml file."
-        in str(caplog.records[0])
+        "Add a CHANGELOG.rst or CHANGELOG.md file in the collection root or docs/ dir, or a "
+        "changelogs/changelog.yaml file." in str(caplog.records[0])
     )
 
 
@@ -554,6 +566,7 @@ def test_ansiblelint_playbook_errors(populated_collection_root, tmp_collection_r
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
+            check_changelog=False,
             offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
         ),
@@ -587,13 +600,14 @@ def test_ansiblelint_true_loader(populated_collection_root, tmp_collection_root,
         cfg=SimpleNamespace(
             run_ansible_doc=False,
             run_ansible_lint=True,
+            check_changelog=False,
             offline_ansible_lint=True,
             ansible_local_tmp=tmp_collection_root,
         ),
     )
     collection_loader.load()
 
-    assert len(caplog.records) == 1  # Changelog error expected
+    assert len(caplog.records) == 0
 
 
 def test_ansiblelint_collection_role_errors(populated_collection_root, tmp_collection_root, caplog):

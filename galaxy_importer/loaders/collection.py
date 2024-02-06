@@ -103,7 +103,9 @@ class CollectionLoader(object):
         self.docs_blob = self._build_docs_blob()
         self.requires_ansible = file_parser.RuntimeFileParser(self.path).get_requires_ansible()
         self._check_ee_yml_dep_files()
-        self._check_collection_changelog()
+
+        if self.cfg.check_changelog:
+            self._check_collection_changelog()
 
         if self.cfg.run_ansible_lint:
             self._lint_collection()
@@ -204,19 +206,27 @@ class CollectionLoader(object):
             self.log.warning(IGNORE_WARNING.format(file=ignore_file, line_count=line_count))
 
     def _check_collection_changelog(self):
-        """Log an error when a CHANGELOG file is not present in the root of the collection."""
-        changelog_rst_path = os.path.join(self.path, "CHANGELOG.rst")
-        changelog_md_path = os.path.join(self.path, "CHANGELOG.md")
-        changelog_yaml_path = os.path.join(self.path, "changelogs/changelog.yaml")
+        """Log an error when a CHANGELOG file is not present in the root"
+        " or docs/ dir of the collection."""
+        changelog = False
+        changelog_paths = [
+            "CHANGELOG.rst",
+            "CHANGELOG.md",
+            "docs/CHANGELOG.md",
+            "docs/CHANGELOG.rst",
+            "changelogs/changelog.yaml",
+        ]
 
-        if (
-            not os.path.exists(changelog_rst_path)
-            and not os.path.exists(changelog_md_path)
-            and not os.path.exists(changelog_yaml_path)
-        ):
+        for log_path in changelog_paths:
+            full_path = os.path.join(self.path, log_path)
+            if os.path.exists(full_path):
+                changelog = True
+
+        if not changelog:
             self.log.warning(
                 "No changelog found. "
-                "Add a CHANGELOG.rst, CHANGELOG.md, or changelogs/changelog.yaml file."
+                "Add a CHANGELOG.rst or CHANGELOG.md file in the collection root "
+                "or docs/ dir, or a changelogs/changelog.yaml file."
             )
 
     def _check_ee_yml_dep_files(self):  # pragma: no cover
