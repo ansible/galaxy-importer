@@ -43,6 +43,7 @@ class Config(object):
     DEFAULTS = {
         "ansible_local_tmp": "~/.ansible/tmp",
         "ansible_test_local_image": False,
+        "check_changelog": True,
         "check_required_tags": False,
         "infra_osd": False,
         "local_image_docker": False,

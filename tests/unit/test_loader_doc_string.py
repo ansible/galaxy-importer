@@ -24,7 +24,8 @@ from galaxy_importer import config
 from galaxy_importer import loaders
 
 
-ANSIBLE_DOC_OUTPUT = json.loads("""
+ANSIBLE_DOC_OUTPUT = json.loads(
+    """
     {
         "my_module": {
             "return": {
@@ -38,7 +39,8 @@ ANSIBLE_DOC_OUTPUT = json.loads("""
             }
         }
     }
-""")
+"""
+)
 
 
 @pytest.fixture
@@ -370,7 +372,6 @@ def test_transform_doc_strings_nested_suboptions(doc_string_loader):
 def test_load_function(
     mocked_run_ansible_doc_list, mocked_run_ansible_doc, doc_string_loader, tmpdir
 ):
-
     doc_string_loader.path = str(tmpdir)
     tmpdir.mkdir("plugins").mkdir("modules").join("my_module.py").write("")
 
