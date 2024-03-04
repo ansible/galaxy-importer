@@ -118,6 +118,7 @@ class LegacyRoleLoader(object):
         cmd = [
             "/usr/bin/env",
             f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            f"XDG_CACHE_HOME={self.cfg.ansible_local_tmp}",
             "ansible-lint",
             "--profile",
             "production",
