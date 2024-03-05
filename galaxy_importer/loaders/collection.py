@@ -139,6 +139,7 @@ class CollectionLoader(object):
             "/usr/bin/env",
             f"ANSIBLE_COLLECTIONS_PATH={self.collections_path}",
             f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
+            f"XDG_CACHE_HOME={self.cfg.ansible_local_tmp}",
             "ansible-lint",
             "--profile",
             "production",
