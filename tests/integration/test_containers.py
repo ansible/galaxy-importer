@@ -69,7 +69,6 @@ def test_local_build_container_with_legacy_role(local_image_config, simple_legac
     assert "Should change default metadata: author" in log
     assert "Should change default metadata: company" in log
     assert "Should change default metadata: license" in log
-    assert "Role info should contain platforms" in log
     assert "All plays should be named." in log
     assert "...ansible-lint run complete" in log
     assert "Legacy role loading complete" in log

@@ -72,7 +72,7 @@ MANIFEST_JSON = """
   "name": "FILES.json",
   "ftype": "file",
   "chksum_type": "sha256",
-  "chksum_sha256": "180adef53c071ed614891944413d684e3e19b5c5a31d8e3b5b8c1621206c4daa",
+  "chksum_sha256": "7bcaa4f0cb3d8ba4bc0891435786dc9f3888dc06ad3896872cd1d728ddf04edb",
   "format": 1
  }
 }
@@ -114,7 +114,7 @@ FILES_JSON = """
    "name": "meta/runtime.yml",
    "ftype": "file",
    "chksum_type": "sha256",
-   "chksum_sha256": "b712cf98238ae609938aad4838c849c5a492069a328647b9bf991244a33ff942",
+   "chksum_sha256": "50f2f6ed064dbadfc976560a9cd614695920846d8b12a2ceb1d5981da9af1f85",
    "format": 1
   }
  ]
@@ -126,7 +126,7 @@ This collection is public domain. No rights Reserved.
 """
 
 META_RUNTIME_YAML = """---
-requires_ansible: '>=2.9.10,<2.11.5'
+requires_ansible: '>=2.15.0'
 plugin_routing:
   modules:
     set_config:
