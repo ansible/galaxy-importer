@@ -16,13 +16,12 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 from copy import deepcopy
-import json
 import logging
-import os
 import shutil
-from subprocess import Popen, PIPE
 
 from galaxy_importer import constants
+from galaxy_importer.galaxy_cli import GalaxyCLIWrapper
+
 
 default_logger = logging.getLogger(__name__)
 
@@ -37,6 +36,7 @@ class DocStringLoader:
         self.fq_collection_name = fq_collection_name
         self.cfg = cfg
         self.log = logger or default_logger
+        self.galaxy_cli = GalaxyCLIWrapper(path=path, fq_collection_name=fq_collection_name)
 
     def load(self):
         self.log.info("Getting doc strings via ansible-doc")
@@ -48,96 +48,21 @@ class DocStringLoader:
 
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
             # use ansible-doc to list all the plugins of this type
-            found_plugins = self._run_ansible_doc_list(plugin_type)
+            found_plugins = self.galaxy_cli.list(plugin_type)
             plugins = sorted(list(found_plugins.keys()))
 
             if not plugins:
                 continue
 
-            data = self._run_ansible_doc(plugin_type, plugins)
+            # get the plugin docs with galaxy
+            data = self.galaxy_cli.doc(plugin_type, plugins)
+
+            # make ui suitable data
             data = self._process_doc_strings(data)
+
             docs[plugin_type] = data
 
         return docs
-
-    @property
-    def _collections_path(self):
-        return "/".join(self.path.split("/")[:-3])
-
-    @property
-    def _base_ansible_doc_cmd(self):
-        return [
-            "/usr/bin/env",
-            f"ANSIBLE_COLLECTIONS_PATHS={self._collections_path}",
-            f"ANSIBLE_COLLECTIONS_PATH={self._collections_path}",
-            f"ANSIBLE_LOCAL_TEMP={self.cfg.ansible_local_tmp}",
-            "ansible-doc",
-        ]
-
-    def _get_plugins(self, plugin_dir):
-        """Get list of fully qualified plugin names inside directory.
-
-        Ex: ['google.gcp.service_facts', 'google.gcp.storage.subdir2.gc_storage']
-        """
-        plugins = []
-        for root, _, files in os.walk(plugin_dir):
-            for filename in files:
-                if not filename.endswith(".py") or filename == "__init__.py":
-                    continue
-                file_path = os.path.join(root, filename)
-                sub_dirs = os.path.relpath(root, plugin_dir)
-
-                fq_name_parts = [self.fq_collection_name]
-                if sub_dirs and sub_dirs != ".":
-                    fq_name_parts.extend(sub_dirs.split("/"))
-                fq_name_parts.append(os.path.basename(file_path)[:-3])
-
-                plugins.append(".".join(fq_name_parts))
-
-        return plugins
-
-    def _run_ansible_doc_list(self, plugin_type):
-        """Use ansible-doc to get a list of plugins for the collection by type."""
-        cmd = self._base_ansible_doc_cmd + [
-            "--list",
-            "--type",
-            plugin_type,
-            "--json",
-            self.fq_collection_name,
-        ]
-        self.log.debug("CMD: {}".format(" ".join(cmd)))
-        proc = Popen(cmd, cwd=self._collections_path, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate()
-        if proc.returncode != 0:
-            self.log.error(
-                'Error running ansible-doc: cmd="{cmd}" returncode="{rc}" {err}'.format(
-                    cmd=" ".join(cmd), rc=proc.returncode, err=stderr
-                )
-            )
-            return {}
-        return json.loads(stdout)
-
-    def _run_ansible_doc(self, plugin_type, plugins):
-        cmd = (
-            self._base_ansible_doc_cmd
-            + [
-                "--type",
-                plugin_type,
-                "--json",
-            ]
-            + plugins
-        )
-        self.log.debug("CMD: {}".format(" ".join(cmd)))
-        proc = Popen(cmd, cwd=self._collections_path, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate()
-        if proc.returncode != 0:
-            self.log.error(
-                'Error running ansible-doc: cmd="{cmd}" returncode="{rc}" {err}'.format(
-                    cmd=" ".join(cmd), rc=proc.returncode, err=stderr
-                )
-            )
-            return {}
-        return json.loads(stdout)
 
     def _process_doc_strings(self, doc_strings):
         processed_doc_strings = {}
