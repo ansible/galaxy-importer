@@ -17,20 +17,19 @@
 
 import collections
 import hashlib
+import io
 import mimetypes
 import os
 
+import docutils.core
+import docutils.writers
 import markdown
 import bleach
 from bleach_allowlist import markdown_tags, markdown_attrs
 
 README_NAME = "README"
-DOCFILE_EXTENSIONS = [
-    ".md",
-]
-DOCFILE_MIMETYPES = {
-    ".md": "text/markdown",
-}
+DOCFILE_EXTENSIONS = [".md", ".rst"]
+DOCFILE_MIMETYPES = {".md": "text/markdown", ".rst": "text/x-rst"}
 DOCFILE_MAX_SIZE = 512 * 1024  # 512 KiB
 
 DocFile = collections.namedtuple("DocFile", ["name", "text", "mimetype", "hash"])
@@ -72,6 +71,8 @@ def get_html(doc_file):
     """
     if doc_file.mimetype == "text/markdown":
         return _render_from_markdown(doc_file)
+    elif doc_file.mimetype == "text/x-rst":
+        return _render_from_restructured_text(doc_file)
     return None
 
 
@@ -102,6 +103,7 @@ def _find_doc_files(directory):
         if mimetype not in DOCFILE_MIMETYPES.values():
             continue
         result.append(os.path.join(directory, filename))
+
     return result
 
 
@@ -149,3 +151,39 @@ def _render_from_markdown(doc_file):
         styles=[],
         strip=True,
     )
+
+
+class StringOutputWriter(docutils.writers.Writer):
+    def __init__(self):
+        super().__init__()
+        self.output = []
+
+    def write(self, document, destination):
+        self.output.append(document)
+
+    def get_output(self):
+        return "".join([str(x) for x in self.output])
+
+    def assemble_parts(self):
+        self.parts["whole"] = self.output
+        self.parts["encoding"] = "utf-8"
+        self.parts["version"] = docutils.__version__
+
+
+def _render_from_restructured_text(doc_file):
+    """Render html from restructured text (RST)  documentation file.
+
+    :param doc_file: DocFile"""
+    # we have to send in a file like object
+    doc_bytes = io.BytesIO(doc_file.text.encode("utf-8"))
+
+    # we need a file like object to store the result
+    output = io.StringIO()
+
+    # we need to override the output with a custom writer
+    writer = StringOutputWriter()
+
+    docutils.core.publish_file(source=doc_bytes, destination=output, writer=writer)
+
+    unsafe_html = writer.get_output()
+    return unsafe_html

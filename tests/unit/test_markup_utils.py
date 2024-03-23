@@ -64,7 +64,7 @@ class TestFindGetFiles(TestCase):
         for invalid_name in [
             "readme.md",
             "README",
-            "README.rst",
+            # "README.rst",
             "readme",
             "INTRO.md",
         ]:
