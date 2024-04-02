@@ -1,3 +1,18 @@
+galaxy-importer 0.4.21 (2024-04-01)
+===================================
+
+Bugfixes
+--------
+
+- Set the XDG_CACHE_HOME for ansible-lint to have a writeable path in openshift (`AAH-3126 <https://issues.redhat.com/browse/AAH-3126>`_)
+
+
+Misc
+----
+
+- `AAH-2805 <https://issues.redhat.com/browse/AAH-2805>`_
+
+
 galaxy-importer 0.4.19 (2024-02-06)
 ===================================
 
