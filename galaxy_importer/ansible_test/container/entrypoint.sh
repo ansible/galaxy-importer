@@ -96,4 +96,3 @@ then
 else
     echo "No EDA content found. Skipping linters."
 fi
-
