@@ -1,0 +1,1 @@
+Update ansible-test base image and ansible-core including python bump from 3.9 to 3.10
