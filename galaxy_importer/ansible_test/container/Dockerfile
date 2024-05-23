@@ -1,4 +1,4 @@
-FROM quay.io/ansible/base-test-container:4.1.0
+FROM quay.io/ansible/base-test-container:5.10.0
 
 COPY entrypoint.sh /entrypoint
 
@@ -16,8 +16,8 @@ RUN useradd user1 \
     mkdir -p -m 0775 /ansible_collections /ansible_collections/ns /ansible_collections/ns/col && \
     touch /ansible_collections/ns/col/placeholder.txt && \
     # On updating ansible-core version, update the FROM statement to the matching base-test-container version
-    python3.9 -m pip install ansible-core==2.15.0 --disable-pip-version-check && \
-    python3.9 -m pip install tox && \
+    python3.11 -m pip install ansible-core==2.16.0 --disable-pip-version-check && \
+    python3.11 -m pip install tox && \
     # Creates dir with correct permissions for where ansible-test sanity writes files, needed for non-privileged containers
     mkdir -m 0775 -p /.cache/pylint && \
     mkdir -m 0775 -p /eda /eda/tox
