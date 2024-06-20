@@ -164,7 +164,7 @@ def test_init_role_loader(loader_role):
 
 
 def test_init_plugin_loader_subdirs(loader_module_subdirs):
-    assert loader_module_subdirs.name == "my_module_2"
+    assert loader_module_subdirs.name == "subdir1.subdir2.my_module_2"
     assert loader_module_subdirs.path_name == "subdir1.subdir2.my_module_2"
 
 
@@ -226,7 +226,7 @@ def test_load(mocked_popen, loader_module):
 
 
 def test_load_subdirs(loader_module_subdirs):
-    assert loader_module_subdirs.name == "my_module_2"
+    assert loader_module_subdirs.name == "subdir1.subdir2.my_module_2"
     res = loader_module_subdirs.load()
     assert isinstance(res, schema.Content)
     assert res.name == "subdir1.subdir2.my_module_2"

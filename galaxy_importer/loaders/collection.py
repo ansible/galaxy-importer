@@ -98,7 +98,6 @@ class CollectionLoader(object):
             ).load()
 
         self.content_objs = list(self._load_contents())
-
         self.contents = self._build_contents_blob()
         self.docs_blob = self._build_docs_blob()
         self.requires_ansible = file_parser.RuntimeFileParser(self.path).get_requires_ansible()
@@ -371,20 +370,25 @@ class CollectionLoader(object):
     def _load_contents(self):
         """Find and load data for each content inside the collection."""
         found_contents = ContentFinder().find_contents(self.path, self.log)
-        for content_type, rel_path in found_contents:
+        for content_type, content_name, rel_path in found_contents:
             loader_cls = loaders.get_loader_cls(content_type)
             loader = loader_cls(
-                content_type, rel_path, self.path, self.doc_strings, self.cfg, self.log
+                content_type=content_type,
+                content_name=content_name,
+                rel_path=rel_path,
+                root=self.path,
+                doc_strings=self.doc_strings,
+                cfg=self.cfg,
+                logger=self.log,
             )
             content_obj = loader.load()
-
             yield content_obj
 
     def _build_contents_blob(self):
         """Build importer result contents from Content objects."""
         return [
             schema.ResultContentItem(
-                name=c.name,
+                name=c.content_name or c.name,
                 content_type=c.content_type.value,
                 description=c.description,
             )
