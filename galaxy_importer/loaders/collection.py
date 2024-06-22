@@ -207,8 +207,8 @@ class CollectionLoader(object):
             self.log.warning(IGNORE_WARNING.format(file=ignore_file, line_count=line_count))
 
     def _check_collection_changelog(self):
-        """Log an error when a CHANGELOG file is not present in the root"
-        " or docs/ dir of the collection."""
+        """Log an error when a CHANGELOG file is not present in the root,"
+        " docs/ dir, or changelogs/ dir of the collection."""
         changelog = False
         changelog_paths = [
             "CHANGELOG.rst",
@@ -216,6 +216,7 @@ class CollectionLoader(object):
             "docs/CHANGELOG.md",
             "docs/CHANGELOG.rst",
             "changelogs/changelog.yaml",
+            "changelogs/changelog.yml",
         ]
 
         for log_path in changelog_paths:
@@ -227,7 +228,7 @@ class CollectionLoader(object):
             self.log.warning(
                 "No changelog found. "
                 "Add a CHANGELOG.rst or CHANGELOG.md file in the collection root "
-                "or docs/ dir, or a changelogs/changelog.yaml file."
+                "or docs/ dir, or a changelogs/changelog.(yml/yaml) file."
             )
 
     def _check_ee_yml_dep_files(self):  # pragma: no cover

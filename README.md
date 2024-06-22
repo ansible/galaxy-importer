@@ -78,7 +78,7 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 - `ANSIBLE_TEST_LOCAL_IMAGE` - Set to `True` to run `ansible-test` sandboxed within a container image. Requires installation of either Podman or Docker to run the container. Defaults to `False`.
 
-- `CHECK_CHANGELOG` - Set to `False` to not check for a `CHANGELOG.rst or` `CHANGELOG.md` file under the collection root or `docs/` dir, or a `changelogs/changelog.yml` file. Defaults to `True`. 
+- `CHECK_CHANGELOG` - Set to `False` to not check for a `CHANGELOG.rst or` `CHANGELOG.md` file under the collection root or `docs/` dir, or a `changelogs/changelog.(yml/yaml)` file. Defaults to `True`. 
 
 - `CHECK_REQUIRED_TAGS` - Set to `True` to check for a set of tags required for Ansible collection certification. Defaults to `False`. 
 
