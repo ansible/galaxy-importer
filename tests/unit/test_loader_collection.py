@@ -457,6 +457,7 @@ def test_missing_readme(populated_collection_root):
         "docs/CHANGELOG.md",
         "CHANGELOG.md",
         "changelogs/changelog.yaml",
+        "changelogs/changelog.yml",
     ],
 )
 def test_changelog(changelog_path, tmpdir, caplog):
@@ -489,8 +490,8 @@ def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
     ).load()
     assert (
         "No changelog found. "
-        "Add a CHANGELOG.rst or CHANGELOG.md file in the collection root or docs/ dir, or a "
-        "changelogs/changelog.yaml file." in str(caplog.records[0])
+        "Add a CHANGELOG.rst or CHANGELOG.md file in the collection root "
+        "or docs/ dir, or a changelogs/changelog.(yml/yaml) file." in str(caplog.records[0])
     )
 
 
