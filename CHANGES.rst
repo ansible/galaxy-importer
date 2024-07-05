@@ -1,4 +1,19 @@
-galaxy-importer 0.4.21 (2024-06-06)
+galaxy-importer 0.4.23 (2024-07-05)
+===================================
+
+Features
+--------
+
+- Upgrading the ansible-lint dependency upper bound from 24.6.0 to 24.6.1. (`AAH-3289 <https://issues.redhat.com/browse/AAH-3289>`_)
+
+
+Bugfixes
+--------
+
+- Adding changelogs/changelog.yml as an accepted changelog path. (`AAH-3290 <https://issues.redhat.com/browse/AAH-3290>`_)
+
+
+galaxy-importer 0.4.22 (2024-06-06)
 ===================================
 
 Features
