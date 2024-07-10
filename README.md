@@ -2,7 +2,7 @@
 
 ``galaxy-importer`` requires the following other Ansible projects:
 
-* ``ansible-lint`` up to [24.6.1](https://github.com/ansible/ansible-lint/tree/v24.6.1/docs)
+* ``ansible-lint`` up to [24.7.0](https://github.com/ansible/ansible-lint/tree/v24.7.0/docs)
 * ``ansible-core`` up to [2.16](https://docs.ansible.com/ansible-core/2.16/index.html)
 
 If you are installing from source, see ``setup.cfg`` in the repository for the matching requirements.
