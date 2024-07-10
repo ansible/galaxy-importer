@@ -1,3 +1,12 @@
+galaxy-importer 0.4.24 (2024-07-10)
+===================================
+
+Features
+--------
+
+- Upgraded the ansible-lint dependency upper bound from 24.6.1 to 24.7.0. (`AAH-3300 <https://issues.redhat.com/browse/AAH-3300>`_)
+
+
 galaxy-importer 0.4.23 (2024-07-05)
 ===================================
 
