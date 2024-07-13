@@ -623,6 +623,7 @@ class Content(object):
     """Represents content found in a collection."""
 
     name = attr.ib()
+    content_name = attr.ib()
     content_type = attr.ib(type=constants.ContentType)
     doc_strings = attr.ib(factory=dict)
     description = attr.ib(default=None)
