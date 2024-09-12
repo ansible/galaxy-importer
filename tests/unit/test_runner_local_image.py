@@ -38,21 +38,22 @@ def metadata():
 
 @mock.patch("shutil.which")
 def test_runner_run(mocked_shutil_which, metadata, mocker):
-    runner = runners.local_image.LocalImageTestRunner(metadata=metadata)
+    runner = mock.Mock(runners.local_image.LocalImageTestRunner(metadata=metadata))
 
-    mocker.patch.object(Build, "build_image")
-    mocker.patch.object(Build, "cleanup")
-    mocker.patch.object(Build, "get_container_engine")
+    mocked_build = mock.Mock(Build)
+    mocker.patch.object(mocked_build, "build_image")
+    mocker.patch.object(mocked_build, "cleanup")
+    mocker.patch.object(mocked_build, "get_container_engine")
     mocker.patch.object(runner, "_run_image")
     Build.get_container_engine.return_value = "podman"
     shutil.which.return_value = True
 
     runner.run()
 
-    assert Build.build_image.called
-    assert runner._run_image.called
-    assert Build.cleanup.called
-    assert Build.get_container_engine.called
+    mocked_build.build_image.assert_called()
+    runner._run_image.assert_called()
+    mocked_build.cleanup.assert_called()
+    mocked_build.get_container_engine.assert_called()
 
 
 @mock.patch("shutil.which")
@@ -69,7 +70,7 @@ def test_runner_run_exits(mocked_shutil_which, metadata, mocker, caplog):
 
     runner.run()
 
-    assert Build.build_image.not_called
+    Build.build_image.assert_not_called()
     assert runner._run_image.not_called
     assert Build.cleanup.not_called
     assert Build.get_container_engine.called
