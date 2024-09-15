@@ -21,8 +21,52 @@ import mimetypes
 import os
 
 import markdown
-import bleach
-from bleach_allowlist import markdown_tags, markdown_attrs
+import nh3  # replaces bleach
+
+# Tags suitable for rendering markdown
+# replaces bleach-allowlist
+markdown_tags = {
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "b",
+    "i",
+    "strong",
+    "em",
+    "tt",
+    "p",
+    "br",
+    "span",
+    "div",
+    "blockquote",
+    "code",
+    "pre",
+    "hr",
+    "ul",
+    "ol",
+    "li",
+    "dd",
+    "dt",
+    "img",
+    "a",
+    "sub",
+    "sup",
+    "table",
+    "thead",
+    "th",
+    "tr",
+    "td",
+}
+
+markdown_attrs = {
+    "*": {"id"},
+    "img": {"src", "alt", "title"},
+    "a": {"href", "alt", "title"},
+}
+
 
 README_NAME = "README"
 DOCFILE_EXTENSIONS = [
@@ -142,10 +186,9 @@ def _render_from_markdown(doc_file):
     # notes on bleach coming after markdown, and bleach_allowlist pkg:
     # https://github.com/Python-Markdown/markdown/issues/225
     unsafe_html = markdown.markdown(doc_file.text, extensions=["extra"])
-    return bleach.clean(
+    return nh3.clean(
         unsafe_html,
-        tags=markdown_tags + ["pre", "table", "thead", "th", "tr", "td"],
+        tags=markdown_tags,
         attributes=markdown_attrs,
-        styles=[],
-        strip=True,
+        strip_comments=True,
     )
