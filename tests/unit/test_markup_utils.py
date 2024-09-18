@@ -157,7 +157,7 @@ class TestHtmlRender(TestCase):
     def test_render_formatting(self):
         html = self.call_render(TEXT_FORMATTING, "text/markdown")
         assert "<h1>Role</h1>" in html
-        assert '<a href="https://www.example.com">Tool</a>' in html
+        assert '<a href="https://www.example.com" rel="noopener noreferrer">Tool</a>' in html
         assert "<code>$PATH</code>" in html
         assert "<h3>Installation</h3>" in html
         assert '<code>package_version: "1.2.0"' in html
