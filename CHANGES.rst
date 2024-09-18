@@ -1,3 +1,18 @@
+galaxy-importer 0.4.25 (2024-09-18)
+===================================
+
+Features
+--------
+
+- Upgraded the ansible-lint dependency upper bound from 24.7.0 to 24.9.0. (`AAH-3381 <https://issues.redhat.com/browse/AAH-3381>`_)
+
+
+Bugfixes
+--------
+
+- Replaced bleach and bleach-allowlist with nh3 library. (`AAH-2221 <https://issues.redhat.com/browse/AAH-2221>`_)
+
+
 galaxy-importer 0.4.24 (2024-07-10)
 ===================================
 
