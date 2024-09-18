@@ -72,6 +72,7 @@ class Build(object):
         else:
             return "podman"
 
+    @staticmethod
     def _build_dockerfile(dir):
         pkg_dockerfile = pkg_resources.resource_filename(
             "galaxy_importer", "ansible_test/container/Dockerfile"
@@ -90,6 +91,7 @@ class Build(object):
             f.seek(0)
             f.writelines(lines)
 
+    @staticmethod
     def _build_image_with_artifact(container_engine, dir):
         pkg_entrypoint = pkg_resources.resource_filename(
             "galaxy_importer", "ansible_test/container/entrypoint.sh"
@@ -123,6 +125,7 @@ class Build(object):
             image_id = image_id.split(":")[-1]
         return image_id
 
+    @staticmethod
     def _copy_collection_file(dir, filepath):
         path = os.path.join(dir, "archive.tar.gz")
         copy(filepath, path)

@@ -37,5 +37,5 @@ class BaseTestRunner(object):
         self.file_url = file_url
 
     @abc.abstractmethod
-    def run():
+    def run(self):
         pass
