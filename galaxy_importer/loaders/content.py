@@ -106,7 +106,7 @@ class PluginLoader(ContentLoader):
         doc_strings = self._get_plugin_doc_strings()
 
         if self.cfg.run_flake8:
-            for line in self._run_flake8(self.rel_path):
+            for line in self._run_flake8():
                 self.log.warning(line)
 
         return schema.Content(
@@ -123,7 +123,7 @@ class PluginLoader(ContentLoader):
         except KeyError:
             return None
 
-    def _run_flake8(self, path):
+    def _run_flake8(self):
         self.log.info(f"Linting {self.content_type.value} {self.path_name} via flake8...")
 
         if not shutil.which("flake8"):

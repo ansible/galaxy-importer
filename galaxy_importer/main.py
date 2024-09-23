@@ -27,7 +27,7 @@ from galaxy_importer import config
 from galaxy_importer.exceptions import ImporterError
 
 FILENAME_REGEXP = re.compile(
-    r"^(?P<namespace>\w+)-(?P<name>\w+)-" r"(?P<version>[0-9a-zA-Z.+-]+)\.tar\.gz$"
+    r"^(?P<namespace>\w+)-(?P<name>\w+)-(?P<version>[0-9a-zA-Z.+-]+)\.tar\.gz$"
 )
 logger = logging.getLogger(__name__)
 

@@ -165,7 +165,7 @@ def _get_file(directory, filename):
             )
         )
 
-    mimetype, encoding = mimetypes.guess_type(filename)
+    mimetype, _encoding = mimetypes.guess_type(filename)
 
     with open(filename, "rb") as fp:
         raw_text = fp.read()

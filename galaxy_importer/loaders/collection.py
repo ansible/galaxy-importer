@@ -239,7 +239,7 @@ class CollectionLoader(object):
         """
 
         try:
-            python_deps, system_deps = introspect.process_collection(self.path)
+            introspect.process_collection(self.path)
         except FileNotFoundError as e:
             self.log.warning(
                 f"Error when checking meta/execution-environment.yml for dependency files: {e}"
