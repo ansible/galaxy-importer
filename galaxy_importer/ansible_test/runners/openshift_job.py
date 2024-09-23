@@ -136,7 +136,7 @@ class Job(object):
         """Wait until job's pod initializes, pulls image, and starts running."""
 
         self.log.info("Creating pod...")
-        for i in range(API_CHECK_RETRIES):
+        for _ in range(API_CHECK_RETRIES):
             pods = self.get_pods()
             if len(pods) < 1:
                 time.sleep(API_CHECK_DELAY_SECONDS)

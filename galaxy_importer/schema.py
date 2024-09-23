@@ -68,7 +68,7 @@ def convert_none_to_empty_dict(val):
 
 
 _FILENAME_RE = re.compile(
-    r"^(?P<namespace>\w+)-(?P<name>\w+)-" r"(?P<version>[0-9a-zA-Z.+-]+)\.tar\.gz$"
+    r"^(?P<namespace>\w+)-(?P<name>\w+)-(?P<version>[0-9a-zA-Z.+-]+)\.tar\.gz$"
 )
 
 
@@ -485,11 +485,10 @@ class LegacyGalaxyInfo(object):
     def _validate_license(self, attribute, value):
         """Ensure the license is not too long."""
 
-        if value is not None:
-            if len(value) > MAX_LEGACY_ROLE_LENGTH_LICENSE:
-                raise exc.LegacyRoleSchemaError(
-                    f"role license must not exceed {MAX_LEGACY_ROLE_LENGTH_LICENSE} characters"
-                )
+        if value is not None and len(value) > MAX_LEGACY_ROLE_LENGTH_LICENSE:
+            raise exc.LegacyRoleSchemaError(
+                f"role license must not exceed {MAX_LEGACY_ROLE_LENGTH_LICENSE} characters"
+            )
 
     @min_ansible_version.validator
     @min_ansible_container_version.validator

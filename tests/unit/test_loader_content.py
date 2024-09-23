@@ -252,7 +252,7 @@ def test_load_doc_fragment_no_doc_strings(loader_doc_fragment):
 @mock.patch("galaxy_importer.loaders.content.Popen")
 def test_flake8_output(mocked_popen, loader_module):
     mocked_popen.return_value.stdout = ["my flake8 warning"]
-    res = list(loader_module._run_flake8("."))
+    res = list(loader_module._run_flake8())
     assert res[0] == "my flake8 warning"
 
 

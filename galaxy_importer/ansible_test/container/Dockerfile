@@ -11,6 +11,7 @@ RUN useradd user1 \
     apt-mark hold python* && \
     apt-get upgrade -y && \
     apt-get install -y wget && \
+    apt-get clean && \
     chmod +x /entrypoint && \
     mkdir -m 0775 /archive && \
     mkdir -p -m 0775 /ansible_collections /ansible_collections/ns /ansible_collections/ns/col && \
