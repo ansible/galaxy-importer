@@ -148,7 +148,7 @@ class Job(object):
             raise exceptions.AnsibleTestError("Could not create pod associated with job")
 
         self.log.info("Scheduling pod and waiting until it is running...")
-        for i in range(API_CHECK_RETRIES):
+        for _ in range(API_CHECK_RETRIES):
             pods = self.get_pods()
             pod_phase = pods[0]["status"]["phase"]
             if pod_phase != "Pending":
