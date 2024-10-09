@@ -33,9 +33,19 @@ default_logger = logging.getLogger(__name__)
 
 
 class ContentLoader(metaclass=abc.ABCMeta):
-    def __init__(self, content_type, rel_path, root, doc_strings=None, cfg=None, logger=None):
+    def __init__(
+        self,
+        content_type=None,
+        rel_path=None,
+        root=None,
+        content_name=None,
+        doc_strings=None,
+        cfg=None,
+        logger=None,
+    ):
         """
         :param content_type: Content type.
+        :param content_name: Name of the plugin.
         :param rel_path: Path to content file or dir, relative to root path.
         :param root: Collection root path.
         :param doc_strings: ansible-doc output for all plugins in collection
@@ -51,11 +61,15 @@ class ContentLoader(metaclass=abc.ABCMeta):
             path_name: storage.another_subdir.s3
             fq_name: my_namespace.nginx.storage.another_subdir.s3
         """
+        self.content_name = content_name
         self.content_type = content_type
         self.rel_path = rel_path
         self.root = root
 
         self.name = self._make_name(self.rel_path)
+        if not self.content_name:
+            self.content_name = self.name
+
         self._validate_name()
         self.path_name = self._make_path_name(self.rel_path, self.name)
 
@@ -97,7 +111,10 @@ class ContentLoader(metaclass=abc.ABCMeta):
             )
 
     def _log_loading(self):
-        self.log.info(f"Loading {self.content_type.value} {self.path_name}")
+        if self.path_name == self.content_name:
+            self.log.info(f"Loading {self.content_type.value} {self.path_name}")
+            return
+        self.log.info(f"Loading {self.content_type.value} {self.path_name}:{self.content_name}")
 
 
 class PluginLoader(ContentLoader):
@@ -110,14 +127,18 @@ class PluginLoader(ContentLoader):
                 self.log.warning(line)
 
         return schema.Content(
-            name=self.path_name,
+            name=self.content_name or self.path_name,
+            content_name=self.content_name,
             content_type=self.content_type,
             doc_strings=doc_strings,
         )
 
     def _get_plugin_doc_strings(self):
         """Return plugin doc_strings, if exists, from collection doc_strings."""
-        fq_name = self._get_fq_name(self.root, self.path_name)
+        if self.content_name == self.path_name:
+            fq_name = self._get_fq_name(self.root, self.path_name)
+        else:
+            fq_name = self._get_fq_name(self.root, self.content_name)
         try:
             return self.doc_strings[self.content_type.value][fq_name]
         except KeyError:
@@ -157,21 +178,33 @@ class PluginLoader(ContentLoader):
 
     @staticmethod
     def _make_name(rel_path):
-        return os.path.splitext(os.path.basename(rel_path))[0]
+        paths = Path(os.path.dirname(rel_path)).parts[2:]
+        name = os.path.splitext(os.path.basename(rel_path))[0]
+        full_path = list(paths) + [name]
+        return ".".join(full_path)
 
     @staticmethod
     def _make_path_name(rel_path, name):
-        dirname_parts = Path(os.path.dirname(rel_path)).parts[2:]
-        return ".".join(list(dirname_parts) + [name])
+        paths = Path(os.path.dirname(rel_path)).parts[2:]
+        name = os.path.splitext(os.path.basename(rel_path))[0]
+        full_path = list(paths) + [name]
+        return ".".join(full_path)
 
 
 class ExtensionLoader(PluginLoader):
+
+    @staticmethod
+    def _make_name(rel_path):
+        ext_name = os.path.splitext(os.path.basename(rel_path))[0]
+        return ext_name
+
     @staticmethod
     def _make_path_name(rel_path, name):
         """Not expecting extensions to exist in subdirs like other content types,
         can simply return name
         """
-        return name
+        ext_name = os.path.splitext(os.path.basename(rel_path))[0]
+        return ext_name
 
 
 class RoleLoader(ContentLoader):
@@ -182,6 +215,7 @@ class RoleLoader(ContentLoader):
 
         return schema.Content(
             name=self.path_name,
+            content_name=self.path_name,
             content_type=self.content_type,
             description=description,
             readme_file=readme.name,
