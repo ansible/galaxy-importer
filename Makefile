@@ -4,12 +4,13 @@
 
 .PHONY: lint
 lint:
-	@black . --extend-exclude .github/ --line-length 100 --diff --check
-	@flake8
+	black . --extend-exclude .github/ --line-length 100 --diff --check
+	flake8
+	ruff check
 
 .PHONY: lint/format/black
 lint/format/black:
-	@black . --extend-exclude .github/ --line-length 100
+	black . --extend-exclude .github/ --line-length 100
 
 
 # ---------------------------------------------------------
@@ -22,11 +23,11 @@ test: lint test/unit test/functional
 
 .PHONY: test/unit
 test/unit:
-	@pytest tests/unit --cov=galaxy_importer --cov-branch
+	pytest tests/unit --cov=galaxy_importer --cov-branch
 
 .PHONY: test/unit/annotate
 test/unit/annotate:
-	@pytest tests/unit --cov=galaxy_importer --cov-branch --cov-report annotate
+	pytest tests/unit --cov=galaxy_importer --cov-branch --cov-report annotate
 
 .PHONY: test/unit/annotate/clean
 test/unit/annotate/clean:
@@ -34,4 +35,4 @@ test/unit/annotate/clean:
 
 .PHONY: test/integration
 test/integration:
-	@pytest tests/integration -v
+	pytest tests/integration -v

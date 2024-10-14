@@ -4,3 +4,7 @@
     filename = "CHANGES.rst"
     title_format = "galaxy-importer {version} ({project_date})"
     issue_format = "`AAH-{issue} <https://issues.redhat.com/browse/AAH-{issue}>`_"
+
+
+[tool.ruff]
+line-length = 100
