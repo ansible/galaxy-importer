@@ -39,7 +39,6 @@ jobs:
         make lint
 
     - name: Run unit tests
-      if: matrix.python-version != '3.8'
       run: |
         make test/unit
 
