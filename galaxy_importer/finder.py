@@ -73,6 +73,17 @@ class ContentFinder(object):
                 rel_path = os.path.relpath(file_path, self.path)
                 yield Result(content_type, rel_path)
 
+    def _find_playbooks(self, content_type, content_dir):
+        for root, dirs, filenames in os.walk(content_dir):
+            if root != content_dir:
+                continue
+            for filename in filenames:
+                _, extension = os.path.splitext(filename)
+                if extension and extension.lower() in [".yml", ".yaml"]:
+                    file_path = os.path.join(root, filename)
+                    rel_path = os.path.relpath(file_path, self.path)
+                    yield Result(content_type, rel_path)
+
     def _find_roles(self, content_type, content_dir):
         """Find all dirs inside roles dir where contents match a role."""
 
@@ -97,7 +108,9 @@ class ContentFinder(object):
 
     def _content_type_dirs(self):
         for content_type in constants.ContentType:
-            if content_type == constants.ContentType.ROLE:
+            if content_type == constants.ContentType.PLAYBOOK:
+                yield content_type, "playbooks", self._find_playbooks
+            elif content_type == constants.ContentType.ROLE:
                 yield content_type, "roles", self._find_roles
             elif content_type == constants.ContentType.MODULE:
                 yield content_type, "plugins/modules", self._find_plugins
