@@ -1,4 +1,4 @@
-FROM quay.io/ansible/base-test-container:5.10.0
+FROM quay.io/ansible/base-test-container:7.7.0
 
 COPY entrypoint.sh /entrypoint
 
