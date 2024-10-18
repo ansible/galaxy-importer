@@ -20,6 +20,7 @@ import os
 import shutil
 import tempfile
 import unittest
+import yaml
 
 import pytest
 
@@ -49,6 +50,9 @@ class TestContentFinder(unittest.TestCase):
 
         self.roles_dir = os.path.join(self.temp_dir, "roles")
         os.mkdir(self.roles_dir)
+
+        self.playbooks_dir = os.path.join(self.temp_dir, "playbooks")
+        os.mkdir(self.playbooks_dir)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -170,6 +174,29 @@ class TestContentFinder(unittest.TestCase):
 
         contents = list(ContentFinder().find_contents(self.temp_dir))
         assert len(contents) == 0
+
+    def test_find_playbooks(self):
+
+        content = [
+            {
+                "name": "a test playbook",
+                "tasks": [
+                    {
+                        "name": "a task",
+                        "shell": "whoami",
+                    }
+                ],
+            }
+        ]
+
+        pb_path = os.path.join(self.playbooks_dir, "play1.yml")
+        with open(pb_path, "w") as f:
+            f.write(yaml.dump(content))
+
+        contents = list(ContentFinder().find_contents(self.temp_dir))
+        assert len(contents) == 1
+        assert contents[0].content_type.name == "PLAYBOOK"
+        assert contents[0].path == "playbooks/play1.yml"
 
 
 @pytest.fixture

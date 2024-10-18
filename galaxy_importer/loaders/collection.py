@@ -98,8 +98,8 @@ class CollectionLoader(object):
             ).load()
 
         self.content_objs = list(self._load_contents())
-
         self.contents = self._build_contents_blob()
+
         self.docs_blob = self._build_docs_blob()
         self.requires_ansible = file_parser.RuntimeFileParser(self.path).get_requires_ansible()
         self._check_ee_yml_dep_files()

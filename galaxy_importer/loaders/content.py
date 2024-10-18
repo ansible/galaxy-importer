@@ -174,6 +174,29 @@ class ExtensionLoader(PluginLoader):
         return name
 
 
+class PlaybookLoader(ContentLoader):
+
+    def load(self):
+        self._log_loading()
+
+        return schema.Content(
+            name=self.path_name,
+            content_type=self.content_type,
+        )
+
+    @staticmethod
+    def _make_name(rel_path):
+        return os.path.basename(rel_path)
+
+    @staticmethod
+    def _make_path_name(rel_path, name):
+        dirname_parts = Path(os.path.dirname(rel_path)).parts[1:]
+        return ".".join(list(dirname_parts) + [name])
+
+    def _validate_name(self):
+        return True
+
+
 class RoleLoader(ContentLoader):
     def load(self):
         self._log_loading()
@@ -233,7 +256,9 @@ class RoleLoader(ContentLoader):
 
 
 def get_loader_cls(content_type):
-    if content_type.category == constants.ContentCategory.ROLE:
+    if content_type.category == constants.ContentCategory.PLAYBOOK:
+        return PlaybookLoader
+    elif content_type.category == constants.ContentCategory.ROLE:
         return RoleLoader
     elif content_type.category in [
         constants.ContentCategory.PLUGIN,

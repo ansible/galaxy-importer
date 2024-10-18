@@ -84,6 +84,7 @@ class ContentCategory(enum.Enum):
 
 
 class ContentType(enum.Enum):
+    PLAYBOOK = "playbook"
     ROLE = "role"
     MODULE = "module"
     MODULE_UTILS = "module_utils"
@@ -110,6 +111,7 @@ class ContentType(enum.Enum):
     @property
     def category(self):
         return {
+            ContentType.PLAYBOOK: ContentCategory.PLAYBOOK,
             ContentType.ROLE: ContentCategory.ROLE,
             ContentType.MODULE: ContentCategory.MODULE,
             ContentType.MODULE_UTILS: ContentCategory.PLUGIN,
