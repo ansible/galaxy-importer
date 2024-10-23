@@ -1,3 +1,11 @@
+galaxy-importer 0.4.26 (2024-10-23)
+===================================
+
+Features
+--------
+
+- Add a playbook loader. (`AAP-33502 <https://issues.redhat.com/browse/AAP-33502>`_)
+
 galaxy-importer 0.4.25 (2024-09-18)
 ===================================
 
