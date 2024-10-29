@@ -67,7 +67,10 @@ class ContentFinder(object):
         """Find all python files anywhere inside content_dir."""
         for path, _, files in os.walk(content_dir):
             for file in files:
-                if not file.endswith(".py") or file == "__init__.py":
+                if file == "__init__.py" or not (
+                    file.endswith(".py") or file.endswith(".yaml") or
+                    file.endswith(".yml")
+                ):
                     continue
                 file_path = os.path.join(path, file)
                 rel_path = os.path.relpath(file_path, self.path)
