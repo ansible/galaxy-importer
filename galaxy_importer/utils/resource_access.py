@@ -7,9 +7,11 @@ import os
 
 try:
     from pkg_resources import resource_stream
+
     USE_PKG_RESOURCES = True
 except ImportError:
     from importlib.resources import files
+
     USE_PKG_RESOURCES = False
 
 from contextlib import contextmanager
@@ -33,7 +35,7 @@ def resource_stream_compat(package, resource_name):
         stream = resource_stream(package, resource_name)
     else:
         # Fallback to importlib.resources if pkg_resources is not available
-        stream = (files(package) / resource_name).open('rb')
+        stream = (files(package) / resource_name).open("rb")
 
     try:
         yield stream
@@ -65,7 +67,11 @@ def resource_filename_compat(package, resource_name):
             resource_path = files(package) / resource_name
             if resource_path.is_dir():
                 # Copy directory content to temp_dir if resource is a directory
-                shutil.copytree(resource_path, os.path.join(temp_dir, os.path.basename(resource_path)), dirs_exist_ok=True)
+                shutil.copytree(
+                    resource_path,
+                    os.path.join(temp_dir, os.path.basename(resource_path)),
+                    dirs_exist_ok=True,
+                )
                 yield os.path.join(temp_dir, os.path.basename(resource_path))
             else:
                 # Copy file to temp_dir if resource is a file

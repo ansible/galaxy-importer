@@ -76,7 +76,9 @@ class Build(object):
     @staticmethod
     def _build_dockerfile(dirname):
         file_location = os.path.join(dirname, "Dockerfile")
-        with resource_filename_compat("galaxy_importer", "ansible_test/container/Dockerfile") as pkg_dockerfile:
+        with resource_filename_compat(
+            "galaxy_importer", "ansible_test/container/Dockerfile"
+        ) as pkg_dockerfile:
             shutil.copyfile(pkg_dockerfile, file_location)
         with open(file_location, "r+") as f:
             lines = f.readlines()
@@ -92,11 +94,15 @@ class Build(object):
     @staticmethod
     def _build_image_with_artifact(container_engine, dirname):
 
-        with resource_filename_compat("galaxy_importer", "ansible_test/container/entrypoint.sh") as pkg_entrypoint:
-                shutil.copyfile(pkg_entrypoint, os.path.join(dirname, "entrypoint.sh"))
+        with resource_filename_compat(
+            "galaxy_importer", "ansible_test/container/entrypoint.sh"
+        ) as pkg_entrypoint:
+            shutil.copyfile(pkg_entrypoint, os.path.join(dirname, "entrypoint.sh"))
 
         os.mkdir(os.path.join(dirname, "eda"))
-        with resource_filename_compat("galaxy_importer", "ansible_test/container/eda/tox.ini") as eda_linting:
+        with resource_filename_compat(
+            "galaxy_importer", "ansible_test/container/eda/tox.ini"
+        ) as eda_linting:
             shutil.copyfile(eda_linting, os.path.join(dirname, "eda", "tox.ini"))
 
         cmd = [container_engine, "build", ".", "--quiet"]
