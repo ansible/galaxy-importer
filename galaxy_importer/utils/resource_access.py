@@ -6,6 +6,7 @@ import os
 
 
 try:
+    from pkg_resources import resource_filename
     from pkg_resources import resource_stream
 
     USE_PKG_RESOURCES = True
