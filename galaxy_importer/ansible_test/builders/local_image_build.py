@@ -50,7 +50,7 @@ class Build(object):
 
         self.log.info("Building image...")
         self.image = Build._build_image_with_artifact(
-            container_engine=self.container_engine, dir=self.working_dir.name
+            container_engine=self.container_engine, dirname=self.working_dir.name
         )
         return self.image
 
