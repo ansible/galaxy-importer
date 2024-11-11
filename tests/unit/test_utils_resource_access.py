@@ -19,6 +19,7 @@ def test_resource_stream_compat_with_pkg_resources(mock_pkg_resources):
         "galaxy_importer.utils.spdx_licenses", "spdx_licenses.json"
     ) as fstream:
         raw = fstream.read()
+    assert raw is not None
     assert mock_pkg_resources.resource_stream.called
 
 
@@ -29,6 +30,7 @@ def test_resource_stream_compat_with_importlib(mock_files):
         "galaxy_importer.utils.spdx_licenses", "spdx_licenses.json"
     ) as fstream:
         raw = fstream.read()
+    assert raw is not None
     assert mock_files.called
 
 
