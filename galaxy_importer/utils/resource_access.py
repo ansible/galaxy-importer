@@ -6,11 +6,11 @@ import os
 
 
 try:
-    from pkg_resources import resource_filename
-    from pkg_resources import resource_stream
+    import pkg_resources
 
     USE_PKG_RESOURCES = True
 except ImportError:
+    pkg_resources = None
     from importlib.resources import files
 
     USE_PKG_RESOURCES = False
@@ -33,7 +33,7 @@ def resource_stream_compat(package, resource_name):
     """
     if USE_PKG_RESOURCES:
         # Use pkg_resources.resource_stream if available
-        stream = resource_stream(package, resource_name)
+        stream = pkg_resources.resource_stream(package, resource_name)
     else:
         # Fallback to importlib.resources if pkg_resources is not available
         stream = (files(package) / resource_name).open("rb")
@@ -59,7 +59,7 @@ def resource_filename_compat(package, resource_name):
     """
     if USE_PKG_RESOURCES:
         # Use pkg_resources.resource_filename if available
-        path = resource_filename(package, resource_name)
+        path = pkg_resources.resource_filename(package, resource_name)
         yield path
     else:
         # Fallback to importlib.resources if pkg_resources is not available
