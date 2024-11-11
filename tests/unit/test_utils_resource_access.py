@@ -1,13 +1,9 @@
 # test_resource_access.py
 
-import pytest
 import glob
 import json
-import tempfile
 import os
-import shutil
-import importlib.util
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import patch
 
 from galaxy_importer.utils.resource_access import resource_stream_compat, resource_filename_compat
 
@@ -41,6 +37,7 @@ def test_resource_filename_compat_with_pkg_resources(mock_pkg_resources):
         "galaxy_importer.utils.spdx_licenses", "spdx_licenses.json"
     ) as fstream:
         raw = fstream.read()
+    assert raw is not None
     assert mock_pkg_resources.resource_filename.called
 
 
