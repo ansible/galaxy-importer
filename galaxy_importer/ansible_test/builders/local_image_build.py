@@ -92,18 +92,6 @@ class Build(object):
     @staticmethod
     def _build_image_with_artifact(container_engine, dirname):
 
-        '''
-        pkg_entrypoint = pkg_resources.resource_filename(
-            "galaxy_importer", "ansible_test/container/entrypoint.sh"
-        )
-        eda_linting = pkg_resources.resource_filename(
-            "galaxy_importer", "ansible_test/container/eda/tox.ini"
-        )
-        shutil.copyfile(pkg_entrypoint, os.path.join(dir, "entrypoint.sh"))
-        os.mkdir(os.path.join(dir, "eda"))
-        shutil.copyfile(eda_linting, os.path.join(dir, "eda", "tox.ini"))
-        '''
-
         with resource_filename_compat("galaxy_importer", "ansible_test/container/entrypoint.sh") as pkg_entrypoint:
                 shutil.copyfile(pkg_entrypoint, os.path.join(dirname, "entrypoint.sh"))
 
