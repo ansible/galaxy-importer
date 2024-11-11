@@ -1,7 +1,7 @@
 import json
 import logging
 
-from pkg_resources import resource_stream
+from galaxy_importer.utils.resource_access import resource_stream_compat
 
 
 log = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ _SPDX_LICENSES_FILE = "spdx_licenses.json"
 
 def _load_spdx():
     try:
-        with resource_stream(__name__, _SPDX_LICENSES_FILE) as stream:
+        with resource_stream_compat(__name__, _SPDX_LICENSES_FILE) as stream:
             return json.load(stream)
     except EnvironmentError as exc:
         log.warning(

@@ -18,7 +18,6 @@
 
 import logging
 import os
-import pkg_resources
 import requests
 import time
 import uuid
@@ -27,6 +26,7 @@ import yaml
 from galaxy_importer import config
 from galaxy_importer import exceptions
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
+from galaxy_importer.utils.resource_access import resource_filename_compat
 
 
 default_logger = logging.getLogger(__name__)
@@ -78,9 +78,14 @@ class OpenshiftJobTestRunner(BaseTestRunner):
 
     @staticmethod
     def _get_job_template():
-        path = pkg_resources.resource_filename("galaxy_importer", "ansible_test/job_template.yaml")
+        '''
+        path = resource_filename_compat("galaxy_importer", "ansible_test/job_template.yaml")
         with open(path, "r") as f:
             job_template = f.read()
+        '''
+        with resource_filename_compat("galaxy_importer", "ansible_test/job_template.yaml") as file_path:
+            with open(file_path, "r") as f:
+                job_template = f.read()
         return job_template
 
 
