@@ -207,11 +207,11 @@ class TestContentFinder(unittest.TestCase):
                 "module": "foobar",
                 "short_description": "",
                 "description": [],
-                "options": {}
+                "options": {},
             }
         }
 
-        # docs come from the yaml file so the 
+        # docs come from the yaml file so the
         # powershell file content is irrelevant
         with open(ps_fn, "w") as f:
             f.write("\n")
