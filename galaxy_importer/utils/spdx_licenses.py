@@ -11,8 +11,9 @@ _SPDX_LICENSES_FILE = "spdx_licenses.json"
 
 
 def _load_spdx():
+    parent_module = __name__.rsplit(".", 1)[0]
     try:
-        with resource_stream_compat(__name__, _SPDX_LICENSES_FILE) as stream:
+        with resource_stream_compat(parent_module, _SPDX_LICENSES_FILE) as stream:
             return json.load(stream)
     except EnvironmentError as exc:
         log.warning(
