@@ -198,6 +198,34 @@ class TestContentFinder(unittest.TestCase):
         assert contents[0].content_type.name == "PLAYBOOK"
         assert contents[0].path == "playbooks/play1.yml"
 
+    def test_find_powershell_modules(self):
+        ps_fn = os.path.join(self.module_dir, "foobar.ps1")
+        yml_fn = os.path.join(self.module_dir, "foobar.yaml")
+
+        docstring = {
+            "DOCUMENTATION": {
+                "module": "foobar",
+                "short_description": "",
+                "description": [],
+                "options": {},
+            }
+        }
+
+        # docs come from the yaml file so the
+        # powershell file content is irrelevant
+        with open(ps_fn, "w") as f:
+            f.write("\n")
+
+        with open(yml_fn, "w") as f:
+            yaml.dump(docstring, f)
+
+        contents = list(ContentFinder().find_contents(self.temp_dir))
+        assert len(contents) == 1
+        assert contents[0].path == "plugins/modules/foobar.ps1"
+        assert contents[0].content_type.name == "MODULE"
+        assert contents[0].content_type.value == "module"
+        assert contents[0].content_type.category.name == "MODULE"
+
 
 @pytest.fixture
 def walker_dir(tmp_path):
