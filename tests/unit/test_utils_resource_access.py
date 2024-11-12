@@ -10,18 +10,14 @@ from galaxy_importer.utils.resource_access import resource_stream_compat, resour
 
 @patch("galaxy_importer.utils.resource_access.files")
 def test_resource_stream_compat_with_importlib(mock_files):
-    with resource_stream_compat(
-        "galaxy_importer.utils", "spdx_licenses.json"
-    ) as fstream:
+    with resource_stream_compat("galaxy_importer.utils", "spdx_licenses.json") as fstream:
         raw = fstream.read()
     assert raw is not None
     assert mock_files.called
 
 
 def test_resource_filename_compat_with_importlib_filename():
-    with resource_filename_compat(
-        "galaxy_importer.utils", "spdx_licenses.json"
-    ) as fpath:
+    with resource_filename_compat("galaxy_importer.utils", "spdx_licenses.json") as fpath:
         with open(fpath, "r") as f:
             ds = json.loads(f.read())
     assert fpath.endswith("spdx_licenses.json")
