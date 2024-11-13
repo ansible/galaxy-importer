@@ -3,17 +3,8 @@
 import glob
 import json
 import os
-from unittest.mock import patch
 
-from galaxy_importer.utils.resource_access import resource_stream_compat, resource_filename_compat
-
-
-@patch("galaxy_importer.utils.resource_access.files")
-def test_resource_stream_compat_with_importlib(mock_files):
-    with resource_stream_compat("galaxy_importer.utils", "spdx_licenses.json") as fstream:
-        raw = fstream.read()
-    assert raw is not None
-    assert mock_files.called
+from galaxy_importer.utils.resource_access import resource_filename_compat
 
 
 def test_resource_filename_compat_with_importlib_filename():

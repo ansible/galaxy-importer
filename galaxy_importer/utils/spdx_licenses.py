@@ -1,7 +1,6 @@
 import json
 import logging
-
-from galaxy_importer.utils.resource_access import resource_stream_compat
+from importlib.resources import files
 
 
 log = logging.getLogger(__name__)
@@ -13,7 +12,7 @@ _SPDX_LICENSES_FILE = "spdx_licenses.json"
 def _load_spdx():
     parent_module = __name__.rsplit(".", 1)[0]
     try:
-        with resource_stream_compat(parent_module, _SPDX_LICENSES_FILE) as stream:
+        with (files(parent_module) / _SPDX_LICENSES_FILE).open("rb") as stream:
             return json.load(stream)
     except EnvironmentError as exc:
         log.warning(

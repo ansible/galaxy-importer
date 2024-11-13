@@ -10,28 +10,6 @@ from contextlib import contextmanager
 
 
 @contextmanager
-def resource_stream_compat(package, resource_name):
-    """
-    A context manager to provide a stream to a package resource, abstracting over
-    `pkg_resources.resource_stream` and `importlib.resources`.
-
-    Args:
-        package (str): The name of the package containing the resource.
-        resource_name (str): The name of the resource within the package.
-
-    Yields:
-        A file-like object for reading the resource.
-    """
-    # Fallback to importlib.resources if pkg_resources is not available
-    stream = (files(package) / resource_name).open("rb")
-
-    try:
-        yield stream
-    finally:
-        stream.close()
-
-
-@contextmanager
 def resource_filename_compat(package, resource_name):
     """
     A context manager to provide a file path to a package resource, abstracting over
