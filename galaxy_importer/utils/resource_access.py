@@ -22,9 +22,8 @@ def resource_filename_compat(package, resource_name):
     Yields:
         str: The file path to the resource.
     """
-    # Fallback to importlib.resources if pkg_resources is not available
-    temp_dir = tempfile.mkdtemp()
-    try:
+
+    with tempfile.TemporaryDirectory() as temp_dir:
         resource_path = files(package) / resource_name
         if resource_path.is_dir():
             # Copy directory content to temp_dir if resource is a directory
@@ -39,6 +38,3 @@ def resource_filename_compat(package, resource_name):
             temp_path = os.path.join(temp_dir, os.path.basename(resource_name))
             shutil.copy2(resource_path, temp_path)
             yield temp_path
-    finally:
-        # Cleanup temporary directory
-        shutil.rmtree(temp_dir)
