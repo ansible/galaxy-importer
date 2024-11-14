@@ -21,12 +21,12 @@ jobs:
 
     steps:
     - name: Checkout pull request HEAD commit instead of merge commit
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -58,7 +58,7 @@ jobs:
 
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
-      if: github.event_name == 'push' && github.repository == 'ansible/galaxy-importer' && github.ref_name == 'master'
+      if: github.event_name == 'push' && github.repository == 'ansible/galaxy-importer' && github.ref_name == 'master' && matrix.python-version == '3.11'
       env:
         SONAR_TOKEN: ${{ secrets.CICD_ORG_SONAR_TOKEN_CICD_BOT }}
 
