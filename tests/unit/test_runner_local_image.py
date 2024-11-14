@@ -69,9 +69,9 @@ def test_runner_run_exits(mocked_shutil_which, metadata, mocker, caplog):
 
     runner.run()
 
-    assert Build.build_image.not_called
-    assert runner._run_image.not_called
-    assert Build.cleanup.not_called
+    assert not Build.build_image.called
+    assert not runner._run_image.called
+    assert not Build.cleanup.called
     assert Build.get_container_engine.called
     assert '"random_container_engine" not found, skipping ansible-test sanity' in [
         r.message for r in caplog.records

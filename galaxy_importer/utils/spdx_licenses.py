@@ -1,7 +1,6 @@
 import json
 import logging
-
-from pkg_resources import resource_stream
+from importlib.resources import files
 
 
 log = logging.getLogger(__name__)
@@ -11,8 +10,9 @@ _SPDX_LICENSES_FILE = "spdx_licenses.json"
 
 
 def _load_spdx():
+    parent_module = __name__.rsplit(".", 1)[0]
     try:
-        with resource_stream(__name__, _SPDX_LICENSES_FILE) as stream:
+        with (files(parent_module) / _SPDX_LICENSES_FILE).open("rb") as stream:
             return json.load(stream)
     except EnvironmentError as exc:
         log.warning(

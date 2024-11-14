@@ -17,13 +17,14 @@
 
 import logging
 import os
-import pkg_resources
 import shutil
 import tempfile
 
 from galaxy_importer import exceptions
 from shutil import copy
 from subprocess import Popen, PIPE, STDOUT, run, CalledProcessError
+
+from galaxy_importer.utils.resource_access import resource_filename_compat
 
 default_logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ class Build(object):
 
         self.log.info("Building image...")
         self.image = Build._build_image_with_artifact(
-            container_engine=self.container_engine, dir=self.working_dir.name
+            container_engine=self.container_engine, dirname=self.working_dir.name
         )
         return self.image
 
@@ -73,13 +74,12 @@ class Build(object):
             return "podman"
 
     @staticmethod
-    def _build_dockerfile(dir):
-        pkg_dockerfile = pkg_resources.resource_filename(
+    def _build_dockerfile(dirname):
+        file_location = os.path.join(dirname, "Dockerfile")
+        with resource_filename_compat(
             "galaxy_importer", "ansible_test/container/Dockerfile"
-        )
-        file_location = os.path.join(dir, "Dockerfile")
-        shutil.copyfile(pkg_dockerfile, file_location)
-
+        ) as pkg_dockerfile:
+            shutil.copyfile(pkg_dockerfile, file_location)
         with open(file_location, "r+") as f:
             lines = f.readlines()
             for index, line in enumerate(lines):
@@ -92,21 +92,23 @@ class Build(object):
             f.writelines(lines)
 
     @staticmethod
-    def _build_image_with_artifact(container_engine, dir):
-        pkg_entrypoint = pkg_resources.resource_filename(
+    def _build_image_with_artifact(container_engine, dirname):
+
+        with resource_filename_compat(
             "galaxy_importer", "ansible_test/container/entrypoint.sh"
-        )
-        eda_linting = pkg_resources.resource_filename(
+        ) as pkg_entrypoint:
+            shutil.copyfile(pkg_entrypoint, os.path.join(dirname, "entrypoint.sh"))
+
+        os.mkdir(os.path.join(dirname, "eda"))
+        with resource_filename_compat(
             "galaxy_importer", "ansible_test/container/eda/tox.ini"
-        )
-        shutil.copyfile(pkg_entrypoint, os.path.join(dir, "entrypoint.sh"))
-        os.mkdir(os.path.join(dir, "eda"))
-        shutil.copyfile(eda_linting, os.path.join(dir, "eda", "tox.ini"))
+        ) as eda_linting:
+            shutil.copyfile(eda_linting, os.path.join(dirname, "eda", "tox.ini"))
 
         cmd = [container_engine, "build", ".", "--quiet"]
         proc = Popen(
             cmd,
-            cwd=dir,
+            cwd=dirname,
             stdout=PIPE,
             stderr=STDOUT,
             encoding="utf-8",

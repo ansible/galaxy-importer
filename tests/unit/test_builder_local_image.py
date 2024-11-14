@@ -99,7 +99,7 @@ def test_build_image_with_artifact(mocked_popen, mocker):
     with tempfile.TemporaryDirectory() as dir:
         mocked_popen.return_value.stdout = ["sha256:1234", "sha256:5678"]
         mocked_popen.return_value.wait.return_value = 0
-        result = Build._build_image_with_artifact(dir=dir, container_engine="podman")
+        result = Build._build_image_with_artifact(dirname=dir, container_engine="podman")
         assert mocked_popen.called
         assert "5678" in result
 
@@ -110,7 +110,7 @@ def test_build_image_with_artifact_exception(mocked_popen, mocker):
         mocked_popen.return_value.stdout = ["sha256:1234", "sha256:5678"]
         mocked_popen.return_value.wait.return_value = 1
         with pytest.raises(exc.AnsibleTestError):
-            Build._build_image_with_artifact(dir=dir, container_engine="podman")
+            Build._build_image_with_artifact(dirname=dir, container_engine="podman")
 
 
 def test_copy_collection_file():
