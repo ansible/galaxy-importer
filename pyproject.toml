@@ -8,3 +8,11 @@
 
 [tool.ruff]
 line-length = 100
+
+[tool.coverage.run]
+relative_files = true
+branch = true
+
+[tool.coverage.report]
+fail_under = 95.50
+precision = 2
