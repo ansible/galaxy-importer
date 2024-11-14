@@ -4,6 +4,7 @@ __pycache__/
 
 # Python: coverage reports
 .coverage*
+coverage.xml
 
 # Distribution / packaging
 build/
