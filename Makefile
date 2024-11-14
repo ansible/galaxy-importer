@@ -23,11 +23,11 @@ test: lint test/unit test/functional
 
 .PHONY: test/unit
 test/unit:
-	pytest tests/unit --cov=galaxy_importer --cov-branch --cov-report xml:coverage.xml
+	pytest tests/unit --cov=galaxy_importer --cov-config=pyproject.toml --cov-report xml:coverage.xml
 
 .PHONY: test/unit/annotate
 test/unit/annotate:
-	pytest tests/unit --cov=galaxy_importer --cov-branch --cov-report annotate
+	pytest tests/unit --cov=galaxy_importer --cov-config=pyproject.toml --cov-report annotate
 
 .PHONY: test/unit/annotate/clean
 test/unit/annotate/clean:
