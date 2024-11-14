@@ -44,7 +44,24 @@ jobs:
 
     - name: run the integration tests
       run: make test/integration
- 
+
+    - name: Inject PR number into coverage.xml
+      if: matrix.python-version == '3.11'
+      run: sed -i '2i <!-- PR ${{ github.event.number }} -->' coverage.xml
+
+    - name: upload coverage as artifact
+      if: matrix.python-version == '3.11'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage
+        path: coverage.xml
+
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      if: github.event_name == 'push' && github.repository == 'ansible/galaxy-importer' && github.ref_name == 'master'
+      env:
+        SONAR_TOKEN: ${{ secrets.CICD_ORG_SONAR_TOKEN_CICD_BOT }}
+
 
   publish:
     name: Build and publish to PyPI registry

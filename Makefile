@@ -23,7 +23,7 @@ test: lint test/unit test/functional
 
 .PHONY: test/unit
 test/unit:
-	pytest tests/unit --cov=galaxy_importer --cov-branch
+	pytest tests/unit --cov=galaxy_importer --cov-branch --cov-report xml:coverage.xml
 
 .PHONY: test/unit/annotate
 test/unit/annotate:
