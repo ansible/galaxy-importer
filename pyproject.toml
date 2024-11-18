@@ -37,6 +37,8 @@ select = [
     "LOG",
     # pyupgrade
     "UP",
+    # flake8-pie
+    "PIE",
 ]
 extend-ignore = [
     # B904 requires using `raise ... from ...` to explicitly tell what to do with "parent"
