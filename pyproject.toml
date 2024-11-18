@@ -25,6 +25,8 @@ select = [
     "C4",
     # flake8-commas
     "COM",
+    # flake8-datetime
+    "DTZ",
 ]
 extend-ignore = [
     # B904 requires using `raise ... from ...` to explicitly tell what to do with "parent"
