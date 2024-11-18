@@ -37,7 +37,7 @@ def parse_string_to_bool(val):
     return val
 
 
-class Config(object):
+class Config:
     """Configuration for galaxy-importer."""
 
     DEFAULTS = {
@@ -71,7 +71,7 @@ class Config(object):
                 self.__dict__[key] = parse_string_to_bool(os.environ[env_key])
 
 
-class ConfigFile(object):
+class ConfigFile:
     """Load config from file and return dictionary."""
 
     @staticmethod

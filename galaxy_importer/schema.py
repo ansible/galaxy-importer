@@ -73,7 +73,7 @@ _FILENAME_RE = re.compile(
 
 
 @attr.s(slots=True)
-class CollectionFilename(object):
+class CollectionFilename:
     namespace = attr.ib()
     name = attr.ib()
     version = attr.ib(converter=semantic_version.Version)
@@ -93,11 +93,11 @@ class CollectionFilename(object):
     @name.validator
     def _validator(self, attribute, value):
         if not constants.NAME_REGEXP.match(value):
-            raise ValueError("Invalid {0}: {1!r}".format(attribute.name, value))
+            raise ValueError("Invalid {}: {!r}".format(attribute.name, value))
 
 
 @attr.s(frozen=True)
-class CollectionInfo(object):
+class CollectionInfo:
     """Represents collection_info metadata in collection manifest."""
 
     namespace = attr.ib(default=None)
@@ -315,7 +315,7 @@ class CollectionInfo(object):
 
 
 @attr.s(frozen=True)
-class CollectionArtifactFile(object):
+class CollectionArtifactFile:
     name = attr.ib()
     ftype = attr.ib()
     src_name = attr.ib(default=None)
@@ -325,7 +325,7 @@ class CollectionArtifactFile(object):
 
 
 @attr.s(frozen=True)
-class CollectionArtifactManifest(object):
+class CollectionArtifactManifest:
     """Represents collection manifest metadata."""
 
     collection_info = attr.ib(type=CollectionInfo)
@@ -372,7 +372,7 @@ def convert_list_to_artifact_file_list(val):
 
 
 @attr.s(frozen=True)
-class CollectionArtifactFileManifest(object):
+class CollectionArtifactFileManifest:
     files = attr.ib(factory=list, converter=convert_list_to_artifact_file_list)
 
     format = attr.ib(default=1, validator=attr.validators.instance_of(int))
@@ -385,7 +385,7 @@ class CollectionArtifactFileManifest(object):
 
 
 @attr.s(frozen=True)
-class LegacyGalaxyInfo(object):
+class LegacyGalaxyInfo:
     """Represents legacy role metadata galaxy_info field."""
 
     role_name = attr.ib(default=None)
@@ -519,7 +519,7 @@ class LegacyMetadata:
 
     @classmethod
     def parse(cls, data):
-        with open(data, "r") as fh:
+        with open(data) as fh:
             metadata = yaml.safe_load(fh)
             if not isinstance(metadata, dict):
                 raise exc.LegacyRoleSchemaError("metadata must be in the form of a yaml dictionary")
@@ -566,14 +566,14 @@ class LegacyMetadata:
 
 
 @attr.s(frozen=True)
-class ResultContentItem(object):
+class ResultContentItem:
     name = attr.ib()
     content_type = attr.ib()
     description = attr.ib()
 
 
 @attr.s(frozen=True)
-class ImportResult(object):
+class ImportResult:
     """Result of the import process, collection metadata, and contents."""
 
     metadata = attr.ib(default=None, type=CollectionInfo)
@@ -584,7 +584,7 @@ class ImportResult(object):
 
 
 @attr.s(frozen=True)
-class LegacyImportResult(object):
+class LegacyImportResult:
     """Result of legacy import with namespace, name, metadata, and readme."""
 
     namespace = attr.ib()
@@ -618,7 +618,7 @@ class LegacyImportResult(object):
 
 
 @attr.s
-class Content(object):
+class Content:
     """Represents content found in a collection."""
 
     name = attr.ib()
@@ -638,7 +638,7 @@ class Content(object):
 
 
 @attr.s(frozen=True)
-class RenderedDocFile(object):
+class RenderedDocFile:
     """Name and html of a documenation file, part of DocsBlob."""
 
     name = attr.ib(default=None)
@@ -646,7 +646,7 @@ class RenderedDocFile(object):
 
 
 @attr.s(frozen=True)
-class DocsBlobContentItem(object):
+class DocsBlobContentItem:
     """Documenation for piece of content, part of DocsBlob."""
 
     content_name = attr.ib()
@@ -657,7 +657,7 @@ class DocsBlobContentItem(object):
 
 
 @attr.s(frozen=True)
-class DocsBlob(object):
+class DocsBlob:
     """All documenation that is part of a collection."""
 
     collection_readme = attr.ib(type=RenderedDocFile)

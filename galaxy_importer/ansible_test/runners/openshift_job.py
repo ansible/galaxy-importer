@@ -68,7 +68,7 @@ class OpenshiftJobTestRunner(BaseTestRunner):
 
     @staticmethod
     def _get_token():
-        with open(os.path.join(OCP_SERVICEACCOUNT_PATH, "token"), "r") as f:
+        with open(os.path.join(OCP_SERVICEACCOUNT_PATH, "token")) as f:
             token = f.read().rstrip()
         return token
 
@@ -81,12 +81,12 @@ class OpenshiftJobTestRunner(BaseTestRunner):
         with resource_filename_compat(
             "galaxy_importer", "ansible_test/job_template.yaml"
         ) as file_path:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 job_template = f.read()
         return job_template
 
 
-class Job(object):
+class Job:
     """Interact with Openshift Job via REST API."""
 
     def __init__(

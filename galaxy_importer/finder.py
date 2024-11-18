@@ -33,7 +33,7 @@ Result = collections.namedtuple("Result", ["content_type", "path"])
 ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 
 
-class ContentFinder(object):
+class ContentFinder:
     """Searches for content in directories inside collection."""
 
     def find_contents(self, path, logger=None):
@@ -147,7 +147,7 @@ class ContentFinder(object):
 
 
 @attr.s
-class FileWalker(object):
+class FileWalker:
     collection_path = attr.ib()
     file_errors = attr.ib(factory=list)
 

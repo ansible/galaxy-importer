@@ -40,7 +40,7 @@ default_logger = logging.getLogger(__name__)
 DOCUMENTATION_DIR = "docs"
 
 
-class CollectionLoader(object):
+class CollectionLoader:
     """Loads collection and content info."""
 
     def __init__(self, path, filename, cfg=None, logger=None):
@@ -202,7 +202,7 @@ class CollectionLoader(object):
 
         listdir = os.listdir(sanity_path)
         for ignore_file in filter(IGNORE_FILE_REGEXP.match, listdir):
-            with open(os.path.join(sanity_path, ignore_file), "r") as f:
+            with open(os.path.join(sanity_path, ignore_file)) as f:
                 line_count = len(f.readlines())
             self.log.warning(IGNORE_WARNING.format(file=ignore_file, line_count=line_count))
 
@@ -252,7 +252,7 @@ class CollectionLoader(object):
 
         default_logger.debug("manifest_file: %s", manifest_file)
 
-        with open(manifest_file, "r") as f:
+        with open(manifest_file) as f:
             try:
                 data = schema.CollectionArtifactManifest.parse(f.read())
             except ValueError as e:
@@ -287,7 +287,7 @@ class CollectionLoader(object):
         files_manifest_file = os.path.join(path_prefix, file_manifest_file.name)
         default_logger.debug("files_manifest_file: %s", files_manifest_file)
 
-        with open(files_manifest_file, "r") as f:
+        with open(files_manifest_file) as f:
             try:
                 file_manifest = schema.CollectionArtifactFileManifest.parse(f.read())
             except ValueError as e:

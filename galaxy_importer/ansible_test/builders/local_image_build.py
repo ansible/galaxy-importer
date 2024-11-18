@@ -29,7 +29,7 @@ from galaxy_importer.utils.resource_access import resource_filename_compat
 default_logger = logging.getLogger(__name__)
 
 
-class Build(object):
+class Build:
     """Use docker/podman to build ansible-test image with artifact inside."""
 
     def __init__(self, filepath, collection_name, cfg, logger=default_logger):

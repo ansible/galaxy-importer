@@ -35,6 +35,8 @@ select = [
     "INP",
     # flake8-logging
     "LOG",
+    # pyupgrade
+    "UP",
 ]
 extend-ignore = [
     # B904 requires using `raise ... from ...` to explicitly tell what to do with "parent"
@@ -43,6 +45,9 @@ extend-ignore = [
     # COM812 Trailing comma missing
     # Incompatible with black
     "COM812",
+    # UP032 Use f-string instead of `format` call.
+    # No need to replace all str.format usage with f-strings in entire codebase.
+    "UP032",
 ]
 
 [tool.ruff.lint.per-file-ignores]

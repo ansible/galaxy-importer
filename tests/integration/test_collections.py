@@ -39,7 +39,7 @@ def test_collection_community_general_import(workdir, local_fast_config):
     # it should have stored structured data in the pwd
     results_file = os.path.join(workdir, "importer_result.json")
     assert os.path.exists(results_file)
-    with open(results_file, "r") as f:
+    with open(results_file) as f:
         results = json.loads(f.read())
 
     # the data should have all the relevant bits

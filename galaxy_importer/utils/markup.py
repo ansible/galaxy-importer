@@ -159,7 +159,7 @@ def _get_file(directory, filename):
 
     if os.path.getsize(filename) > DOCFILE_MAX_SIZE:
         raise FileSizeError(
-            'Documentation file "{0}" is bigger than {1} KiB.'.format(
+            'Documentation file "{}" is bigger than {} KiB.'.format(
                 os.path.relpath(filename, directory),
                 int(DOCFILE_MAX_SIZE / 1024),
             )

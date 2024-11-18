@@ -12,7 +12,7 @@ from galaxy_importer import schema
 default_logger = logging.getLogger(__name__)
 
 
-class LegacyRoleLoader(object):
+class LegacyRoleLoader:
     """Loads legacy role information."""
 
     def __init__(self, dirname, namespace, cfg=None, logger=None):
