@@ -19,6 +19,13 @@ select = [
     "W",
     # flake8-builtins
     "A",
+    # flake8-bugbear
+    "B",
+]
+extend-ignore = [
+    # B904 requires using `raise ... from ...` to explicitly tell what to do with "parent"
+    # exception. Would be nice to fix, but ignoring for now.
+    "B904",
 ]
 
 [tool.ruff.lint.flake8-builtins]

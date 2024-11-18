@@ -74,7 +74,7 @@ class ContentFinder(object):
                 yield Result(content_type, rel_path)
 
     def _find_playbooks(self, content_type, content_dir):
-        for root, dirs, filenames in os.walk(content_dir):
+        for root, _, filenames in os.walk(content_dir):
             if root != content_dir:
                 continue
             for filename in filenames:
