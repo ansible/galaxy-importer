@@ -328,15 +328,15 @@ class CollectionLoader(object):
         # check the extract archive for any extra files.
         filewalker = FileWalker(collection_path=path_prefix)
         prefix = path_prefix + "/"
-        found_file_set = set([string_utils.removeprefix(fp, prefix) for fp in filewalker.walk()])
+        found_file_set = {string_utils.removeprefix(fp, prefix) for fp in filewalker.walk()}
 
-        file_manifest_file_set = set([artifact_file.name for artifact_file in file_manifest.files])
+        file_manifest_file_set = {artifact_file.name for artifact_file in file_manifest.files}
         # The artifact contains MANIFEST.json and FILES.JSON, but they aren't
         # in file list in FILES.json so add them so we match expected.
         file_manifest_file_set.add("MANIFEST.json")
         file_manifest_file_set.add(file_manifest_name)
 
-        difference = sorted(list(found_file_set.difference(file_manifest_file_set)))
+        difference = sorted(found_file_set.difference(file_manifest_file_set))
 
         if difference:
             err_msg = f"Files in the artifact but not the file manifest: {difference}"

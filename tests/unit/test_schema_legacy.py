@@ -66,7 +66,7 @@ def test_valid_list_str(galaxy_info):
     with pytest.raises(exc.LegacyRoleSchemaError, match=re.compile("must be a list$")):
         LegacyGalaxyInfo(**galaxy_info)
 
-    galaxy_info["galaxy_tags"] = [dict()]
+    galaxy_info["galaxy_tags"] = [{}]
     with pytest.raises(exc.LegacyRoleSchemaError, match="must be a list of strings"):
         LegacyGalaxyInfo(**galaxy_info)
 
@@ -193,8 +193,8 @@ def test_invalid_dependency_type(galaxy_info, invalid_dependency):
 @pytest.mark.parametrize(
     "invalid_dict",
     [
-        [dict()],
-        [dict(role_name="foo.bar")],
+        [{}],
+        [{"role_name": "foo.bar"}],
         [
             {
                 "tags": ["nodejs"],
@@ -215,7 +215,7 @@ def test_invalid_dependency_dict_type(galaxy_info, invalid_dict):
     "dependencies",
     [
         ["geerlingguy.nodejs"],
-        [dict(role="foo.bar")],
+        [{"role": "foo.bar"}],
         [{"name": "geerlingguy.docker"}],
         [{"src": "galaxy.role,version,name"}],
         [
@@ -245,7 +245,7 @@ def test_invalid_dependency_separation(galaxy_info):
     "dependencies",
     [
         ["someone.my_role"],
-        [dict(role="someone.my_role")],
+        [{"role": "someone.my_role"}],
         [{"name": "someone.my_role"}],
         [{"src": "someone.my_role"}],
     ],

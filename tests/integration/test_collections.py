@@ -51,7 +51,7 @@ def test_collection_community_general_import(workdir, local_fast_config):
     assert results["requires_ansible"] == ">=2.13.0"
 
     # make sure it found all the files
-    contents = dict(((x["content_type"], x["name"]), x) for x in results["contents"])
+    contents = {(x["content_type"], x["name"]): x for x in results["contents"]}
     assert len(contents.keys()) == 831
 
     # check a small sample
@@ -68,9 +68,9 @@ def test_collection_community_general_import(workdir, local_fast_config):
     assert ("action", "shutdown") in contents
 
     # make sure it found all the docs
-    docs_contents = dict(
-        ((x["content_type"], x["content_name"]), x) for x in results["docs_blob"]["contents"]
-    )
+    docs_contents = {
+        (x["content_type"], x["content_name"]): x for x in results["docs_blob"]["contents"]
+    }
     assert len(docs_contents.keys()) == 831
 
     # check a small sample

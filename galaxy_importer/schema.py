@@ -531,7 +531,7 @@ class LegacyMetadata:
                 galaxy_info = LegacyGalaxyInfo(**metadata["galaxy_info"])
             except TypeError as e:
                 raise exc.LegacyRoleSchemaError(f"unknown field in galaxy_info: {e}") from e
-            dependencies = metadata.get("dependencies", list())
+            dependencies = metadata.get("dependencies", [])
         return cls(galaxy_info, dependencies)
 
     @dependencies.validator

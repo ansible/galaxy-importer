@@ -49,7 +49,7 @@ class DocStringLoader:
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
             # use ansible-doc to list all the plugins of this type
             found_plugins = self._run_ansible_doc_list(plugin_type)
-            plugins = sorted(list(found_plugins.keys()))
+            plugins = sorted(found_plugins.keys())
 
             if not plugins:
                 continue

@@ -184,7 +184,7 @@ class Job(object):
         r = requests.get(
             url=f"{self.pods_url}/{pod_name}/log",
             headers=self.auth_header,
-            params=dict(follow="true"),
+            params={"follow": "true"},
             verify=self.ca_path,
             stream=True,
         )
