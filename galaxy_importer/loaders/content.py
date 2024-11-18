@@ -162,7 +162,7 @@ class PluginLoader(ContentLoader):
     @staticmethod
     def _make_path_name(rel_path, name):
         dirname_parts = Path(os.path.dirname(rel_path)).parts[2:]
-        return ".".join(list(dirname_parts) + [name])
+        return ".".join([*dirname_parts, name])
 
 
 class ExtensionLoader(PluginLoader):
@@ -191,7 +191,7 @@ class PlaybookLoader(ContentLoader):
     @staticmethod
     def _make_path_name(rel_path, name):
         dirname_parts = Path(os.path.dirname(rel_path)).parts[1:]
-        return ".".join(list(dirname_parts) + [name])
+        return ".".join([*dirname_parts, name])
 
     def _validate_name(self):
         return True
@@ -218,7 +218,7 @@ class RoleLoader(ContentLoader):
     @staticmethod
     def _make_path_name(rel_path, name):
         dirname_parts = Path(os.path.dirname(rel_path)).parts[1:]
-        return ".".join(list(dirname_parts) + [name])
+        return ".".join([*dirname_parts, name])
 
     def _get_readme(self):
         readme = markup_utils.get_readme_doc_file(os.path.join(self.root, self.rel_path))

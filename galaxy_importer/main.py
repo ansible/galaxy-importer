@@ -123,10 +123,10 @@ def call_importer(args, cfg):  # pragma: no cover
         try:
             data = legacy_role.import_legacy_role(args.file, args.namespace, logger=logger, cfg=cfg)
         except ImporterError as e:
-            logger.error(f"The import failed for the following reason: {str(e)}")
+            logger.error(f"The import failed for the following reason: {e}")
             return None
         except Exception as e:
-            logger.exception(f"Unexpected error occurred: {str(e)}")
+            logger.exception(f"Unexpected error occurred: {e}")
             return None
     elif args.markdown:
         if args.file is None:
@@ -135,10 +135,10 @@ def call_importer(args, cfg):  # pragma: no cover
         try:
             data = markdown.convert_markdown(args.file, logger=logger)
         except ImporterError as e:
-            logger.error(f"The markdown conversion failed for the following reason: {str(e)}")
+            logger.error(f"The markdown conversion failed for the following reason: {e}")
             return None
         except Exception as e:
-            logger.exception(f"Unexpected error occurred: {str(e)}")
+            logger.exception(f"Unexpected error occurred: {e}")
     else:
         if not args.file:
             return collection.import_collection(
@@ -156,10 +156,10 @@ def call_importer(args, cfg):  # pragma: no cover
             try:
                 data = collection.import_collection(fh, filename, logger=logger, cfg=cfg)
             except ImporterError as e:
-                logger.error(f"The import failed for the following reason: {str(e)}")
+                logger.error(f"The import failed for the following reason: {e!s}")
                 return None
             except Exception as e:
-                logger.exception(f"Unexpected error occurred: {str(e)}")
+                logger.exception(f"Unexpected error occurred: {e!s}")
                 return None
 
     logger.info("Importer processing completed successfully")

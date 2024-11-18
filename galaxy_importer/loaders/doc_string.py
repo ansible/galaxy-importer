@@ -98,7 +98,8 @@ class DocStringLoader:
 
     def _run_ansible_doc_list(self, plugin_type):
         """Use ansible-doc to get a list of plugins for the collection by type."""
-        cmd = self._base_ansible_doc_cmd + [
+        cmd = [
+            *self._base_ansible_doc_cmd,
             "--list",
             "--type",
             plugin_type,
@@ -118,15 +119,13 @@ class DocStringLoader:
         return json.loads(stdout)
 
     def _run_ansible_doc(self, plugin_type, plugins):
-        cmd = (
-            self._base_ansible_doc_cmd
-            + [
-                "--type",
-                plugin_type,
-                "--json",
-            ]
-            + plugins
-        )
+        cmd = [
+            *self._base_ansible_doc_cmd,
+            "--type",
+            plugin_type,
+            "--json",
+            *plugins,
+        ]
         self.log.debug("CMD: {}".format(" ".join(cmd)))
         proc = Popen(cmd, cwd=self._collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()

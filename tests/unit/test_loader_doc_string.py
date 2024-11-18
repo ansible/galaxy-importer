@@ -149,7 +149,7 @@ def test_transform_doc_strings_return(doc_string_loader):
     """
 
     data = json.loads(ansible_doc_output)
-    data = list(data.values())[0]
+    data = next(iter(data.values()))
     transformed_data = doc_string_loader._transform_doc_strings(data)
     assert transformed_data["return"] == [
         {
@@ -188,7 +188,7 @@ def test_transform_doc_strings_options(doc_string_loader):
         }
     """
     data = json.loads(ansible_doc_output)
-    data = list(data.values())[0]
+    data = next(iter(data.values()))
     transformed_data = doc_string_loader._transform_doc_strings(data)
     assert transformed_data["doc"]["options"] == [
         {
@@ -236,7 +236,7 @@ def test_transform_doc_strings_nested_contains(doc_string_loader):
     """
 
     data = json.loads(ansible_doc_output)
-    data = list(data.values())[0]
+    data = next(iter(data.values()))
     transformed_data = doc_string_loader._transform_doc_strings(data)
     assert transformed_data["return"] == [
         {
@@ -284,7 +284,7 @@ def test_transform_doc_strings_nested_contains_dict_of_list(doc_string_loader):
         }
     """
     data = json.loads(ansible_doc_output)
-    data = list(data.values())[0]
+    data = next(iter(data.values()))
     transformed_data = doc_string_loader._transform_doc_strings(data)
     assert transformed_data["return"] == [
         {"name": "output", "contains": []},
@@ -330,7 +330,7 @@ def test_transform_doc_strings_nested_suboptions(doc_string_loader):
         }
     """
     data = json.loads(ansible_doc_output)
-    data = list(data.values())[0]
+    data = next(iter(data.values()))
     transformed_data = doc_string_loader._transform_doc_strings(data)
     assert transformed_data["doc"]["options"] == [
         {
