@@ -33,6 +33,8 @@ select = [
     "EXE",
     # flake8-no-pep420
     "INP",
+    # flake8-logging
+    "LOG",
 ]
 extend-ignore = [
     # B904 requires using `raise ... from ...` to explicitly tell what to do with "parent"
