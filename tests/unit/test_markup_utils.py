@@ -15,8 +15,8 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import collections
 import os
+from typing import NamedTuple
 from unittest import mock
 
 from pyfakefs.fake_filesystem_unittest import TestCase
@@ -45,7 +45,11 @@ TEXT_FORMATTING = """
 * Item2
 """
 
-DocFile = collections.namedtuple("DocFile", ["text", "mimetype"])
+
+# DocFile = collections.namedtuple("DocFile", ["text", "mimetype"])
+class DocFile(NamedTuple):
+    text: str
+    mimetype: str
 
 
 class TestFindGetFiles(TestCase):

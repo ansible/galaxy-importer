@@ -15,13 +15,13 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-from collections import namedtuple
 import logging
 import os
 import shutil
 import subprocess
 import tarfile
 import tempfile
+from typing import NamedTuple
 
 import attr
 
@@ -33,7 +33,11 @@ from galaxy_importer import __version__
 
 default_logger = logging.getLogger(__name__)
 
-CollectionFilename = namedtuple("CollectionFilename", ["namespace", "name", "version"])
+
+class CollectionFilename(NamedTuple):
+    namespace: str
+    name: str
+    version: str
 
 
 def import_collection(

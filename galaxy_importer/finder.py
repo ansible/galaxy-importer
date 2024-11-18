@@ -15,20 +15,23 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import collections
 import itertools
 import logging
 import os
+from typing import NamedTuple
 
 import attr
 
 from galaxy_importer import constants
 from galaxy_importer.file_parser import ExtensionsFileParser
 
-
 default_logger = logging.getLogger(__name__)
 
-Result = collections.namedtuple("Result", ["content_type", "path"])
+
+class Result(NamedTuple):
+    content_type: constants.ContentType
+    path: str
+
 
 ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 
