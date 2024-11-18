@@ -165,9 +165,10 @@ class CollectionInfo:
 
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)
-        if cfg.require_v1_or_greater:
-            if semantic_version.Version(value) < semantic_version.Version("1.0.0"):
-                self.value_error("Config is enabled that requires version to be 1.0.0 or greater.")
+        if cfg.require_v1_or_greater and semantic_version.Version(value) < semantic_version.Version(
+            "1.0.0"
+        ):
+            self.value_error("Config is enabled that requires version to be 1.0.0 or greater.")
 
     @authors.validator
     @tags.validator
@@ -505,9 +506,8 @@ class LegacyGalaxyInfo:
     def _validate_tags(self, attribute, value):
         """Ensure tags are not too long."""
 
-        if value is not None:
-            if any(len(element) > MAX_LENGTH_TAG for element in value):
-                raise exc.LegacyRoleSchemaError(f"tag must not exceed {MAX_LENGTH_TAG} characters")
+        if value is not None and any(len(element) > MAX_LENGTH_TAG for element in value):
+            raise exc.LegacyRoleSchemaError(f"tag must not exceed {MAX_LENGTH_TAG} characters")
 
 
 @attr.s(frozen=True)

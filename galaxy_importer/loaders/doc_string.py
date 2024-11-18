@@ -151,18 +151,18 @@ class DocStringLoader:
         def dict_to_named_list(dict_of_dict):
             """Return new list of dicts for given dict of dicts."""
             try:
-                return [{"name": key, **deepcopy(dict_of_dict[key])} for key in dict_of_dict.keys()]
+                return [{"name": key, **deepcopy(dict_of_dict[key])} for key in dict_of_dict]
             except TypeError:
                 logger.warning(f"Expected this to be a dictionary of dictionaries: {dict_of_dict}")
                 return [
                     {"name": key, **deepcopy(dict_of_dict[key])}
-                    for key in dict_of_dict.keys()
+                    for key in dict_of_dict
                     if isinstance(key, dict)
                 ]
 
         def handle_nested_tables(obj, table_key):
             """Recurse over dict to replace nested tables with updated format."""
-            if table_key in obj.keys() and isinstance(obj[table_key], dict):
+            if table_key in obj and isinstance(obj[table_key], dict):
                 obj[table_key] = dict_to_named_list(obj[table_key])
                 for row in obj[table_key]:
                     handle_nested_tables(row, table_key)

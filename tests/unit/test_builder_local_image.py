@@ -114,12 +114,9 @@ def test_build_image_with_artifact_exception(mocked_popen, mocker):
 
 
 def test_copy_collection_file():
-    with tempfile.TemporaryDirectory() as dir:
-        f = tempfile.NamedTemporaryFile(delete=False)
-        filepath = f.name
-        Build._copy_collection_file(dir, filepath)
+    with tempfile.TemporaryDirectory() as dir, tempfile.NamedTemporaryFile() as f:
+        Build._copy_collection_file(dir, f.name)
         assert os.path.exists(os.path.join(dir, "archive.tar.gz"))
-        os.remove(f.name)
 
 
 @pytest.fixture

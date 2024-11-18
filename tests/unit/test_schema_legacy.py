@@ -231,7 +231,7 @@ def test_valid_dependency_types(galaxy_info, dependencies):
     legacy_metadata = LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), dependencies)
     assert isinstance(legacy_metadata.dependencies, list)
     for dep in legacy_metadata.dependencies:
-        assert isinstance(dep, dict) or isinstance(dep, str)
+        assert isinstance(dep, (dict, str))
 
 
 def test_invalid_dependency_separation(galaxy_info):

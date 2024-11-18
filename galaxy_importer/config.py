@@ -65,7 +65,7 @@ class Config:
         self.__dict__.update(_data)
 
         # Allow environment overrides for testing
-        for key in self.__dict__.keys():
+        for key in self.__dict__:
             env_key = "GALAXY_IMPORTER_" + key.upper()
             if env_key in os.environ:
                 self.__dict__[key] = parse_string_to_bool(os.environ[env_key])

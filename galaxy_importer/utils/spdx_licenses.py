@@ -45,7 +45,7 @@ def is_valid_license_id(license_id):
         return False
 
     # license was in list, but is deprecated
-    if valid and valid.get("deprecated", None):
+    if valid and valid.get("deprecated", None):  # noqa: SIM103
         return False
 
     return True

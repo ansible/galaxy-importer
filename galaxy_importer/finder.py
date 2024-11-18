@@ -93,9 +93,7 @@ class ContentFinder:
         def is_dir_a_role(current_dir):
             """Check for contents indicating directory is a role."""
             _, dirs, _ = next(os.walk(current_dir))
-            if set(ROLE_SUBDIRS) & set(dirs):
-                return True
-            return False
+            return bool(set(ROLE_SUBDIRS) & set(dirs))
 
         def recurse_role_dir(path):
             """Iterate over all subdirs and yield roles."""

@@ -446,7 +446,7 @@ def test_missing_readme(populated_collection_root):
         match=re.escape(r"The file (README.md) was not found"),
     ) as excinfo:
         CollectionLoader(populated_collection_root, filename=None).load()
-    assert "README.md" == excinfo.value.missing_file
+    assert excinfo.value.missing_file == "README.md"
 
 
 @pytest.mark.parametrize(

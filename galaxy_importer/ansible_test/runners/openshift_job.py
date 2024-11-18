@@ -78,11 +78,13 @@ class OpenshiftJobTestRunner(BaseTestRunner):
 
     @staticmethod
     def _get_job_template():
-        with resource_filename_compat(
-            "galaxy_importer", "ansible_test/job_template.yaml"
-        ) as file_path:
-            with open(file_path) as f:
-                job_template = f.read()
+        with (
+            resource_filename_compat(
+                "galaxy_importer", "ansible_test/job_template.yaml"
+            ) as file_path,
+            open(file_path) as f,
+        ):
+            job_template = f.read()
         return job_template
 
 
