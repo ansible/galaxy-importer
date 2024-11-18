@@ -6,6 +6,72 @@ import os
 import subprocess
 
 
+def _write_files(coldir, files):
+    for filetup in files:
+        if isinstance(filetup, tuple):
+            filen = filetup[0]
+            content = filetup[1]
+        else:
+            filen = filetup
+            content = ""
+        fullpath = os.path.join(coldir, filen)
+        dn = os.path.dirname(fullpath)
+        if not os.path.exists(dn):
+            os.makedirs(dn)
+        with open(fullpath, "w") as f:
+            f.write(content)
+
+
+def test_collection_module_subdirs_import(workdir, local_fast_config):
+    namespace = "foo"
+    name = "bar"
+    files = [
+        ("meta/runtime.yml", "requires_ansible: '>=2.9.0'"),
+        "plugins/modules/__init__.py",
+        "plugins/modules/dir1/__init__.py",
+        "plugins/modules/dir1/dir2/__init__.py",
+        "plugins/modules/dir1/dir2/ping.py",
+    ]
+
+    basedir = os.path.join(workdir, "ansible_collections")
+    coldir = os.path.join(basedir, namespace, name)
+    os.makedirs(basedir)
+
+    cmd = f"ansible-galaxy collection init {namespace}.{name}"
+    pid = subprocess.run(cmd, shell=True, cwd=basedir)
+
+    _write_files(coldir, files)
+
+    pid = subprocess.run(
+        "ansible-galaxy collection build .", shell=True, cwd=coldir, stdout=subprocess.PIPE
+    )
+    tarball = pid.stdout.decode("utf-8").rstrip().split()[-1]
+
+    cmd = f"python3 -m galaxy_importer.main {tarball}"
+    env = copy.deepcopy(dict(os.environ))
+    env.update(local_fast_config)
+    pid = subprocess.run(
+        cmd, shell=True, cwd=workdir, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+    assert pid.returncode == 0, pid.stdout
+
+    # it should have stored structured data in the pwd
+    results_file = os.path.join(workdir, "importer_result.json")
+    assert os.path.exists(results_file)
+    with open(results_file, "r") as f:
+        results = json.loads(f.read())
+
+    # make sure the right fqn go into the contents
+    assert ("module", "dir1.dir2.ping") in [
+        (x["content_type"], x["name"]) for x in results["contents"]
+    ]
+
+    # do the same for the docs blob
+    assert ("module", "dir1.dir2.ping") in [
+        (x["content_type"], x["content_name"]) for x in results["docs_blob"]["contents"]
+    ]
+
+
 def test_collection_community_general_import(workdir, local_fast_config):
     assert os.path.exists(workdir)
     url = (
@@ -52,14 +118,15 @@ def test_collection_community_general_import(workdir, local_fast_config):
 
     # make sure it found all the files
     contents = dict(((x["content_type"], x["name"]), x) for x in results["contents"])
-    assert len(contents.keys()) == 831
+    assert len(contents.keys()) == 838
 
     # check a small sample
     assert ("test", "a_module") in contents
     assert ("module_utils", "version") in contents
     assert ("module", "xfconf") in contents
     assert ("module", "jabber") in contents
-    assert ("filter", "time") in contents
+    assert ("filter", "to_hours") in contents
+    assert ("filter", "to_days") in contents
     assert ("doc_fragments", "nomad") in contents
     assert ("connection", "lxc") in contents
     assert ("callback", "yaml") in contents
@@ -71,17 +138,24 @@ def test_collection_community_general_import(workdir, local_fast_config):
     docs_contents = dict(
         ((x["content_type"], x["content_name"]), x) for x in results["docs_blob"]["contents"]
     )
-    assert len(docs_contents.keys()) == 831
+    assert len(docs_contents.keys()) == 838
 
     # check a small sample
     assert ("test", "a_module") in docs_contents
     assert ("module_utils", "version") in docs_contents
     assert ("module", "xfconf") in docs_contents
     assert ("module", "jabber") in docs_contents
-    assert ("filter", "time") in docs_contents
+    # assert ("filter", "time") in docs_contents
+    assert ("filter", "to_hours") in docs_contents
+    assert ("filter", "to_days") in docs_contents
+    assert ("filter", "dict") in docs_contents
+    assert ("filter", "to_ini") in docs_contents
     assert ("doc_fragments", "nomad") in docs_contents
     assert ("connection", "lxc") in docs_contents
     assert ("callback", "yaml") in docs_contents
     assert ("cache", "yaml") in docs_contents
     assert ("become", "pbrun") in docs_contents
     assert ("action", "shutdown") in docs_contents
+
+    # check doc strings for the nested filter plugins ...
+    assert docs_contents[("filter", "to_days")]["doc_strings"] is not None

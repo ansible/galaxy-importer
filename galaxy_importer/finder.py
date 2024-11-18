@@ -24,11 +24,12 @@ import attr
 
 from galaxy_importer import constants
 from galaxy_importer.file_parser import ExtensionsFileParser
+from galaxy_importer.galaxy_cli import GalaxyCLIWrapper
 
 
 default_logger = logging.getLogger(__name__)
 
-Result = collections.namedtuple("Result", ["content_type", "path"])
+Result = collections.namedtuple("Result", ["content_type", "name", "path"])
 
 ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 
@@ -36,15 +37,19 @@ ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 class ContentFinder(object):
     """Searches for content in directories inside collection."""
 
+    galaxy_cli = None
+
     def find_contents(self, path, logger=None):
         """Finds contents in path and return the results.
 
         :rtype: Iterator[Result]
         :return: Iterator of find results.
         """
-
         self.path = path
         self.log = logger or default_logger
+
+        # init the galaxy wrapper
+        self.galaxy_cli = GalaxyCLIWrapper(path=path, logger=logger)
 
         self.log.info("Finding content inside collection")
         contents = self._find_content()
@@ -57,11 +62,33 @@ class ContentFinder(object):
             return itertools.chain([first], contents)
 
     def _find_content(self):
+        """Return an iterable of Result(s)."""
+
+        # map out the plugin types ansible-doc can handle
+        ansible_doc_types = {}
+        for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
+            content_type = constants.ContentType(plugin_type)
+            ansible_doc_types[content_type] = plugin_type
+
+        # use the galaxy-importer finder code to find content that ansible-doc can not
         for content_type, directory, func in self._content_type_dirs():
+            # let ansible-doc handle these
+            if content_type in ansible_doc_types:
+                continue
             content_path = os.path.join(self.path, directory)
             if not os.path.exists(content_path):
                 continue
-            yield from func(content_type, content_path)
+            for x in func(content_type, content_path):
+                yield x
+
+        # use ansible-doc to get all the supported plugin types
+        for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
+            ctype = constants.ContentType(plugin_type)
+            plugins_docs = self.galaxy_cli.list_files(plugin_type)
+            for key, path in plugins_docs.items():
+                name = key[1].replace(self.galaxy_cli.fq_collection_name + ".", "")
+                rel_path = path.replace(self.path + "/", "")
+                yield Result(ctype, name, rel_path)
 
     def _find_plugins(self, content_type, content_dir):
         """Find all python files anywhere inside content_dir."""
@@ -71,7 +98,8 @@ class ContentFinder(object):
                     continue
                 file_path = os.path.join(path, file)
                 rel_path = os.path.relpath(file_path, self.path)
-                yield Result(content_type, rel_path)
+                base_name = os.path.basename(rel_path).rstrip(".py")
+                yield Result(content_type, base_name, rel_path)
 
     def _find_playbooks(self, content_type, content_dir):
         for root, dirs, filenames in os.walk(content_dir):
@@ -98,7 +126,8 @@ class ContentFinder(object):
             """Iterate over all subdirs and yield roles."""
             if is_dir_a_role(path):
                 rel_path = os.path.relpath(path, self.path)
-                yield Result(content_type, rel_path)
+                base_name = os.path.basename(rel_path)
+                yield Result(content_type, base_name, rel_path)
                 return
             path, dirs, _ = next(os.walk(path))
             for dir in dirs:
