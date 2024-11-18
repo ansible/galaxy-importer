@@ -39,6 +39,8 @@ select = [
     "UP",
     # flake8-pie
     "PIE",
+    # flake8-pytest-style
+    "PT",
 ]
 extend-ignore = [
     # B904 requires using `raise ... from ...` to explicitly tell what to do with "parent"
@@ -50,6 +52,15 @@ extend-ignore = [
     # UP032 Use f-string instead of `format` call.
     # No need to replace all str.format usage with f-strings in entire codebase.
     "UP032",
+    # PT004,PT005 are incorrect and deprecated
+    # See https://github.com/astral-sh/ruff/issues/8796
+    "PT004",
+    "PT005",
+    # PT009 Use a regular `assert` instead of unittest-style
+    # PT027 Use `pytest.raises` instead of unittest-style `assertRaises`
+    # Ignoring, since we have mixed pytest and legacy unittest styled tests
+    "PT009",
+    "PT027",
 ]
 
 [tool.ruff.lint.per-file-ignores]

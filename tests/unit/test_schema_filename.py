@@ -15,6 +15,8 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import re
+
 import pytest
 import semantic_version
 
@@ -60,13 +62,12 @@ def test_filename_format(filename_str):
 
 
 @pytest.mark.parametrize(
-    "filename_str,error_subset",
+    ("filename_str", "error_subset"),
     [
         (f"no__dunder-{NAME}-{VERSION_STR}.tar.gz", "Invalid namespace:"),
         (f"{NAMESPACE}-0startswithnum-{VERSION_STR}.tar.gz", "Invalid name:"),
     ],
 )
 def test_bad_name_error(filename_str, error_subset):
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match=re.escape(error_subset)):
         schema.CollectionFilename.parse(filename_str)
-    assert error_subset in str(excinfo.value)
