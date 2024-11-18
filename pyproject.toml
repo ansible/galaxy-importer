@@ -9,6 +9,16 @@
 [tool.ruff]
 line-length = 100
 
+[tool.ruff.lint]
+select = [
+    # pyflakes
+    "F",
+    # pycodestyle errors
+    "E",
+    # pycodestyle warnings
+    "W",
+]
+
 [tool.coverage.run]
 relative_files = true
 branch = true
