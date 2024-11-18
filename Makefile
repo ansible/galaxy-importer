@@ -4,13 +4,13 @@
 
 .PHONY: lint
 lint:
-	black . --extend-exclude .github/ --line-length 100 --diff --check
+	black . --diff --check
 	flake8
 	ruff check
 
 .PHONY: lint/format/black
 lint/format/black:
-	black . --extend-exclude .github/ --line-length 100
+	black .
 
 
 # ---------------------------------------------------------
