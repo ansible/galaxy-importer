@@ -17,7 +17,13 @@ select = [
     "E",
     # pycodestyle warnings
     "W",
+    # flake8-builtins
+    "A",
 ]
+
+[tool.ruff.lint.flake8-builtins]
+# `license()` buit-in function is added by the site module.
+builtins-ignorelist = ["id", "dir", "license"]
 
 [tool.coverage.run]
 relative_files = true
