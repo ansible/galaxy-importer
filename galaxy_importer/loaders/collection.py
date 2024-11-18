@@ -33,7 +33,6 @@ from galaxy_importer import constants
 from galaxy_importer import loaders, file_parser, schema
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils import chksums
-from galaxy_importer.utils import string_utils
 
 default_logger = logging.getLogger(__name__)
 
@@ -328,7 +327,7 @@ class CollectionLoader:
         # check the extract archive for any extra files.
         filewalker = FileWalker(collection_path=path_prefix)
         prefix = path_prefix + "/"
-        found_file_set = {string_utils.removeprefix(fp, prefix) for fp in filewalker.walk()}
+        found_file_set = {fp.removeprefix(prefix) for fp in filewalker.walk()}
 
         file_manifest_file_set = {artifact_file.name for artifact_file in file_manifest.files}
         # The artifact contains MANIFEST.json and FILES.JSON, but they aren't
