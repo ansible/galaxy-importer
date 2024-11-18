@@ -1,5 +1,17 @@
 FROM quay.io/ansible/base-test-container:5.10.0
 
+LABEL   com.redhat.component="ansible-test" \
+        description="Container used by galaxy for running ansible-test validation." \
+        distribution-scope="public" \
+        io.k8s.description="Container used by galaxy for running ansible-test validation." \
+        maintainer="Red Hat, Inc." \
+        name="galaxy-importer" \
+        release="0.4.26" \
+        summary="Container used by galaxy for running ansible-test validation." \
+        url="https://github.com/ansible/galaxy-importer" \
+        vendor="Red Hat, Inc." \
+        version="0.4.26"
+
 COPY entrypoint.sh /entrypoint
 
 RUN useradd user1 \
