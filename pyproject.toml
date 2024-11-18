@@ -29,6 +29,8 @@ select = [
     "DTZ",
     # flake8-import-conventions
     "ICN",
+    # flake8-executable
+    "EXE",
 ]
 extend-ignore = [
     # B904 requires using `raise ... from ...` to explicitly tell what to do with "parent"
