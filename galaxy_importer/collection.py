@@ -120,8 +120,9 @@ def _build_collection(git_clone_path, output_path, logger=None):
             )
         )
 
-    # TODO: use regex to get filename from stdout, compine with output_path in case cli output
-    # ever changes from: Created collection for <namespace>.<name> at /<path>/<artifact>.tar.gz
+    # TODO(awcrosby): Use regex to get filename from stdout, compine with output_path in case
+    #  cli output ever changes from:
+    #       Created collection for <namespace>.<name> at /<path>/<artifact>.tar.gz
     stdout = result.stdout.decode("utf-8").rstrip()
     filepath = stdout.split(" ")[-1]
     return filepath

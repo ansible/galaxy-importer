@@ -49,6 +49,8 @@ select = [
     "SIM",
     # flake8-debugger
     "T10",
+    # flake8-todos
+    "TD"
 ]
 extend-ignore = [
     # B904 requires using `raise ... from ...` to explicitly tell what to do with "parent"
@@ -71,7 +73,13 @@ extend-ignore = [
     "PT027",
     # RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
     # We don't enforce type annotations at the moment.
-    "RUF012"
+    "RUF012",
+    # TD001 Invalid TODO tag
+    # We use TODO, FIXME and REVIEW tags
+    "TD001",
+    # TD003 Missing issue link on the line following this TODO
+    # We don't create issues for TODOs
+    "TD003",
 ]
 
 [tool.ruff.lint.per-file-ignores]
