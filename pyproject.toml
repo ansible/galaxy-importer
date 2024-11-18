@@ -31,6 +31,8 @@ select = [
     "ICN",
     # flake8-executable
     "EXE",
+    # flake8-no-pep420
+    "INP",
 ]
 extend-ignore = [
     # B904 requires using `raise ... from ...` to explicitly tell what to do with "parent"
@@ -40,6 +42,10 @@ extend-ignore = [
     # Incompatible with black
     "COM812",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# The `galaxy_importer` is the only top-level package.
+"!galaxy_importer/**" = ["INP"]
 
 [tool.ruff.lint.flake8-builtins]
 # `license()` buit-in function is added by the site module.
