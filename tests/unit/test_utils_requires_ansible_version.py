@@ -30,4 +30,4 @@ def test_invalid_specifier():
 def test_valid_specifier():
     spec = "<2.0"
     result = requires_ansible_version.validate(spec)
-    assert result is True, "%s should be a valid requires_ansible specifier but is not" % spec
+    assert result is True, f"{spec} should be a valid requires_ansible specifier but is not"

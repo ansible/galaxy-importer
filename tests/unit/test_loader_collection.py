@@ -197,7 +197,7 @@ def test_check_artifact_file_bad_chksum(populated_collection_root, readme_artifa
 
 
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
-def test_manifest_success(_build_docs_blob, populated_collection_root):
+def test_manifest_success(_build_docs_blob, populated_collection_root):  # noqa: PT019
     _build_docs_blob.return_value = {}
 
     filename = collection.CollectionFilename("my_namespace", "my_collection", "2.0.2")
@@ -230,7 +230,7 @@ def test_manifest_success(_build_docs_blob, populated_collection_root):
 
 
 @pytest.mark.parametrize(
-    "manifest_text,new_text,error_subset",
+    ("manifest_text", "new_text", "error_subset"),
     [
         ("my_namespace", "", "'namespace' is required"),
         ("my_namespace", "00my.name.space", "'namespace' has invalid format"),
@@ -371,7 +371,7 @@ def test_build_docs_blob_no_readme(get_readme_doc_file):
 
 
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
-def test_filename_empty_value(_build_docs_blob, populated_collection_root):
+def test_filename_empty_value(_build_docs_blob, populated_collection_root):  # noqa: PT019
     _build_docs_blob.return_value = {}
 
     filename = collection.CollectionFilename(
@@ -393,7 +393,7 @@ def test_filename_empty_value(_build_docs_blob, populated_collection_root):
 
 
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
-def test_filename_none(_build_docs_blob, populated_collection_root):
+def test_filename_none(_build_docs_blob, populated_collection_root):  # noqa: PT019
     _build_docs_blob.return_value = {}
 
     filename = None
@@ -446,7 +446,7 @@ def test_missing_readme(populated_collection_root):
         match=re.escape(r"The file (README.md) was not found"),
     ) as excinfo:
         CollectionLoader(populated_collection_root, filename=None).load()
-    assert "README.md" == excinfo.value.missing_file
+    assert excinfo.value.missing_file == "README.md"
 
 
 @pytest.mark.parametrize(
@@ -475,7 +475,7 @@ def test_changelog(changelog_path, tmpdir, caplog):
 
 
 @mock.patch("galaxy_importer.collection.CollectionLoader._build_docs_blob")
-def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):
+def test_changelog_fail(_build_docs_blob, populated_collection_root, caplog):  # noqa: PT019
     _build_docs_blob.return_value = {}
 
     CollectionLoader(

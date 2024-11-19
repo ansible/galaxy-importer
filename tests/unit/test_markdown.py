@@ -34,13 +34,15 @@ def test_convert_markdown_return():
         data = markdown.convert_markdown(tmp_dir)
     assert isinstance(data, dict)
     assert "html" in data
-    assert README_HTML == data["html"]
+    assert data["html"] == README_HTML
 
 
 def test_convert_markdown_dir_dne():
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        with pytest.raises(exc.ImporterError, match="does not exist"):
-            markdown.convert_markdown(f"{tmp_dir}/does/not/exist")
+    with (
+        tempfile.TemporaryDirectory() as tmp_dir,
+        pytest.raises(exc.ImporterError, match="does not exist"),
+    ):
+        markdown.convert_markdown(f"{tmp_dir}/does/not/exist")
 
 
 def test_convert_markdown_readme_dne():

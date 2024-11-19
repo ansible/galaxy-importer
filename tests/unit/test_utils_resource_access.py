@@ -8,9 +8,11 @@ from galaxy_importer.utils.resource_access import resource_filename_compat
 
 
 def test_resource_filename_compat_with_importlib_filename():
-    with resource_filename_compat("galaxy_importer.utils", "spdx_licenses.json") as fpath:
-        with open(fpath, "r") as f:
-            ds = json.loads(f.read())
+    with (
+        resource_filename_compat("galaxy_importer.utils", "spdx_licenses.json") as fpath,
+        open(fpath) as f,
+    ):
+        ds = json.loads(f.read())
     assert fpath.endswith("spdx_licenses.json")
     assert isinstance(ds, dict)
 

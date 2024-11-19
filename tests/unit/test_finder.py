@@ -103,7 +103,7 @@ class TestContentFinder(unittest.TestCase):
             pass
 
         contents = ContentFinder().find_contents(self.temp_dir)
-        assert list(contents)[0].path == "plugins/modules/subdir1/subdir2/nested_module.py"
+        assert next(iter(contents)).path == "plugins/modules/subdir1/subdir2/nested_module.py"
 
     def test_nested_role(self):
         subdir1 = os.path.join(self.roles_dir, "subdir1")
@@ -118,7 +118,7 @@ class TestContentFinder(unittest.TestCase):
         os.mkdir(dir_in_role)
 
         contents = ContentFinder().find_contents(self.temp_dir)
-        assert list(contents)[0].path == "roles/subdir1/my_role"
+        assert next(iter(contents)).path == "roles/subdir1/my_role"
 
     def test_error_file_in_roles_dir(self):
         with open(os.path.join(self.roles_dir, "main.yml"), "w"):

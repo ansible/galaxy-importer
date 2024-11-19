@@ -88,8 +88,8 @@ class ExtensionsFileParser:
         try:
             if not self.data:
                 return []
-            # TODO: consider check that ext_dir actually exists and fail import if not
-            # TODO: consider check that ext_dir has exactly 3 dirs otherwise fail
+            # TODO(awcrosby): consider check that ext_dir actually exists and fail import if not
+            # TODO(awcrosby): consider check that ext_dir has exactly 3 dirs otherwise fail
             return [ext["args"]["ext_dir"] for ext in self.data["extensions"]]
         except KeyError:
             raise exc.FileParserError("'meta/extensions.yml is not in the expected format'")

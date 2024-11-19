@@ -15,10 +15,10 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import collections
 import hashlib
 import mimetypes
 import os
+from typing import NamedTuple
 
 import markdown
 import nh3  # replaces bleach
@@ -77,7 +77,13 @@ DOCFILE_MIMETYPES = {
 }
 DOCFILE_MAX_SIZE = 512 * 1024  # 512 KiB
 
-DocFile = collections.namedtuple("DocFile", ["name", "text", "mimetype", "hash"])
+
+class DocFile(NamedTuple):
+    name: str
+    text: str
+    mimetype: str
+    hash: str
+
 
 for _ext, _type in DOCFILE_MIMETYPES.items():
     mimetypes.add_type(_type, _ext)
@@ -159,7 +165,7 @@ def _get_file(directory, filename):
 
     if os.path.getsize(filename) > DOCFILE_MAX_SIZE:
         raise FileSizeError(
-            'Documentation file "{0}" is bigger than {1} KiB.'.format(
+            'Documentation file "{}" is bigger than {} KiB.'.format(
                 os.path.relpath(filename, directory),
                 int(DOCFILE_MAX_SIZE / 1024),
             )

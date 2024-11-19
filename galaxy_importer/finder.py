@@ -15,25 +15,28 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import collections
 import itertools
 import logging
 import os
+from typing import NamedTuple
 
 import attr
 
 from galaxy_importer import constants
 from galaxy_importer.file_parser import ExtensionsFileParser
 
-
 default_logger = logging.getLogger(__name__)
 
-Result = collections.namedtuple("Result", ["content_type", "path"])
+
+class Result(NamedTuple):
+    content_type: constants.ContentType
+    path: str
+
 
 ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 
 
-class ContentFinder(object):
+class ContentFinder:
     """Searches for content in directories inside collection."""
 
     def find_contents(self, path, logger=None):
@@ -74,7 +77,7 @@ class ContentFinder(object):
                 yield Result(content_type, rel_path)
 
     def _find_playbooks(self, content_type, content_dir):
-        for root, dirs, filenames in os.walk(content_dir):
+        for root, _, filenames in os.walk(content_dir):
             if root != content_dir:
                 continue
             for filename in filenames:
@@ -90,9 +93,7 @@ class ContentFinder(object):
         def is_dir_a_role(current_dir):
             """Check for contents indicating directory is a role."""
             _, dirs, _ = next(os.walk(current_dir))
-            if set(ROLE_SUBDIRS) & set(dirs):
-                return True
-            return False
+            return bool(set(ROLE_SUBDIRS) & set(dirs))
 
         def recurse_role_dir(path):
             """Iterate over all subdirs and yield roles."""
@@ -147,7 +148,7 @@ class ContentFinder(object):
 
 
 @attr.s
-class FileWalker(object):
+class FileWalker:
     collection_path = attr.ib()
     file_errors = attr.ib(factory=list)
 

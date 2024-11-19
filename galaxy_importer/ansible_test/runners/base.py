@@ -21,7 +21,7 @@ import logging
 default_logger = logging.getLogger(__name__)
 
 
-class BaseTestRunner(object):
+class BaseTestRunner:
     """
     :param dir: Dir where collection is extracted, used by local runner.
     :param metadata: Collection metadata, used by local runner.

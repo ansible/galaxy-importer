@@ -14,7 +14,7 @@ def _load_spdx():
     try:
         with (files(parent_module) / _SPDX_LICENSES_FILE).open("rb") as stream:
             return json.load(stream)
-    except EnvironmentError as exc:
+    except OSError as exc:
         log.warning(
             "Unable to open %s to load the list of acceptable open source licenses: %s",
             _SPDX_LICENSES_FILE,
@@ -45,7 +45,7 @@ def is_valid_license_id(license_id):
         return False
 
     # license was in list, but is deprecated
-    if valid and valid.get("deprecated", None):
+    if valid and valid.get("deprecated", None):  # noqa: SIM103
         return False
 
     return True

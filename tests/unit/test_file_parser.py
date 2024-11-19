@@ -113,21 +113,21 @@ def test_get_requires_ansible(tmpdir):
 
 def test_too_long_requires_ansible(tmpdir):
     tmpdir.mkdir("meta").join("runtime.yml").write(TOO_LONG_REQUIRES_ANSIBLE)
+    parser = file_parser.RuntimeFileParser(collection_path=tmpdir)
     with pytest.raises(
         exc.FileParserError,
         match="'requires_ansible' must not be greater than 255 characters",
     ):
-        parser = file_parser.RuntimeFileParser(collection_path=tmpdir)
         parser.get_requires_ansible()
 
 
 def test_bad_version_spec(tmpdir):
     tmpdir.mkdir("meta").join("runtime.yml").write(BAD_VERSION_SPEC)
+    parser = file_parser.RuntimeFileParser(collection_path=tmpdir)
     with pytest.raises(
         exc.FileParserError,
         match="not a valid requirement specification",
     ):
-        parser = file_parser.RuntimeFileParser(collection_path=tmpdir)
         parser.get_requires_ansible()
 
 
@@ -153,10 +153,10 @@ def test_extensions_file_good_yaml(tmpdir):
 )
 def test_extensions_file_missing_keys(tmpdir, extensions_yaml):
     tmpdir.mkdir("meta").join("extensions.yml").write(extensions_yaml)
+    parser = file_parser.ExtensionsFileParser(collection_path=tmpdir)
     with pytest.raises(
         exc.FileParserError, match="meta/extensions.yml is not in the expected format"
     ):
-        parser = file_parser.ExtensionsFileParser(collection_path=tmpdir)
         parser.get_extension_dirs()
 
 

@@ -15,8 +15,8 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import collections
 import os
+from typing import NamedTuple
 from unittest import mock
 
 from pyfakefs.fake_filesystem_unittest import TestCase
@@ -45,7 +45,11 @@ TEXT_FORMATTING = """
 * Item2
 """
 
-DocFile = collections.namedtuple("DocFile", ["text", "mimetype"])
+
+# DocFile = collections.namedtuple("DocFile", ["text", "mimetype"])
+class DocFile(NamedTuple):
+    text: str
+    mimetype: str
 
 
 class TestFindGetFiles(TestCase):
@@ -98,9 +102,11 @@ class TestFindGetFiles(TestCase):
         self.fs.create_file(file_path)
 
         fake_doc_size = markup_utils.DOCFILE_MAX_SIZE + 1
-        with mock.patch.object(os.path, "getsize", return_value=fake_doc_size):
-            with pytest.raises(markup_utils.FileSizeError):
-                markup_utils._get_file(self.directory, file_path)
+        with (
+            mock.patch.object(os.path, "getsize", return_value=fake_doc_size),
+            pytest.raises(markup_utils.FileSizeError),
+        ):
+            markup_utils._get_file(self.directory, file_path)
 
     def test_get_doc_files(self):
         res = markup_utils.get_doc_files(self.directory)

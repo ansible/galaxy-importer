@@ -29,7 +29,7 @@ from galaxy_importer.utils.resource_access import resource_filename_compat
 default_logger = logging.getLogger(__name__)
 
 
-class Build(object):
+class Build:
     """Use docker/podman to build ansible-test image with artifact inside."""
 
     def __init__(self, filepath, collection_name, cfg, logger=default_logger):
@@ -84,7 +84,7 @@ class Build(object):
             lines = f.readlines()
             for index, line in enumerate(lines):
                 if "ENV HOME" in line:
-                    # TODO move RUN command to base image
+                    # TODO(bmclaughlin): move RUN command to base image
                     lines.insert(index - 1, "\nRUN chown -R user1:root /archive\n")
                     lines.insert(index - 1, "\nCOPY archive.tar.gz /archive/archive.tar.gz\n")
                     break

@@ -90,7 +90,7 @@ def test_import_legacy_role_return(populated_role_root):
     assert "metadata" in data
     assert "galaxy_info" in data["metadata"]
     assert "dependencies" in data["metadata"]
-    assert data["metadata"]["dependencies"] == list()
+    assert data["metadata"]["dependencies"] == []
     assert data["metadata"]["galaxy_info"]["role_name"] == "my_role"
     assert data["metadata"]["galaxy_info"]["galaxy_tags"] == ["web", "system", "server"]
     assert data["metadata"]["galaxy_info"]["platforms"] == [
@@ -113,7 +113,7 @@ def test__import_legacy_role_return(populated_role_root):
     assert "metadata" in data
     assert "galaxy_info" in data["metadata"]
     assert "dependencies" in data["metadata"]
-    assert data["metadata"]["dependencies"] == list()
+    assert data["metadata"]["dependencies"] == []
     assert data["metadata"]["galaxy_info"]["role_name"] == "my_role"
     assert data["metadata"]["galaxy_info"]["galaxy_tags"] == ["web", "system", "server"]
     assert data["metadata"]["galaxy_info"]["platforms"] == [

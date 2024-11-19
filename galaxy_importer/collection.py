@@ -15,13 +15,13 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-from collections import namedtuple
 import logging
 import os
 import shutil
 import subprocess
 import tarfile
 import tempfile
+from typing import NamedTuple
 
 import attr
 
@@ -33,7 +33,11 @@ from galaxy_importer import __version__
 
 default_logger = logging.getLogger(__name__)
 
-CollectionFilename = namedtuple("CollectionFilename", ["namespace", "name", "version"])
+
+class CollectionFilename(NamedTuple):
+    namespace: str
+    name: str
+    version: str
 
 
 def import_collection(
@@ -116,8 +120,9 @@ def _build_collection(git_clone_path, output_path, logger=None):
             )
         )
 
-    # TODO: use regex to get filename from stdout, compine with output_path in case cli output
-    # ever changes from: Created collection for <namespace>.<name> at /<path>/<artifact>.tar.gz
+    # TODO(awcrosby): Use regex to get filename from stdout, compine with output_path in case
+    #  cli output ever changes from:
+    #       Created collection for <namespace>.<name> at /<path>/<artifact>.tar.gz
     stdout = result.stdout.decode("utf-8").rstrip()
     filepath = stdout.split(" ")[-1]
     return filepath

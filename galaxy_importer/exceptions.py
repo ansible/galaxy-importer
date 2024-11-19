@@ -19,13 +19,9 @@
 class ImporterError(Exception):
     """Base class for importer exceptions"""
 
-    pass
-
 
 class AnsibleTestError(ImporterError):
     """Exception when running ansible-test."""
-
-    pass
 
 
 class ManifestNotFound(ImporterError):
@@ -60,8 +56,6 @@ class CollectionArtifactFileNotFound(ImporterError):
 
 class CollectionArtifactFileChecksumError(ImporterError):
     """The chksum of the file contents does not match chksum_sha256sum"""
-
-    pass
 
 
 class ContentFindError(ImporterError):

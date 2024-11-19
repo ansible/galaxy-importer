@@ -49,7 +49,7 @@ class DocStringLoader:
         for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
             # use ansible-doc to list all the plugins of this type
             found_plugins = self._run_ansible_doc_list(plugin_type)
-            plugins = sorted(list(found_plugins.keys()))
+            plugins = sorted(found_plugins.keys())
 
             if not plugins:
                 continue
@@ -98,7 +98,8 @@ class DocStringLoader:
 
     def _run_ansible_doc_list(self, plugin_type):
         """Use ansible-doc to get a list of plugins for the collection by type."""
-        cmd = self._base_ansible_doc_cmd + [
+        cmd = [
+            *self._base_ansible_doc_cmd,
             "--list",
             "--type",
             plugin_type,
@@ -118,15 +119,13 @@ class DocStringLoader:
         return json.loads(stdout)
 
     def _run_ansible_doc(self, plugin_type, plugins):
-        cmd = (
-            self._base_ansible_doc_cmd
-            + [
-                "--type",
-                plugin_type,
-                "--json",
-            ]
-            + plugins
-        )
+        cmd = [
+            *self._base_ansible_doc_cmd,
+            "--type",
+            plugin_type,
+            "--json",
+            *plugins,
+        ]
         self.log.debug("CMD: {}".format(" ".join(cmd)))
         proc = Popen(cmd, cwd=self._collections_path, stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
@@ -152,18 +151,18 @@ class DocStringLoader:
         def dict_to_named_list(dict_of_dict):
             """Return new list of dicts for given dict of dicts."""
             try:
-                return [{"name": key, **deepcopy(dict_of_dict[key])} for key in dict_of_dict.keys()]
+                return [{"name": key, **deepcopy(dict_of_dict[key])} for key in dict_of_dict]
             except TypeError:
                 logger.warning(f"Expected this to be a dictionary of dictionaries: {dict_of_dict}")
                 return [
                     {"name": key, **deepcopy(dict_of_dict[key])}
-                    for key in dict_of_dict.keys()
+                    for key in dict_of_dict
                     if isinstance(key, dict)
                 ]
 
         def handle_nested_tables(obj, table_key):
             """Recurse over dict to replace nested tables with updated format."""
-            if table_key in obj.keys() and isinstance(obj[table_key], dict):
+            if table_key in obj and isinstance(obj[table_key], dict):
                 obj[table_key] = dict_to_named_list(obj[table_key])
                 for row in obj[table_key]:
                     handle_nested_tables(row, table_key)

@@ -33,14 +33,13 @@ from galaxy_importer import constants
 from galaxy_importer import loaders, file_parser, schema
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils import chksums
-from galaxy_importer.utils import string_utils
 
 default_logger = logging.getLogger(__name__)
 
 DOCUMENTATION_DIR = "docs"
 
 
-class CollectionLoader(object):
+class CollectionLoader:
     """Loads collection and content info."""
 
     def __init__(self, path, filename, cfg=None, logger=None):
@@ -202,7 +201,7 @@ class CollectionLoader(object):
 
         listdir = os.listdir(sanity_path)
         for ignore_file in filter(IGNORE_FILE_REGEXP.match, listdir):
-            with open(os.path.join(sanity_path, ignore_file), "r") as f:
+            with open(os.path.join(sanity_path, ignore_file)) as f:
                 line_count = len(f.readlines())
             self.log.warning(IGNORE_WARNING.format(file=ignore_file, line_count=line_count))
 
@@ -252,7 +251,7 @@ class CollectionLoader(object):
 
         default_logger.debug("manifest_file: %s", manifest_file)
 
-        with open(manifest_file, "r") as f:
+        with open(manifest_file) as f:
             try:
                 data = schema.CollectionArtifactManifest.parse(f.read())
             except ValueError as e:
@@ -287,7 +286,7 @@ class CollectionLoader(object):
         files_manifest_file = os.path.join(path_prefix, file_manifest_file.name)
         default_logger.debug("files_manifest_file: %s", files_manifest_file)
 
-        with open(files_manifest_file, "r") as f:
+        with open(files_manifest_file) as f:
             try:
                 file_manifest = schema.CollectionArtifactFileManifest.parse(f.read())
             except ValueError as e:
@@ -328,15 +327,15 @@ class CollectionLoader(object):
         # check the extract archive for any extra files.
         filewalker = FileWalker(collection_path=path_prefix)
         prefix = path_prefix + "/"
-        found_file_set = set([string_utils.removeprefix(fp, prefix) for fp in filewalker.walk()])
+        found_file_set = {fp.removeprefix(prefix) for fp in filewalker.walk()}
 
-        file_manifest_file_set = set([artifact_file.name for artifact_file in file_manifest.files])
+        file_manifest_file_set = {artifact_file.name for artifact_file in file_manifest.files}
         # The artifact contains MANIFEST.json and FILES.JSON, but they aren't
         # in file list in FILES.json so add them so we match expected.
         file_manifest_file_set.add("MANIFEST.json")
         file_manifest_file_set.add(file_manifest_name)
 
-        difference = sorted(list(found_file_set.difference(file_manifest_file_set)))
+        difference = sorted(found_file_set.difference(file_manifest_file_set))
 
         if difference:
             err_msg = f"Files in the artifact but not the file manifest: {difference}"

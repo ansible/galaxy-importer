@@ -68,7 +68,7 @@ class OpenshiftJobTestRunner(BaseTestRunner):
 
     @staticmethod
     def _get_token():
-        with open(os.path.join(OCP_SERVICEACCOUNT_PATH, "token"), "r") as f:
+        with open(os.path.join(OCP_SERVICEACCOUNT_PATH, "token")) as f:
             token = f.read().rstrip()
         return token
 
@@ -78,15 +78,17 @@ class OpenshiftJobTestRunner(BaseTestRunner):
 
     @staticmethod
     def _get_job_template():
-        with resource_filename_compat(
-            "galaxy_importer", "ansible_test/job_template.yaml"
-        ) as file_path:
-            with open(file_path, "r") as f:
-                job_template = f.read()
+        with (
+            resource_filename_compat(
+                "galaxy_importer", "ansible_test/job_template.yaml"
+            ) as file_path,
+            open(file_path) as f,
+        ):
+            job_template = f.read()
         return job_template
 
 
-class Job(object):
+class Job:
     """Interact with Openshift Job via REST API."""
 
     def __init__(
@@ -184,7 +186,7 @@ class Job(object):
         r = requests.get(
             url=f"{self.pods_url}/{pod_name}/log",
             headers=self.auth_header,
-            params=dict(follow="true"),
+            params={"follow": "true"},
             verify=self.ca_path,
             stream=True,
         )

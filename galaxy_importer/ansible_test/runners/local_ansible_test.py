@@ -45,7 +45,9 @@ class LocalAnsibleTestRunner(BaseTestRunner):
             stdout=subprocess.PIPE,
             encoding="utf-8",
         )
-        self.log.info(f"Using {list(version_proc.stdout)[0].rstrip()}")
+        # FIXME(cutwater): This code is invalid. The `stdout` attribute of a subprocess result
+        #   is a string. Calling `list` will return list of characters.
+        self.log.info(f"Using {list(version_proc.stdout)[0].rstrip()}")  # noqa: RUF015
 
         suffix = f"ansible_collections/{self.metadata.namespace}/{self.metadata.name}/"
         collection_dir = os.path.join(self.dir, suffix)

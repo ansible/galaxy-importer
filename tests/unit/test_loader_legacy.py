@@ -113,7 +113,7 @@ def test_load_values(populated_role_root):
     assert galaxy_info.github_branch is None
 
     dependencies = data.metadata.dependencies
-    assert dependencies == list()
+    assert dependencies == []
 
 
 @pytest.mark.parametrize(
