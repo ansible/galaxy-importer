@@ -23,8 +23,8 @@ __all__ = (
     "ContentLoader",
     "DocStringLoader",
     "ExtensionLoader",
-    "get_loader_cls",
     "LegacyRoleLoader",
     "PluginLoader",
     "RoleLoader",
+    "get_loader_cls",
 )
