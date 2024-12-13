@@ -20,11 +20,11 @@ from .doc_string import (
 
 __all__ = (
     "CollectionLoader",
-    "LegacyRoleLoader",
     "ContentLoader",
-    "PluginLoader",
-    "ExtensionLoader",
-    "RoleLoader",
-    "get_loader_cls",
     "DocStringLoader",
+    "ExtensionLoader",
+    "get_loader_cls",
+    "LegacyRoleLoader",
+    "PluginLoader",
+    "RoleLoader",
 )
