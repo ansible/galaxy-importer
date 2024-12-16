@@ -1,3 +1,16 @@
+galaxy-importer 0.4.27 (2024-12-16)
+===================================
+
+Features
+--------
+
+- support py312 (`#306 https://github.com/ansible/galaxy-importer/pull/306`)
+
+Bugfixes
+--------
+
+- Include powershell modules in the finder code. (`#307 <https://github.com/ansible/galaxy-importer/pull/307>`)
+
 galaxy-importer 0.4.26 (2024-10-23)
 ===================================
 
