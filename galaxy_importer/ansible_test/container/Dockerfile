@@ -1,4 +1,4 @@
-FROM quay.io/ansible/base-test-container:5.10.0
+FROM quay.io/ansible/base-test-container:8.0.0
 
 LABEL   com.redhat.component="ansible-test" \
         description="Container used by galaxy for running ansible-test validation." \
