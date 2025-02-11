@@ -1,1 +1,0 @@
-Upgraded the ansible-lint dependency upper bound from 24.9.0 to 25.1.2.
