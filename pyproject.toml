@@ -82,6 +82,8 @@ extend-ignore = [
     # TD003 Missing issue link on the line following this TODO
     # We don't create issues for TODOs
     "TD003",
+    # SIM108 arguably creates less readable code
+    "SIM108",
 ]
 
 [tool.ruff.lint.per-file-ignores]

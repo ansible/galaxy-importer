@@ -32,11 +32,15 @@ class DocStringLoader:
 
     Load by calling ansible-doc once in batch for each plugin type."""
 
-    def __init__(self, path, fq_collection_name, cfg, logger=None):
+    def __init__(
+        self, path, fq_collection_name, cfg, logger=None, plugin_types=None, module_path=None
+    ):
         self.path = path
         self.fq_collection_name = fq_collection_name
         self.cfg = cfg
         self.log = logger or default_logger
+        self.plugin_types = plugin_types
+        self.module_path = module_path
 
     def load(self):
         self.log.info("Getting doc strings via ansible-doc")
@@ -46,7 +50,8 @@ class DocStringLoader:
             self.log.warning("ansible-doc not found, skipping loading of docstrings")
             return docs
 
-        for plugin_type in constants.ANSIBLE_DOC_SUPPORTED_TYPES:
+        plugin_types = self.plugin_types or constants.ANSIBLE_DOC_SUPPORTED_TYPES
+        for plugin_type in plugin_types:
             # use ansible-doc to list all the plugins of this type
             found_plugins = self._run_ansible_doc_list(plugin_type)
             plugins = sorted(found_plugins.keys())
@@ -98,11 +103,13 @@ class DocStringLoader:
 
     def _run_ansible_doc_list(self, plugin_type):
         """Use ansible-doc to get a list of plugins for the collection by type."""
+        if self.module_path:
+            opts = ["-M", self.module_path]
+        else:
+            opts = ["--list", "--type", plugin_type]
         cmd = [
             *self._base_ansible_doc_cmd,
-            "--list",
-            "--type",
-            plugin_type,
+            *opts,
             "--json",
             self.fq_collection_name,
         ]
@@ -119,10 +126,16 @@ class DocStringLoader:
         return json.loads(stdout)
 
     def _run_ansible_doc(self, plugin_type, plugins):
+        if self.module_path:
+            # Use of -M allows us to get docs from any plugin type by treating
+            # it as a module, by telling ansible-doc to look at a specific
+            # directory
+            opts = ["-M", self.module_path]
+        else:
+            opts = ["--type", plugin_type]
         cmd = [
             *self._base_ansible_doc_cmd,
-            "--type",
-            plugin_type,
+            *opts,
             "--json",
             *plugins,
         ]
