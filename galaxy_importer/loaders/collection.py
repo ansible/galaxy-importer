@@ -28,7 +28,7 @@ except ImportError:
     from ansible_builder._target_scripts import introspect
 
 from galaxy_importer import exceptions as exc
-from galaxy_importer.finder import ContentFinder, FileWalker
+from galaxy_importer.finder import ContentFinder, FileWalker, Result
 from galaxy_importer import constants
 from galaxy_importer import loaders, file_parser, schema
 from galaxy_importer.utils import markup as markup_utils
@@ -370,8 +370,21 @@ class CollectionLoader:
 
     def _load_contents(self):
         """Find and load data for each content inside the collection."""
-        found_contents = ContentFinder().find_contents(self.path, self.log)
-        for content_type, rel_path in found_contents:
+        found_contents = set()
+        if self.doc_strings:
+            # This block adds paths found by ansible-doc, which does not currently
+            # include extensions (eda) as of ansible-core 2.19
+            for content_type, contents in self.doc_strings.items():
+                content_type = constants.ContentType(content_type)
+                for _, content in contents.items():
+                    rel_path = os.path.relpath(content["doc"]["filename"], self.path)
+                    found_contents.add(Result(content_type, rel_path))
+        # This adds all .py and .ps1 paths in a collection. The effect is finding content
+        # in collections such as extensions (eda). Once ansible-doc supports enumerating
+        # extensions this could be made conditional
+        found_contents.update(ContentFinder().find_contents(self.path, self.log))
+
+        for content_type, rel_path in sorted(found_contents):
             loader_cls = loaders.get_loader_cls(content_type)
             loader = loader_cls(
                 content_type, rel_path, self.path, self.doc_strings, self.cfg, self.log
