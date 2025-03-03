@@ -50,7 +50,7 @@ def test_collection_community_general_import(workdir, local_fast_config):
 
     # make sure it found all the files
     contents = {(x["content_type"], x["name"]): x for x in results["contents"]}
-    assert len(contents.keys()) == 831
+    assert len(contents.keys()) == 842
 
     # check a small sample
     assert ("test", "a_module") in contents
@@ -69,7 +69,7 @@ def test_collection_community_general_import(workdir, local_fast_config):
     docs_contents = {
         (x["content_type"], x["content_name"]): x for x in results["docs_blob"]["contents"]
     }
-    assert len(docs_contents.keys()) == 831
+    assert len(docs_contents.keys()) == 842
 
     # check a small sample
     assert ("test", "a_module") in docs_contents
