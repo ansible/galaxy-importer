@@ -75,7 +75,7 @@ LEGACY_ROLE_NAME_REGEXP = re.compile("^[a-zA-Z0-9_-]{1,55}$")
 LEGACY_NAMESPACE_REGEXP = re.compile("^([a-zA-Z0-9.]+[-_]?)+$")
 
 
-class ContentCategory(enum.Enum):
+class ContentCategory(str, enum.Enum):
     MODULE = "module"
     ROLE = "role"
     PLUGIN = "plugin"
@@ -83,7 +83,7 @@ class ContentCategory(enum.Enum):
     EXTENSION = "extension"
 
 
-class ContentType(enum.Enum):
+class ContentType(str, enum.Enum):
     PLAYBOOK = "playbook"
     ROLE = "role"
     MODULE = "module"

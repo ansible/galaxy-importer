@@ -50,13 +50,13 @@ def test_eda_import(workdir, local_image_config):
 
     # the data should have all the relevant bits
     assert results["contents"] == [
-        {"content_type": "playbook", "description": None, "name": "hello.yml"},
-        {"content_type": "role", "description": "your role description", "name": "test_role"},
         {
             "content_type": "module",
             "description": "Upper cases a passed in string",
             "name": "upcase",
         },
+        {"content_type": "playbook", "description": None, "name": "hello.yml"},
+        {"content_type": "role", "description": "your role description", "name": "test_role"},
     ]
     assert results["docs_blob"]["contents"] != []
     assert results["docs_blob"]["collection_readme"]["name"] == "README.md"
