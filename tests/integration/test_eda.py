@@ -3,9 +3,12 @@ import json
 import os
 import subprocess
 
+from galaxy_importer.main import main
 
-def test_eda_import(workdir, local_image_config):
+
+def test_eda_import(workdir, local_image_config, capsys, monkeypatch):
     assert os.path.exists(workdir)
+    monkeypatch.chdir(workdir)
     url = (
         "https://beta-galaxy.ansible.com/api/v3/plugin/ansible/content/published/"
         + "collections/artifacts/ansible-eda-2.6.0.tar.gz"
@@ -17,15 +20,14 @@ def test_eda_import(workdir, local_image_config):
 
     env = copy.deepcopy(dict(os.environ))
     env.update(local_image_config)
+    monkeypatch.setattr(os, "environ", env)
 
-    cmd = f"python3 -m galaxy_importer.main {dst}"
-    pid = subprocess.run(
-        cmd, shell=True, cwd=workdir, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    assert pid.returncode == 0, pid.stdout
+    returncode = 0 if not main([dst]) else 1
+    captured = capsys.readouterr()
+    assert returncode == 0, captured.out
 
     # the log should contain all the relevant messages
-    log = pid.stdout.decode("utf-8")
+    log = captured.out
     assert "Running ansible-test sanity on" in log
     assert "Running sanity test" in log
     assert "ansible-test sanity complete." in log
