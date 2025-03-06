@@ -164,6 +164,13 @@ def _import_collection(file, filename, file_url, logger, cfg):
 
 def _extract_archive(fileobj, extract_dir):
     fileobj.seek(0)
+    _extract_kwargs = {}
+    if hasattr(tarfile, "data_filter"):
+        # Python added support for tarfile extraction filtering (PEP706) in
+        # response to CVE-2007-4559. This was introduced in Py3.12, although
+        # backported to other some earlier versions, and the default behavior
+        # will change in Python 3.14
+        _extract_kwargs["filter"] = "data"
     with tarfile.open(fileobj=fileobj, mode="r") as tf:
         for item in tf.getmembers():
             if item.name.startswith("/") or "../" in item.name:
@@ -175,4 +182,4 @@ def _extract_archive(fileobj, extract_dir):
                 )
                 if not link_target.startswith(os.path.abspath(extract_dir)):
                     raise exc.ImporterError("Invalid link target detected.")
-        tf.extractall(extract_dir)
+        tf.extractall(extract_dir, **_extract_kwargs)

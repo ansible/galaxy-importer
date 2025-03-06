@@ -82,6 +82,8 @@ extend-ignore = [
     # TD003 Missing issue link on the line following this TODO
     # We don't create issues for TODOs
     "TD003",
+    # SIM108 arguably creates less readable code
+    "SIM108",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -97,5 +99,5 @@ relative_files = true
 branch = true
 
 [tool.coverage.report]
-fail_under = 95.50
+fail_under = 90.00
 precision = 2

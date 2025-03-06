@@ -26,6 +26,7 @@ import yaml
 
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
+from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
 
@@ -172,6 +173,29 @@ class ExtensionLoader(PluginLoader):
         can simply return name
         """
         return name
+
+    def _get_plugin_doc_strings(self):
+        # Once ansible-doc supports fetching docs for extensions on it's own
+        # the implementation of ``PluginLoader._get_plugin_doc_strings``
+        # should be sufficient on it's own for handling this
+        if not self.cfg.run_ansible_doc:
+            return None
+
+        module_path = (Path(self.root) / self.rel_path).parent
+
+        doc_strings = loaders.DocStringLoader(
+            path=self.root,
+            fq_collection_name=self.name,
+            cfg=self.cfg,
+            logger=self.log,
+            plugin_types=(self.content_type.value,),
+            module_path=str(module_path),
+        ).load()
+
+        try:
+            return doc_strings[self.content_type.value][self.name]
+        except KeyError:
+            return None
 
 
 class PlaybookLoader(ContentLoader):

@@ -35,4 +35,4 @@ test/unit/annotate/clean:
 
 .PHONY: test/integration
 test/integration:
-	pytest tests/integration -v
+	pytest tests/integration -v --cov=galaxy_importer --cov-config=pyproject.toml --cov-report xml:coverage.xml --cov-append
