@@ -1,3 +1,13 @@
+galaxy-importer 0.4.24 (2025-03-07)
+===================================
+
+Features
+--------
+
+- Add Support for extracting docs from EDA plugins (`#330 https://github.com/ansible/galaxy-importer/pull/330`)
+- Add Support for plugins with sidecar documentation (`#329 https://github.com/ansible/galaxy-importer/pull/329`)
+
+
 galaxy-importer 0.4.28 (2025-02-11)
 ===================================
 
