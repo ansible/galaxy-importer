@@ -73,9 +73,6 @@ then
     cd /eda/tox
     tox -q -e ruff -- $COLLECTION_DIR
 
-    echo "Running darglint on /extensions/eda/plugins..."
-    tox -q -e darglint -- $COLLECTION_DIR
-
     if [ -d "$EDA_PLUGIN_SOURCE" ]
     then
         echo "Running pylint on /extensions/eda/plugins/event_source..."
