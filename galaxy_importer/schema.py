@@ -42,6 +42,7 @@ MAX_LEGACY_ROLE_LENGTH_DESCRIPTION = 255
 
 SHA1_LEN = 40
 REQUIRED_TAG_LIST = [
+    "ai",
     "application",
     "cloud",
     "database",
