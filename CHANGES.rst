@@ -1,3 +1,13 @@
+galaxy-importer 0.4.30 (2025-05-22)
+===================================
+
+Misc
+----
+
+- Add 'ai' to required tags list (`#346 https://github.com/ansible/galaxy-importer/pull/346`)
+- Update EDA tox linting (`#343 https://github.com/ansible/galaxy-importer/pull/343`)
+
+
 galaxy-importer 0.4.29 (2025-03-07)
 ===================================
 
