@@ -3,7 +3,7 @@
     directory = "CHANGES/"
     filename = "CHANGES.rst"
     title_format = "galaxy-importer {version} ({project_date})"
-    issue_format = "`AAH-{issue} <https://issues.redhat.com/browse/AAH-{issue}>`_"
+    issue_format = "`AAP-{issue} <https://issues.redhat.com/browse/AAP-{issue}>`_"
 
 [tool.black]
 line-length = 100
