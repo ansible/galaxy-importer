@@ -6,6 +6,7 @@ from subprocess import PIPE, Popen, TimeoutExpired
 from galaxy_importer import config
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
+from galaxy_importer.utils.lint_version import get_version_from_metadata
 from galaxy_importer.utils import markup
 from galaxy_importer import schema
 
@@ -109,7 +110,8 @@ class LegacyRoleLoader:
         Only raised errors are logged, they are logged as errors.
         """
 
-        self.log.info(f"Linting role {self.name} via ansible-lint...")
+        lint_version = get_version_from_metadata("ansible-lint")
+        self.log.info(f"Linting role {self.name} via ansible-lint {lint_version}...")
 
         if not shutil.which("ansible-lint"):
             self.log.warning("ansible-lint not found, skipping lint of role")
