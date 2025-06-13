@@ -31,6 +31,7 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder, FileWalker, Result
 from galaxy_importer import constants
 from galaxy_importer import loaders, file_parser, schema
+from galaxy_importer.utils.lint_version import get_version_from_metadata
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils import chksums
 
@@ -128,7 +129,8 @@ class CollectionLoader:
         Only raised errors are logged, they are logged as errors.
         """
 
-        self.log.info("Linting collection via ansible-lint...")
+        lint_version = get_version_from_metadata("ansible-lint")
+        self.log.info(f"Linting collection via ansible-lint {lint_version}...")
 
         if not shutil.which("ansible-lint"):
             self.log.warning("ansible-lint not found, skipping lint of collection")

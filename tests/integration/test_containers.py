@@ -65,7 +65,7 @@ def test_local_build_container_with_legacy_role(local_image_config, simple_legac
     log = pid.stdout.decode("utf-8")
 
     assert "Determined role name to be bar_role" in log
-    assert "Linting role bar_role via ansible-lint..." in log
+    assert "Linting role bar_role via ansible-lint" in log
     assert "Should change default metadata: author" in log
     assert "Should change default metadata: company" in log
     assert "Should change default metadata: license" in log
