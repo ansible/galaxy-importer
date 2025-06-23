@@ -226,22 +226,24 @@ class PatternLoader(ContentLoader):
         return True
 
     def _load_meta_pattern_schema_validator(self):
-        schema_pattern_path = os.path.join(os.getcwd(), 'galaxy_importer/loaders/schemas/patterns/pattern.json')
+        schema_pattern_path = os.path.join(
+            os.getcwd(), "galaxy_importer/loaders/schemas/patterns/pattern.json"
+        )
 
         try:
-            with open(schema_pattern_path, 'r') as f:
+            with open(schema_pattern_path, "r") as f:
                 schema = json.load(f)
-        except Exception: # TODO: test this
+        except Exception:  # TODO: test this
             raise exc.FileParserError(f"Error during parsing of {schema_pattern_path}")
 
         return schema
-    
+
     def _load_meta_pattern_file(self):
         full_path = os.path.join(self.root, self.rel_path)
         try:
-            with open(full_path, 'r') as f:
+            with open(full_path, "r") as f:
                 data = json.load(f)
-        except Exception: # TODO: test this
+        except Exception:  # TODO: test this
             raise exc.FileParserError(f"Error during parsing of {self.rel_path}")
         return data
 
@@ -252,13 +254,16 @@ class PatternLoader(ContentLoader):
 
             try:
                 validate(instance=meta_pattern_content, schema=schema)
-                self.log.info(f'{constants.META_PATTERN_FILENAME}')
+                self.log.info(f"{constants.META_PATTERN_FILENAME}")
             except (ValidationError, SchemaError) as e:
-                raise exc.ImporterError(f"Error validating {self.rel_path}: {e.message}") # TODO: test this
+                raise exc.ImporterError(
+                    f"Error validating {self.rel_path}: {e.message}"
+                )  # TODO: test this
 
     def _validate_playbooks(self):
         # if a pattern contains multiple playbooks, it MUST define a primary playbook in its setup file.
         pass
+
 
 class PlaybookLoader(ContentLoader):
 

@@ -42,6 +42,7 @@ class PatternFindError(ContentFindError):
 
 ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 
+
 @attr.s(slots=True)
 class PatternsFinder:
     path = attr.ib()
@@ -68,23 +69,31 @@ class PatternsFinder:
         yield from self.set_result(content_dir, constants.ContentType.PATTERNS, setup)
 
     def find_meta_pattern(self, content_dir):
-        pattern = self._find_file(os.path.join(content_dir, "meta"), "pattern", allowed_extensions=[".json"])
-        yield from self.set_result(content_dir, constants.ContentType.PATTERNS_META, os.path.join("meta", pattern))
+        pattern = self._find_file(
+            os.path.join(content_dir, "meta"), "pattern", allowed_extensions=[".json"]
+        )
+        yield from self.set_result(
+            content_dir, constants.ContentType.PATTERNS_META, os.path.join("meta", pattern)
+        )
 
     def find_execution_environment(self, content_dir):
-        # this directory is optional
-        # if present, it should contain exactly one yaml file
+        # execution_environments directory is optional
+        # if present, it should contain exactly one yml file
         ee_dir = os.path.join(content_dir, "execution_environments")
         if os.path.exists(ee_dir):
             ee_files = self._map_dir(ee_dir)
             if len(ee_files) != 1:
                 rel_path = self.get_rel_path(ee_dir)
-                raise ContentFindError(f"{rel_path} directory must contain exactly one execution environment file")
+                raise ContentFindError(
+                    f"{rel_path} directory must contain exactly one execution environment file"
+                )
             else:
-                yield from self.set_result(content_dir, constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS, ee_files[0])
+                yield from self.set_result(
+                    content_dir, constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS, ee_files[0]
+                )
         else:
             ee_path = self.get_rel_path(ee_dir)
-            self.log.info(f"{ee_path} not found, skipping") # TODO: make this fnc
+            self.log.info(f"{ee_path} not found, skipping")  # TODO: make this fnc
 
     def find_playbooks(self, content_dir):
         playbooks_dir = os.path.join(content_dir, "playbooks")
@@ -92,24 +101,30 @@ class PatternsFinder:
         if not os.path.exists(playbooks_dir):
             rel_path = self.get_rel_path(content_dir)
             raise ContentFindError(f"{rel_path} must contain playbooks directory")
-        
+
         playbooks = self._map_dir(playbooks_dir)
         if len(playbooks) < 1:
             rel_path = self.get_rel_path(playbooks_dir)
             raise ContentFindError(f"{rel_path} must containt atleast one playbook")
 
-        yield from self.set_results(playbooks_dir, constants.ContentType.PATTERNS_PLAYBOOKS, playbooks)
+        yield from self.set_results(
+            playbooks_dir, constants.ContentType.PATTERNS_PLAYBOOKS, playbooks
+        )
 
     def find_templates(self, content_dir):
         templates_dir = os.path.join(content_dir, "templates")
         if not os.path.exists(templates_dir):
             rel_path = self.get_rel_path(templates_dir)
-            self.log.info(f"{rel_path} not found, skipping") # TODO: make this fnc
+            self.log.info(f"{rel_path} not found, skipping")
         else:
             templates = self._map_dir(templates_dir)
-            yield from self.set_results(templates_dir, constants.ContentType.PATTERNS_TEMPLATES, templates)
+            yield from self.set_results(
+                templates_dir, constants.ContentType.PATTERNS_TEMPLATES, templates
+            )
 
-    def _find_file(self, content_dir, expected_filename, allowed_extensions = [".yml", ".yaml"], required = True):
+    def _find_file(
+        self, content_dir, expected_filename, allowed_extensions=[".yml", ".yaml"], required=True
+    ):
         rel_path = self.get_rel_path(os.path.join(content_dir, expected_filename))
 
         req_file_exc_msg = f"{rel_path}({'/'.join(allowed_extensions)}) not found"
@@ -120,7 +135,11 @@ class PatternsFinder:
             for content in os.listdir(content_dir):
                 if os.path.isfile(os.path.join(content_dir, content)):
                     file, extension = os.path.splitext(content)
-                    if extension and extension.lower() in allowed_extensions and expected_filename == file.lower():
+                    if (
+                        extension
+                        and extension.lower() in allowed_extensions
+                        and expected_filename == file.lower()
+                    ):
                         return content
 
         if required:
@@ -152,6 +171,7 @@ class PatternsFinder:
 
         # templates/
         yield from self.find_templates(content_dir)
+
 
 class ContentFinder:
     """Searches for content in directories inside collection."""
@@ -274,11 +294,12 @@ class ContentFinder:
             return []
 
         content_types_and_dirs = [
-            (constants.ContentType.PATTERNS,
-            os.path.join(patterns_parser.relative_path, dir)) for dir in patterns_dirs
+            (constants.ContentType.PATTERNS, os.path.join(patterns_parser.relative_path, dir))
+            for dir in patterns_dirs
         ]
 
         return content_types_and_dirs
+
 
 @attr.s
 class FileWalker:

@@ -120,12 +120,12 @@ class PatternsParser:
         with open(pattern_path) as fp:
             try:
                 return json.load(fp)
-            except Exception: # TODO: test this
+            except Exception:  # TODO: test this
                 rel_path = os.path.relpath(pattern_path, self.collection_path)
                 raise exc.FileParserError(f"Error during parsing of {rel_path}")
 
     def _get_meta_pattern_path(self, dir):
-        return os.path.join(self.path, dir, 'meta', constants.META_PATTERN_FILENAME)
+        return os.path.join(self.path, dir, "meta", constants.META_PATTERN_FILENAME)
 
     def get_dirs(self):
         return self.dirs
