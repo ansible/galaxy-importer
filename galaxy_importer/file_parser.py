@@ -114,15 +114,13 @@ class PatternsParser:
     def _load_meta_pattern(self, dir):
         """Loads meta/pattern.json for specified patterns directory"""
         pattern_path = self._get_meta_pattern_path(dir)
-        if not os.path.exists(pattern_path):
-            return
 
-        with open(pattern_path) as fp:
-            try:
+        try:
+            with open(pattern_path) as fp:
                 return json.load(fp)
-            except Exception:  # TODO(jerabekjiri): test this
-                rel_path = os.path.relpath(pattern_path, self.collection_path)
-                raise exc.FileParserError(f"Error during parsing of {rel_path}")
+        except Exception:
+            rel_path = os.path.relpath(pattern_path, self.collection_path)
+            raise exc.FileParserError(f"Error during parsing of {rel_path}")
 
     def _get_meta_pattern_path(self, dir):
         return os.path.join(self.path, dir, "meta", constants.META_PATTERN_FILENAME)

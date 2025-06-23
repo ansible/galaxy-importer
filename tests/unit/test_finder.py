@@ -257,8 +257,8 @@ class TestPatternFinder(unittest.TestCase):
         self.patterns_dir = os.path.join(self.path, "extensions", "patterns", "foo.bar")
         os.makedirs(self.patterns_dir, exist_ok=True)
 
-    # def tearDown(self):
-    #     shutil.rmtree(self.path)
+    def tearDown(self):
+        shutil.rmtree(self.path)
 
     @pytest.fixture(autouse=True)
     def inject_caplog(self, caplog):
