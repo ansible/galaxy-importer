@@ -93,7 +93,7 @@ class PatternsFinder:
                 )
         else:
             ee_path = self.get_rel_path(ee_dir)
-            self.log.info(f"{ee_path} not found, skipping")  # TODO: make this fnc
+            self.log.info(f"{ee_path} not found, skipping")
 
     def find_playbooks(self, content_dir):
         playbooks_dir = os.path.join(content_dir, "playbooks")
@@ -123,7 +123,7 @@ class PatternsFinder:
             )
 
     def _find_file(
-        self, content_dir, expected_filename, allowed_extensions=[".yml", ".yaml"], required=True
+        self, content_dir, expected_filename, allowed_extensions=(".yml", ".yaml"), required=True
     ):
         rel_path = self.get_rel_path(os.path.join(content_dir, expected_filename))
 
