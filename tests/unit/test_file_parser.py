@@ -210,14 +210,14 @@ class TestPatternsParser:
         patterns_parser._load()
         patterns_dirs = patterns_parser.get_dirs()
 
-        assert dirs == patterns_dirs
+        assert set(dirs) == set(patterns_dirs)
 
     def test_load_meta_pattern_file(self):
         pattern_content = self._create_meta_pattern_file("foo.bar", {"foo": "bar"})
 
         patterns_parser = file_parser.PatternsParser(self.collection_path)
         loaded_pattern_content = patterns_parser._load_meta_pattern("foo.bar")
-        assert set(loaded_pattern_content) == set(pattern_content)
+        assert loaded_pattern_content == pattern_content
 
     def test_loading_missing_meta_pattern_file(self):
         patterns_parser = file_parser.PatternsParser(self.collection_path)
@@ -226,3 +226,22 @@ class TestPatternsParser:
             match="Error during parsing of extensions/patterns/foo.bar/meta/pattern.json",
         ):
             patterns_parser._load_meta_pattern("foo.bar")
+
+    @pytest.mark.parametrize(
+        "dirs",
+        [
+            [],
+            [
+                {"name": "network.backup", "content": {"foo": "bar"}},
+                {"name": "network.restore", "content": {"foo": "baz"}},
+                {"name": "network.cleanup", "content": {"foo": "bax"}},
+            ],
+        ],
+    )
+    def test_get_meta_patterns(self, dirs):
+        for dir in dirs:
+            self._create_meta_pattern_file(dir["name"], content=dir["content"])
+
+        patterns_parser = file_parser.PatternsParser(self.collection_path)
+        meta_patterns_content = patterns_parser.get_meta_patterns()
+        assert meta_patterns_content == [dir["content"] for dir in dirs]
