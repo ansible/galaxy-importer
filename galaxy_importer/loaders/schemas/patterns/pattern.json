@@ -1,0 +1,232 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https:///www.redhat.com/ansible-collaborative/ecosystem/pattern.schema",
+    "title": "Ansible Pattern Schema",
+    "description": "A schema for defining Ansible patterns",
+    "type": "object",
+    "properties": {
+        "name": {
+            "description": "Machine readable name for the pattern, provide guidance on this",
+            "type": "string"
+        },
+        "title": {
+            "description": "Human readable title for the pattern, may be used for pattern catalog and display purposes",
+            "type": "string"
+        },
+        "description": {
+            "description": "A detailed description for the pattern, provide guidance on this",
+            "type": "string"
+        },
+        "short_description": {
+            "description": "A brief description of the pattern that may be used for display purposes",
+            "type": "string"
+        },
+        "tags": {
+            "description": "List of tags for the resource, provide guidance on these",
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+        },
+        "audience": {
+            "description": "Need to figure out what we want to do here",
+            "type": "string"
+        },
+        "aap_resources": {
+            "description": "Define the resources needed in AAP to run the pattern automation",
+            "type": "object",
+            "properties": {
+                "controller_project": {
+                    "description": "A pattern may define a controller project",
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "description": "Name for the project to be created in automation controller",
+                            "type": "string"
+                        },
+                        "description": {
+                            "description": "Description for the project to be created in automation controller",
+                            "type": "string"
+                        },
+                        "scm_type": {
+                            "description": "Source control type to use for the project",
+                            "type": "string",
+                            "enum": [
+                                "git",
+                                "svn",
+                                "insights"
+                            ]
+                        },
+                        "scm_url": {
+                            "description": "Source control URL to use for the project",
+                            "type": "string"
+                        },
+                        "scm_branch": {
+                            "description": "Source control branch to use for the project",
+                            "type": "string"
+                        },
+                        "scm_update_on_launch": {
+                            "description": "Whether to update the project from source control when a job using the project is launched",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "description",
+                        "scm_type",
+                        "scm_url"
+                    ]
+                },
+                "controller_execution_environment": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "description": "Name for the EE to be created in automation controller",
+                            "type": "string"
+                        },
+                        "description": {
+                            "description": "Description for the EE to be created in automation controller",
+                            "type": "string"
+                        },
+                        "image": {
+                            "description": "Full location for the EE image, including the container registry, image name, and version tag",
+                            "type": "string"
+                        },
+                        "pull": {
+                            "description": "Whether to pull the EE image before running",
+                            "type": "string",
+                            "enum": [
+                                "always",
+                                "missing",
+                                "never"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "description",
+                        "image"
+                    ]
+                },
+                "controller_labels": {
+                    "description": "Labels to create for the pattern if not already present in controller",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "controller_job_templates": {
+                    "description": "A list of one or more job templates to be created in automation controller",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "description": "Name for the job template to be created in automation controller",
+                                "type": "string"
+                            },
+                            "description": {
+                                "description": "Description for hte the job template to be created in automation controller",
+                                "type": "string"
+                            },
+                            "execution_environment": {
+                                "description": "Name of the execution environment to use for job template execution",
+                                "type": "string"
+                            },
+                            "playbook": {
+                                "description": "Name of the playbook file included in the pattern `automations` directory",
+                                "type": "string"
+                            },
+                            "fields_required_at_launch": {
+                                "description": "Fields that must be selected by the user when launching the job template in AAP",
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "credential",
+                                        "inventory",
+                                        "verbosity"
+                                    ]
+                                }
+                            },
+                            "labels": {
+                                "description": "List of to apply to the job template",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 1,
+                                "uniqueItems": true
+                            },
+                            "survey": {
+                                "description": "Survey to be created for job template allowing users to input required and optional variables. Or should this be generated from the playbook documentation?",
+                                "properties": {
+                                    "name": {
+                                        "description": "TBA",
+                                        "type": "string"
+                                    },
+                                    "desription": {
+                                        "description": "TBA",
+                                        "type": "string"
+                                    },
+                                    "spec:": {
+                                        "description": "TBA",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "type": {
+                                                    "description": "TBA",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "text",
+                                                        "TBA"
+                                                    ]
+                                                },
+                                                "question_name": {
+                                                    "description": "TBA",
+                                                    "type": "string"
+                                                },
+                                                "question_description": {
+                                                    "description": "TBA",
+                                                    "type": "string"
+                                                },
+                                                "variable": {
+                                                    "description": "TBA",
+                                                    "type": "string"
+                                                },
+                                                "required": {
+                                                    "description": "TBA",
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "description",
+                            "playbook"
+                        ]
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "controller_project"
+            ]
+        }
+    },
+    "required": [
+        "name",
+        "title",
+        "description",
+        "aap_resources"
+    ]
+}
