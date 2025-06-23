@@ -118,7 +118,7 @@ class CollectionLoader:
             docs_blob=self.docs_blob,
             contents=self.contents,
             requires_ansible=self.requires_ansible,
-            patterns=meta_patterns
+            patterns=meta_patterns,
         )
 
     def _lint_collection(self):
@@ -465,6 +465,3 @@ class CollectionLoader:
         for path in paths:
             if not os.path.exists(path):
                 raise exc.ManifestValidationError(f"Could not find file {os.path.basename(path)}")
-
-    def _build_patterns_metadata(self):
-        return 
