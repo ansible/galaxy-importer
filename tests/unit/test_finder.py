@@ -409,12 +409,9 @@ class TestPatternFinder(unittest.TestCase):
         templates = list(templates_gen)
 
         assert len(templates) == 2
+        for template in templates:
+            assert template.content_type == constants.ContentType.PATTERNS_TEMPLATES
 
-        assert templates[0].content_type == constants.ContentType.PATTERNS_TEMPLATES
-        assert templates[0].path == "extensions/patterns/foo.bar/templates/template_01.yml"
-
-        assert templates[1].content_type == constants.ContentType.PATTERNS_TEMPLATES
-        assert templates[1].path == "extensions/patterns/foo.bar/templates/template_02.yml"
-
-    def test_(self):
-        pass
+        template_paths = [t.path for t in templates]
+        assert "extensions/patterns/foo.bar/templates/template_01.yml" in template_paths
+        assert "extensions/patterns/foo.bar/templates/template_02.yml" in template_paths
