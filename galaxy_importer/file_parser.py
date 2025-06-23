@@ -103,7 +103,7 @@ class PatternsParser:
         self.collection_path = collection_path
         self.relative_path = os.path.join("extensions", "patterns")
         self.path = os.path.join(self.collection_path, self.relative_path)
-        self.dirs = None
+        self.dirs = []
         self._load()
 
     def _load(self):
