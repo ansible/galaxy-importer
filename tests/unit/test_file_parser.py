@@ -15,11 +15,15 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
+import os
 import pytest
+import tempfile
+import shutil
+import json
 
 from galaxy_importer import exceptions as exc
 from galaxy_importer import file_parser
-
+from galaxy_importer import constants
 
 RUNTIME_REQUIRES_ANSIBLE = "requires_ansible: '>=2.9.10,<2.11.5'"
 
@@ -164,3 +168,82 @@ def test_no_extensions_file(tmpdir):
     # no error expected if meta/extensions.yml is not present
     parser = file_parser.ExtensionsFileParser(collection_path=tmpdir)
     parser.get_extension_dirs()
+
+
+class TestPatternsParser:
+
+    def setup_method(self):
+        self.collection_path = tempfile.mkdtemp()
+        self.patterns_dir = os.path.join(self.collection_path, "extensions", "patterns")
+        os.makedirs(self.patterns_dir, exist_ok=True)
+
+    def teardown_method(self):
+        shutil.rmtree(self.collection_path)
+
+    def _create_pattern_dir(self, dir):
+        pattern_dir = os.path.join(self.patterns_dir, dir)
+        os.makedirs(pattern_dir, exist_ok=True)
+
+        return pattern_dir
+
+    def _create_meta_pattern_file(self, dir, content):
+        pattern_dir = self._create_pattern_dir(dir)
+
+        meta_dir = os.path.join(pattern_dir, "meta")
+        os.makedirs(meta_dir, exist_ok=True)
+
+        pattern_file_path = os.path.join(meta_dir, constants.META_PATTERN_FILENAME)
+
+        with open(pattern_file_path, "w+") as file:
+            json.dump(content, file)
+
+        return content
+
+    @pytest.mark.parametrize(
+        "dirs", [[], ["foo.bar"], ["network.backup", "network.restore", "network.cleanup"]]
+    )
+    def test_loading_directories(self, dirs):
+        for dir in dirs:
+            self._create_pattern_dir(dir)
+
+        patterns_parser = file_parser.PatternsParser(self.collection_path)
+        patterns_parser._load()
+        patterns_dirs = patterns_parser.get_dirs()
+
+        assert set(dirs) == set(patterns_dirs)
+
+    def test_load_meta_pattern_file(self):
+        pattern_content = self._create_meta_pattern_file("foo.bar", {"foo": "bar"})
+
+        patterns_parser = file_parser.PatternsParser(self.collection_path)
+        loaded_pattern_content = patterns_parser._load_meta_pattern("foo.bar")
+        assert loaded_pattern_content == pattern_content
+
+    def test_loading_missing_meta_pattern_file(self):
+        patterns_parser = file_parser.PatternsParser(self.collection_path)
+        with pytest.raises(
+            exc.FileParserError,
+            match="Error during parsing of extensions/patterns/foo.bar/meta/pattern.json",
+        ):
+            patterns_parser._load_meta_pattern("foo.bar")
+
+    @pytest.mark.parametrize(
+        "dirs",
+        [
+            [],
+            [
+                {"name": "network.backup", "content": {"foo": "bar"}},
+                {"name": "network.restore", "content": {"foo": "baz"}},
+                {"name": "network.cleanup", "content": {"foo": "bax"}},
+            ],
+        ],
+    )
+    def test_get_meta_patterns(self, dirs):
+        for dir in dirs:
+            self._create_meta_pattern_file(dir["name"], content=dir["content"])
+
+        patterns_parser = file_parser.PatternsParser(self.collection_path)
+        meta_patterns_content = patterns_parser.get_meta_patterns()
+        assert sorted(meta_patterns_content, key=lambda d: d["foo"]) == sorted(
+            [dir["content"] for dir in dirs], key=lambda d: d["foo"]
+        )
