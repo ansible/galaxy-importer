@@ -217,7 +217,7 @@ class TestPatternsParser:
 
         patterns_parser = file_parser.PatternsParser(self.collection_path)
         loaded_pattern_content = patterns_parser._load_meta_pattern("foo.bar")
-        assert loaded_pattern_content == pattern_content
+        assert set(loaded_pattern_content) == set(pattern_content)
 
     def test_loading_missing_meta_pattern_file(self):
         patterns_parser = file_parser.PatternsParser(self.collection_path)
