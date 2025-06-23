@@ -120,7 +120,7 @@ class PatternsParser:
         with open(pattern_path) as fp:
             try:
                 return json.load(fp)
-            except Exception:  # TODO: test this
+            except Exception:  # TODO(jerabekjiri): test this
                 rel_path = os.path.relpath(pattern_path, self.collection_path)
                 raise exc.FileParserError(f"Error during parsing of {rel_path}")
 

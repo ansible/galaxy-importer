@@ -301,8 +301,8 @@ class TestPatternFinder(unittest.TestCase):
     def test_multiple_execution_environments_files(self):
         self.create_execution_environment()
         self.create_playbook(self.ee_dir, "execution-environments-2.yml", "---")
+        ee = PatternsFinder(self.path, log).find_execution_environment(self.patterns_dir)
         with pytest.raises(ContentFindError) as exc:
-            ee = PatternsFinder(self.path, log).find_execution_environment(self.patterns_dir)
             assert list(ee) == []
 
         assert (
@@ -322,8 +322,8 @@ class TestPatternFinder(unittest.TestCase):
         )
 
     def test_missing_readme(self):
+        readme_gen = PatternsFinder(self.path, log).find_readme(self.patterns_dir)
         with pytest.raises(ContentFindError) as exc:
-            readme_gen = PatternsFinder(self.path, log).find_readme(self.patterns_dir)
             next(readme_gen)
 
         assert "extensions/patterns/foo.bar/readme(.md) not found" in str(exc.value)
@@ -343,8 +343,8 @@ class TestPatternFinder(unittest.TestCase):
         assert setup[0].path == "extensions/patterns/foo.bar/setup.yml"
 
     def test_missing_meta_dir(self):
+        pattern_gen = PatternsFinder(self.path, log).find_meta_pattern(self.patterns_dir)
         with pytest.raises(ContentFindError) as exc:
-            pattern_gen = PatternsFinder(self.path, log).find_meta_pattern(self.patterns_dir)
             next(pattern_gen)
 
         assert "extensions/patterns/foo.bar/meta/pattern(.json) not found" in str(exc.value)
@@ -357,8 +357,8 @@ class TestPatternFinder(unittest.TestCase):
         assert pattern[0].path == "extensions/patterns/foo.bar/meta/pattern.json"
 
     def test_missing_playbooks_dir(self):
+        playbooks_gen = PatternsFinder(self.path, log).find_playbooks(self.patterns_dir)
         with pytest.raises(ContentFindError) as exc:
-            playbooks_gen = PatternsFinder(self.path, log).find_playbooks(self.patterns_dir)
             next(playbooks_gen)
         assert "extensions/patterns/foo.bar must contain playbooks directory" in str(exc.value)
 
@@ -366,8 +366,8 @@ class TestPatternFinder(unittest.TestCase):
         playbooks_dir = os.path.join(self.patterns_dir, "playbooks")
         os.makedirs(playbooks_dir, exist_ok=True)
 
+        playbooks_gen = PatternsFinder(self.path, log).find_playbooks(self.patterns_dir)
         with pytest.raises(ContentFindError) as exc:
-            playbooks_gen = PatternsFinder(self.path, log).find_playbooks(self.patterns_dir)
             next(playbooks_gen)
 
         assert "extensions/patterns/foo.bar/playbooks must containt atleast one playbook" in str(

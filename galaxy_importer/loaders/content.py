@@ -26,7 +26,6 @@ import yaml
 import json
 from jsonschema import validate, ValidationError, SchemaError
 
-from galaxy_importer.utils.resource_access import resource_filename_compat
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
 from galaxy_importer import loaders
@@ -231,9 +230,9 @@ class PatternLoader(ContentLoader):
         )
 
         try:
-            with open(schema_pattern_path, "r") as f:
+            with open(schema_pattern_path) as f:
                 schema = json.load(f)
-        except Exception:  # TODO: test this
+        except Exception:  # TODO(jerabekjiri): test this
             raise exc.FileParserError(f"Error during parsing of {schema_pattern_path}")
 
         return schema
@@ -241,9 +240,9 @@ class PatternLoader(ContentLoader):
     def _load_meta_pattern_file(self):
         full_path = os.path.join(self.root, self.rel_path)
         try:
-            with open(full_path, "r") as f:
+            with open(full_path) as f:
                 data = json.load(f)
-        except Exception:  # TODO: test this
+        except Exception:  # TODO(jerabekjiri): test this
             raise exc.FileParserError(f"Error during parsing of {self.rel_path}")
         return data
 
@@ -258,10 +257,11 @@ class PatternLoader(ContentLoader):
             except (ValidationError, SchemaError) as e:
                 raise exc.ImporterError(
                     f"Error validating {self.rel_path}: {e.message}"
-                )  # TODO: test this
+                )  # TODO(jerabekjiri): test this
 
     def _validate_playbooks(self):
-        # if a pattern contains multiple playbooks, it MUST define a primary playbook in its setup file.
+        # if a pattern contains multiple playbooks,
+        # it MUST define a primary playbook in its setup file.
         pass
 
 
