@@ -55,6 +55,16 @@ ALLOWED_EXTENSION_DIRS = [
     EDA_EVENT_FILTER_NAME,
 ]
 
+# Ansible Patterns extension
+META_PATTERN_FILENAME = 'pattern.json'
+
+# Content-Types
+PATTERNS_NAME = "patterns"
+PATTERNS_EXECUTION_ENVIRONMENTS_NAME = "patterns/execution-environments"
+PATTERNS_META_NAME = 'patterns/meta'
+PATTERNS_PLAYBOOKS_NAME = 'patterns/playbooks'
+PATTERNS_TEMPLATES_NAME = 'patterns/templates'
+
 # Match github's allowable usernames, but also include underscores
 # because of old-galaxy's preference for replacing hyphens with underscores
 # in namespace names. There are quite a few legacy namespaces with
@@ -81,6 +91,7 @@ class ContentCategory(str, enum.Enum):
     PLUGIN = "plugin"
     PLAYBOOK = "playbook"
     EXTENSION = "extension"
+    PATTERN_EXTENSION = "pattern_extension"
 
 
 class ContentType(str, enum.Enum):
@@ -108,6 +119,12 @@ class ContentType(str, enum.Enum):
     EDA_EVENT_SOURCE = EDA_EVENT_SOURCE_NAME
     EDA_EVENT_FILTER = EDA_EVENT_FILTER_NAME
 
+    PATTERNS = PATTERNS_NAME
+    PATTERNS_EXECUTION_ENVIRONMENTS = PATTERNS_EXECUTION_ENVIRONMENTS_NAME
+    PATTERNS_META = PATTERNS_META_NAME
+    PATTERNS_PLAYBOOKS = PATTERNS_PLAYBOOKS_NAME
+    PATTERNS_TEMPLATES = PATTERNS_TEMPLATES_NAME
+
     @property
     def category(self):
         return {
@@ -134,4 +151,10 @@ class ContentType(str, enum.Enum):
             ContentType.VARS_PLUGIN: ContentCategory.PLUGIN,
             ContentType.EDA_EVENT_SOURCE: ContentCategory.EXTENSION,
             ContentType.EDA_EVENT_FILTER: ContentCategory.EXTENSION,
+
+            ContentType.PATTERNS: ContentCategory.PATTERN_EXTENSION,
+            ContentType.PATTERNS_EXECUTION_ENVIRONMENTS: ContentCategory.PATTERN_EXTENSION,
+            ContentType.PATTERNS_META: ContentCategory.PATTERN_EXTENSION,
+            ContentType.PATTERNS_PLAYBOOKS: ContentCategory.PATTERN_EXTENSION,
+            ContentType.PATTERNS_TEMPLATES: ContentCategory.PATTERN_EXTENSION,
         }.get(self)

@@ -18,6 +18,7 @@
 import logging
 import os
 import yaml
+import json
 
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
@@ -93,3 +94,46 @@ class ExtensionsFileParser:
             return [ext["args"]["ext_dir"] for ext in self.data["extensions"]]
         except KeyError:
             raise exc.FileParserError("'meta/extensions.yml is not in the expected format'")
+
+
+class PatternsParser:
+    """Load Ansible Patterns directories"""
+
+    def __init__(self, collection_path):
+        self.collection_path = collection_path
+        self.relative_path = os.path.join("extensions", "patterns")
+        self.path = os.path.join(self.collection_path, self.relative_path)
+        self.dirs = None
+        self._load()
+
+    def _load(self):
+        if not os.path.exists(self.path):
+            return
+        self.dirs = os.listdir(self.path)
+
+    def _load_meta_pattern(self, dir):
+        """Loads meta/pattern.json for specified patterns directory"""
+        pattern_path = self._get_meta_pattern_path(dir)
+        if not os.path.exists(pattern_path):
+            return
+
+        with open(pattern_path) as fp:
+            try:
+                return json.load(fp)
+            except Exception: # TODO: test this
+                rel_path = os.path.relpath(pattern_path, self.collection_path)
+                raise exc.FileParserError(f"Error during parsing of {rel_path}")
+
+    def _get_meta_pattern_path(self, dir):
+        return os.path.join(self.path, dir, 'meta', constants.META_PATTERN_FILENAME)
+
+    def get_dirs(self):
+        return self.dirs
+
+    def get_meta_patterns(self):
+        meta_patterns = []
+        for dir in self.dirs:
+            pattern_content = self._load_meta_pattern(dir)
+            meta_patterns.append(pattern_content)
+
+        return meta_patterns
