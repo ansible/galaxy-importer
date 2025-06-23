@@ -56,14 +56,14 @@ ALLOWED_EXTENSION_DIRS = [
 ]
 
 # Ansible Patterns extension
-META_PATTERN_FILENAME = 'pattern.json'
+META_PATTERN_FILENAME = "pattern.json"
 
 # Content-Types
 PATTERNS_NAME = "patterns"
 PATTERNS_EXECUTION_ENVIRONMENTS_NAME = "patterns/execution-environments"
-PATTERNS_META_NAME = 'patterns/meta'
-PATTERNS_PLAYBOOKS_NAME = 'patterns/playbooks'
-PATTERNS_TEMPLATES_NAME = 'patterns/templates'
+PATTERNS_META_NAME = "patterns/meta"
+PATTERNS_PLAYBOOKS_NAME = "patterns/playbooks"
+PATTERNS_TEMPLATES_NAME = "patterns/templates"
 
 # Match github's allowable usernames, but also include underscores
 # because of old-galaxy's preference for replacing hyphens with underscores
@@ -151,7 +151,6 @@ class ContentType(str, enum.Enum):
             ContentType.VARS_PLUGIN: ContentCategory.PLUGIN,
             ContentType.EDA_EVENT_SOURCE: ContentCategory.EXTENSION,
             ContentType.EDA_EVENT_FILTER: ContentCategory.EXTENSION,
-
             ContentType.PATTERNS: ContentCategory.PATTERN_EXTENSION,
             ContentType.PATTERNS_EXECUTION_ENVIRONMENTS: ContentCategory.PATTERN_EXTENSION,
             ContentType.PATTERNS_META: ContentCategory.PATTERN_EXTENSION,
