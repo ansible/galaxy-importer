@@ -376,15 +376,14 @@ class CollectionLoader:
     def _load_contents(self):
         """Find and load data for each content inside the collection."""
         found_contents = set()
-        # TODO: comment here, remove here
-        # if self.doc_strings:
-        #     # This block adds paths found by ansible-doc, which does not currently
-        #     # include extensions (eda) as of ansible-core 2.19
-        #     for content_type, contents in self.doc_strings.items():
-        #         content_type = constants.ContentType(content_type)
-        #         for _, content in contents.items():
-        #             rel_path = os.path.relpath(content["doc"]["filename"], self.path)
-        #             found_contents.add(Result(content_type, rel_path))
+        if self.doc_strings:
+            # This block adds paths found by ansible-doc, which does not currently
+            # include extensions (eda) as of ansible-core 2.19
+            for content_type, contents in self.doc_strings.items():
+                content_type = constants.ContentType(content_type)
+                for _, content in contents.items():
+                    rel_path = os.path.relpath(content["doc"]["filename"], self.path)
+                    found_contents.add(Result(content_type, rel_path))
         # This adds all .py and .ps1 paths in a collection. The effect is finding content
         # in collections such as extensions (eda). Once ansible-doc supports enumerating
         # extensions this could be made conditional
