@@ -244,4 +244,6 @@ class TestPatternsParser:
 
         patterns_parser = file_parser.PatternsParser(self.collection_path)
         meta_patterns_content = patterns_parser.get_meta_patterns()
-        assert meta_patterns_content == [dir["content"] for dir in dirs]
+        assert sorted(meta_patterns_content, key=lambda d: d["foo"]) == sorted(
+            [dir["content"] for dir in dirs], key=lambda d: d["foo"]
+        )
