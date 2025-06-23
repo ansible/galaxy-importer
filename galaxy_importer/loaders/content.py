@@ -26,12 +26,13 @@ import yaml
 import json
 from jsonschema import validate, ValidationError, SchemaError
 
-from galaxy_importer.utils.resource_access import resource_filename_compat
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
 from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
+from galaxy_importer.utils.resource_access import resource_filename_compat
+
 
 default_logger = logging.getLogger(__name__)
 
@@ -201,12 +202,14 @@ class ExtensionLoader(PluginLoader):
             return None
 
 
-class PatternLoader(ContentLoader):
+class PatternsLoader(ContentLoader):
 
     def load(self):
         self._log_loading()
 
         self._validate_meta_pattern_file()
+
+        self._validate_execution_environment()
 
         return schema.Content(
             name=self.path_name,
@@ -225,24 +228,31 @@ class PatternLoader(ContentLoader):
     def _validate_name(self):
         return True
 
+    @property
+    def full_path(self):
+        return os.path.join(self.root, self.rel_path)
+
     def _load_meta_pattern_schema_validator(self):
-        schema_pattern_path = os.path.join(os.getcwd(), 'galaxy_importer/loaders/schemas/patterns/pattern.json')
+        schema_pattern_path = "loaders/schemas/patterns/pattern.json"
 
         try:
-            with open(schema_pattern_path, 'r') as f:
+            with (
+                resource_filename_compat("galaxy_importer", schema_pattern_path) as file_path,
+                open(file_path) as f,
+            ):
                 schema = json.load(f)
-        except Exception: # TODO: test this
+        except Exception:
             raise exc.FileParserError(f"Error during parsing of {schema_pattern_path}")
 
         return schema
-    
+
     def _load_meta_pattern_file(self):
         full_path = os.path.join(self.root, self.rel_path)
         try:
-            with open(full_path, 'r') as f:
+            with open(full_path) as f:
                 data = json.load(f)
-        except Exception: # TODO: test this
-            raise exc.FileParserError(f"Error during parsing of {self.rel_path}")
+        except Exception as e:
+            raise exc.FileParserError(f"Error during parsing of {self.rel_path}: {e}")
         return data
 
     def _validate_meta_pattern_file(self):
@@ -252,13 +262,49 @@ class PatternLoader(ContentLoader):
 
             try:
                 validate(instance=meta_pattern_content, schema=schema)
-                self.log.info(f'{constants.META_PATTERN_FILENAME}')
+                rel_path = os.path.join(self.rel_path, constants.META_PATTERN_FILENAME)
+                self.log.info(f"Successfully loaded {rel_path}")
             except (ValidationError, SchemaError) as e:
-                raise exc.ImporterError(f"Error validating {self.rel_path}: {e.message}") # TODO: test this
+                raise exc.ImporterError(f"Error validating {self.rel_path}: {e.message}")
 
     def _validate_playbooks(self):
-        # if a pattern contains multiple playbooks, it MUST define a primary playbook in its setup file.
+        # if a pattern contains multiple playbooks,
+        # it MUST define a primary playbook in its setup file.
         pass
+
+    def _validate_execution_environment(self):
+        # FIXME(jerabekjiri): is_called_from_skipped_module fails fails on list index out of range
+        # only on python 3.12
+        # FAILED tests/unit/test_markup_utils.py::TestFindGetFiles::test_get_doc_files
+        # FAILED tests/unit/test_markup_utils.py::TestFindGetFiles::test_get_file
+        # FAILED tests/unit/test_markup_utils.py::TestFindGetFiles::test_get_readme_doc_file
+        # temp fix: lazy import
+        from ansible_builder.exceptions import DefinitionError
+        from ansible_builder.ee_schema import validate_schema
+
+        # TODO(jerabekjiri): what ansible-builder vrsion schema support?
+        if self.content_type == constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS:
+            if not os.path.exists(self.full_path):
+                return
+
+            ee = None
+            with open(self.full_path) as fp:
+                try:
+                    ee = yaml.safe_load(fp)
+                    if ee is None:
+                        raise Exception
+
+                except Exception:  # TODO(jerabekjiri): test this
+                    raise exc.FileParserError(f"Error during parsing of {self.path_name}")
+
+            try:
+                validate_schema(ee)
+            except DefinitionError as e:  # TODO(jerabekjiri): test this
+                raise exc.FileParserError(f"Error during parsing of {self.path_name}: {e.msg}")
+
+    def _validate_templates(self):
+        pass
+
 
 class PlaybookLoader(ContentLoader):
 
@@ -354,6 +400,6 @@ def get_loader_cls(content_type):
     elif content_type.category == constants.ContentCategory.EXTENSION:
         return ExtensionLoader
     elif content_type.category == constants.ContentCategory.PATTERN_EXTENSION:
-        return PatternLoader
+        return PatternsLoader
 
     return None

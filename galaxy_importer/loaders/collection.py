@@ -111,14 +111,14 @@ class CollectionLoader:
             self._lint_collection()
         self._check_ansible_test_ignore_files()
 
-        meta_patterns = file_parser.PatternsParser(self.path).get_meta_patterns()
+        meta_patterns = file_parser.PatternsParser(self.path, self.content_objs).get_meta_patterns()
 
         return schema.ImportResult(
             metadata=self.metadata,
             docs_blob=self.docs_blob,
             contents=self.contents,
             requires_ansible=self.requires_ansible,
-            patterns=meta_patterns
+            patterns=meta_patterns,
         )
 
     def _lint_collection(self):
@@ -378,15 +378,14 @@ class CollectionLoader:
     def _load_contents(self):
         """Find and load data for each content inside the collection."""
         found_contents = set()
-        # TODO: comment here, remove here
-        # if self.doc_strings:
-        #     # This block adds paths found by ansible-doc, which does not currently
-        #     # include extensions (eda) as of ansible-core 2.19
-        #     for content_type, contents in self.doc_strings.items():
-        #         content_type = constants.ContentType(content_type)
-        #         for _, content in contents.items():
-        #             rel_path = os.path.relpath(content["doc"]["filename"], self.path)
-        #             found_contents.add(Result(content_type, rel_path))
+        if self.doc_strings:
+            # This block adds paths found by ansible-doc, which does not currently
+            # include extensions (eda) as of ansible-core 2.19
+            for content_type, contents in self.doc_strings.items():
+                content_type = constants.ContentType(content_type)
+                for _, content in contents.items():
+                    rel_path = os.path.relpath(content["doc"]["filename"], self.path)
+                    found_contents.add(Result(content_type, rel_path))
         # This adds all .py and .ps1 paths in a collection. The effect is finding content
         # in collections such as extensions (eda). Once ansible-doc supports enumerating
         # extensions this could be made conditional
@@ -467,6 +466,3 @@ class CollectionLoader:
         for path in paths:
             if not os.path.exists(path):
                 raise exc.ManifestValidationError(f"Could not find file {os.path.basename(path)}")
-
-    def _build_patterns_metadata(self):
-        return 
