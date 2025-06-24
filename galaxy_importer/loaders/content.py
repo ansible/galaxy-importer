@@ -232,7 +232,7 @@ class PatternLoader(ContentLoader):
         try:
             with open(schema_pattern_path) as f:
                 schema = json.load(f)
-        except Exception:  # TODO(jerabekjiri): test this
+        except Exception:
             raise exc.FileParserError(f"Error during parsing of {schema_pattern_path}")
 
         return schema
@@ -242,8 +242,8 @@ class PatternLoader(ContentLoader):
         try:
             with open(full_path) as f:
                 data = json.load(f)
-        except Exception:  # TODO(jerabekjiri): test this
-            raise exc.FileParserError(f"Error during parsing of {self.rel_path}")
+        except Exception as e:
+            raise exc.FileParserError(f"Error during parsing of {self.rel_path}: {e}")
         return data
 
     def _validate_meta_pattern_file(self):
@@ -253,11 +253,10 @@ class PatternLoader(ContentLoader):
 
             try:
                 validate(instance=meta_pattern_content, schema=schema)
-                self.log.info(f"{constants.META_PATTERN_FILENAME}")
+                rel_path = os.path.join(self.rel_path, constants.META_PATTERN_FILENAME)
+                self.log.info(f"Successfully loaded {rel_path}")
             except (ValidationError, SchemaError) as e:
-                raise exc.ImporterError(
-                    f"Error validating {self.rel_path}: {e.message}"
-                )  # TODO(jerabekjiri): test this
+                raise exc.ImporterError(f"Error validating {self.rel_path}: {e.message}")
 
     def _validate_playbooks(self):
         # if a pattern contains multiple playbooks,

@@ -83,3 +83,7 @@ def test_collection_community_general_import(workdir, local_fast_config):
     assert ("cache", "yaml") in docs_contents
     assert ("become", "pbrun") in docs_contents
     assert ("action", "shutdown") in docs_contents
+
+
+def test_collection_with_patterns_import():
+    pass
