@@ -31,6 +31,7 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
+from galaxy_importer.utils.resource_access import resource_filename_compat
 
 default_logger = logging.getLogger(__name__)
 
@@ -225,18 +226,13 @@ class PatternLoader(ContentLoader):
         return True
 
     def _load_meta_pattern_schema_validator(self):
-        schema_pattern_path = os.path.join(
-            os.getcwd(), "galaxy_importer/loaders/schemas/patterns/pattern.json"
-        )
-
-        print(f"{os.getcwd()}")
-        print(f"{schema_pattern_path=}")
-
-        self.log.warning(f"{os.getcwd()=}")
-        self.log.warning(f"{schema_pattern_path=}")
+        schema_pattern_path = "loaders/schemas/patterns/pattern.json"
 
         try:
-            with open(schema_pattern_path) as f:
+            with (
+                resource_filename_compat("galaxy_importer", schema_pattern_path) as file_path,
+                open(file_path) as f,
+            ):
                 schema = json.load(f)
         except Exception:
             raise exc.FileParserError(f"Error during parsing of {schema_pattern_path}")
