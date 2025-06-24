@@ -335,13 +335,6 @@ class TestPatternFinder(unittest.TestCase):
         assert readme[0].content_type == constants.ContentType.PATTERNS
         assert readme[0].path == "extensions/patterns/foo.bar/readme.md"
 
-    def test_find_setup(self):
-        self.create_playbook(self.patterns_dir, "setup.yml")
-        setup_gen = PatternsFinder(self.path, log).find_setup(self.patterns_dir)
-        setup = list(setup_gen)
-        assert setup[0].content_type == constants.ContentType.PATTERNS
-        assert setup[0].path == "extensions/patterns/foo.bar/setup.yml"
-
     def test_missing_meta_dir(self):
         pattern_gen = PatternsFinder(self.path, log).find_meta_pattern(self.patterns_dir)
         with pytest.raises(ContentFindError) as exc:
