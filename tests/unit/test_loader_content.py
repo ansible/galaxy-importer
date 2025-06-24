@@ -424,18 +424,19 @@ class TestPatternLoader:
         assert "title" in schema_keys
         assert "description" in schema_keys
 
-    @patch("os.getcwd")
-    def test_error_load_meta_pattern_schema_validator(self, mock_getcwd):
-        mock_getcwd.return_value = "not_existing"
+    # @patch("galaxy_importer.utils.resource_access.resource_filename_compat")
+    def test_error_load_meta_pattern_schema_validator(self):
+        # mock_getcwd.return_value = "not_existing"
+        # mock_filename_path.return_value = "wrong_path"
+
         path = self._create_path("network.backup", "meta", filename="pattern.json", content={})
 
         pattern_loader = self._pattern_loader_content_type(
             path, content_type=constants.ContentType.PATTERNS
         )
-        with pytest.raises(
+        with mock.patch("builtins.open", return_value=None), pytest.raises(
             exc.FileParserError,
-            match="Error during parsing of not_existing/galaxy_importer"
-            "/loaders/schemas/patterns/pattern.json",
+            match="Error during parsing of loaders/schemas/patterns/pattern.json",
         ):
             pattern_loader._load_meta_pattern_schema_validator()
 
@@ -571,8 +572,6 @@ class TestPatternLoader:
             ):
                 pattern_loader = self._pattern_loader_content_type(path, content_type)
                 content = pattern_loader.load()
-
-                print(f"{content.name=} {path=}")
 
                 assert content_type == content.content_type
                 assert content.name == path.replace("/", ".").replace("extensions.", "")
