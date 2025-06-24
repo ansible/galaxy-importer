@@ -229,6 +229,12 @@ class PatternLoader(ContentLoader):
             os.getcwd(), "galaxy_importer/loaders/schemas/patterns/pattern.json"
         )
 
+        print(f"{os.getcwd()}")
+        print(f"{schema_pattern_path=}")
+
+        self.log.warning(f"{os.getcwd()=}")
+        self.log.warning(f"{schema_pattern_path=}")
+
         try:
             with open(schema_pattern_path) as f:
                 schema = json.load(f)
