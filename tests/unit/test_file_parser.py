@@ -177,7 +177,7 @@ class TestPatternsParser:
         self.patterns_dir = os.path.join(self.collection_path, "extensions", "patterns")
         os.makedirs(self.patterns_dir, exist_ok=True)
 
-    def teardown_method(self, method):
+    def teardown_method(self):
         shutil.rmtree(self.collection_path)
 
     def _create_pattern_dir(self, dir):
