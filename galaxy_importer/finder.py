@@ -64,10 +64,6 @@ class PatternsFinder:
         readme = self._find_file(content_dir, "readme", [".md"])
         yield from self.set_result(content_dir, constants.ContentType.PATTERNS, readme)
 
-    def find_setup(self, content_dir):
-        setup = self._find_file(content_dir, "setup")
-        yield from self.set_result(content_dir, constants.ContentType.PATTERNS, setup)
-
     def find_meta_pattern(self, content_dir):
         pattern = self._find_file(
             os.path.join(content_dir, "meta"), "pattern", allowed_extensions=[".json"]
@@ -158,7 +154,7 @@ class PatternsFinder:
         yield from self.find_readme(content_dir)
 
         # setup.yml
-        yield from self.find_setup(content_dir)
+        # yield from self.find_setup(content_dir)
 
         # meta/pattern.json
         yield from self.find_meta_pattern(content_dir)
