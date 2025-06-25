@@ -265,6 +265,12 @@ class PatternLoader(ContentLoader):
         # it MUST define a primary playbook in its setup file.
         pass
 
+    def _validate_execution_environment(self):
+        pass
+
+    def _validate_templates(self):
+        pass
+
 
 class PlaybookLoader(ContentLoader):
 

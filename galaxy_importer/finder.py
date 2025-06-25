@@ -153,9 +153,6 @@ class PatternsFinder:
         # readme.md
         yield from self.find_readme(content_dir)
 
-        # setup.yml
-        # yield from self.find_setup(content_dir)
-
         # meta/pattern.json
         yield from self.find_meta_pattern(content_dir)
 
