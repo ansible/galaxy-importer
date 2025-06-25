@@ -99,8 +99,9 @@ class ExtensionsFileParser:
 class PatternsParser:
     """Load Ansible Patterns directories"""
 
-    def __init__(self, collection_path):
+    def __init__(self, collection_path, contents = []):
         self.collection_path = collection_path
+        self.contents = contents
         self.relative_path = os.path.join("extensions", "patterns")
         self.path = os.path.join(self.collection_path, self.relative_path)
         self.dirs = []
@@ -125,6 +126,28 @@ class PatternsParser:
     def _get_meta_pattern_path(self, dir):
         return os.path.join(self.path, dir, "meta", constants.META_PATTERN_FILENAME)
 
+    def validate_playbooks_count(self, dir, pattern_content): # TODO(jerabekiri): test this
+        playbooks = list(
+            filter(
+                lambda content: content.content_type == constants.ContentType.PATTERNS_PLAYBOOKS
+                and f"{constants.PATTERNS_NAME}.{dir}.playbooks." in content.name,
+                self.contents)
+            )
+        playbooks_count = len(playbooks)
+
+        if playbooks_count > 1 and not self._has_primary_attr(pattern_content): # TODO(jerabekkjiri): test this
+            raise exc.FileParserError(f"Multiple playbooks found, primary playbook must be defined")
+
+    def _has_primary_attr(self, pattern_content):
+        # try:
+        # TODO(jerabekjiri): test that this doesnt throw err if missing props in pattern_content
+        templates = pattern_content.get("aap_resources", {}).get("controller_job_templates", [])
+        has_primary = any("primary" in t for t in templates)
+        # except Exception: # TODO(jerabekjiri) test this
+        #     return False
+
+        return has_primary
+
     def get_dirs(self):
         return self.dirs
 
@@ -132,6 +155,7 @@ class PatternsParser:
         meta_patterns = []
         for dir in self.dirs:
             pattern_content = self._load_meta_pattern(dir)
+            self.validate_playbooks_count(dir, pattern_content)
             meta_patterns.append(pattern_content)
 
         return meta_patterns

@@ -111,7 +111,7 @@ class CollectionLoader:
             self._lint_collection()
         self._check_ansible_test_ignore_files()
 
-        meta_patterns = file_parser.PatternsParser(self.path).get_meta_patterns()
+        meta_patterns = file_parser.PatternsParser(self.path, self.content_objs).get_meta_patterns()
 
         return schema.ImportResult(
             metadata=self.metadata,
