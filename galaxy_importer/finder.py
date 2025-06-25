@@ -34,7 +34,7 @@ class Result(NamedTuple):
     path: str
 
 
-class PatternFindError(ContentFindError):
+class PatternsFindError(ContentFindError):
     def __init__(self, message="Default overwrite error occurred"):
         self.message = message
         super().__init__(self.message)

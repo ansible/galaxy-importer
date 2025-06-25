@@ -161,7 +161,7 @@ def test_get_loader_cls():
         constants.ContentType.PATTERNS_TEMPLATES,
     ]:
         res = loaders.get_loader_cls(content_type=content_type)
-        assert issubclass(res, loaders.PatternLoader)
+        assert issubclass(res, loaders.PatternsLoader)
         assert issubclass(res, loaders.ContentLoader)
 
 
@@ -368,7 +368,7 @@ def test_no_flake8_bin(mocked_shutil_which, loader_module, caplog):
     assert "flake8 not found, skipping" in [r.message for r in caplog.records]
 
 
-class TestPatternLoader:
+class TestPatternsLoader:
     def setup_method(self):
         self.collection_path = tempfile.mkdtemp()
         self.patterns_dir = os.path.join(self.collection_path, "extensions", "patterns")
@@ -400,7 +400,7 @@ class TestPatternLoader:
         return os.path.relpath(path_to_file, self.collection_path)
 
     def _pattern_loader_content_type(self, path, content_type=None):
-        return loaders.PatternLoader(
+        return loaders.PatternsLoader(
             content_type=content_type,
             rel_path=path,
             root=self.collection_path,
@@ -474,7 +474,7 @@ class TestPatternLoader:
             "required": ["name"],
         }
         with patch(
-            "galaxy_importer.loaders.content.PatternLoader._load_meta_pattern_schema_validator",
+            "galaxy_importer.loaders.content.PatternsLoader._load_meta_pattern_schema_validator",
             return_value=mock_schema,
         ):
             path = self._create_path(
@@ -506,7 +506,7 @@ class TestPatternLoader:
         self._caplog.set_level(logging.INFO)
 
         with patch(
-            "galaxy_importer.loaders.content.PatternLoader._load_meta_pattern_schema_validator",
+            "galaxy_importer.loaders.content.PatternsLoader._load_meta_pattern_schema_validator",
             return_value=mock_schema,
         ):
             path = self._create_path(
@@ -567,7 +567,7 @@ class TestPatternLoader:
         for content_type, path in content_types_with_paths:
             # turn off validation for meta/pattern.json
             with patch(
-                "galaxy_importer.loaders.content.PatternLoader._validate_meta_pattern_file",
+                "galaxy_importer.loaders.content.PatternsLoader._validate_meta_pattern_file",
                 return_value=True,
             ):
                 pattern_loader = self._pattern_loader_content_type(path, content_type)
