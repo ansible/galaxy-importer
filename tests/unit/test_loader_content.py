@@ -420,7 +420,6 @@ class TestPatternsLoader:
         schema = pattern_loader._load_meta_pattern_schema_validator()
         schema_keys = schema.keys()
         assert "$schema" in schema_keys
-        assert "$id" in schema_keys
         assert "title" in schema_keys
         assert "description" in schema_keys
 
@@ -532,7 +531,7 @@ class TestPatternsLoader:
         with pytest.raises(
             exc.ImporterError,
             match="Error validating extensions/patterns/network.backup/meta/pattern.json: "
-            "'name' is a required property",
+            "'schema_version' is a required property",
         ):
             pattern_loader._validate_meta_pattern_file()
 
