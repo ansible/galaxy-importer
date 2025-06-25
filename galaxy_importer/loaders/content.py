@@ -33,6 +33,9 @@ from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils.resource_access import resource_filename_compat
 
+from ansible_builder.exceptions import DefinitionError
+from ansible_builder.ee_schema import validate_schema
+
 default_logger = logging.getLogger(__name__)
 
 
@@ -208,6 +211,8 @@ class PatternsLoader(ContentLoader):
 
         self._validate_meta_pattern_file()
 
+        self._validate_execution_environment()
+
         return schema.Content(
             name=self.path_name,
             content_type=self.content_type,
@@ -224,6 +229,10 @@ class PatternsLoader(ContentLoader):
 
     def _validate_name(self):
         return True
+
+    @property
+    def full_path(self):
+        return os.path.join(self.root, self.rel_path)
 
     def _load_meta_pattern_schema_validator(self):
         schema_pattern_path = "loaders/schemas/patterns/pattern.json"
@@ -266,7 +275,22 @@ class PatternsLoader(ContentLoader):
         pass
 
     def _validate_execution_environment(self):
-        pass
+        # TODO: (jerabekjiri): what ansible-builder vrsion schema support?
+        if self.content_type == constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS:
+            if not os.path.exists(self.full_path):
+                return
+
+            ee = None
+            with open(self.full_path) as fp:
+                try:
+                    ee = yaml.safe_load(fp)
+                except Exception:
+                    raise exc.FileParserError(f"Error during parsing of {self.path_name}")
+
+            try:
+                validate_schema(ee)
+            except DefinitionError as e: # TODO: (jerabekjiri): test this
+                raise exc.FileParserError(f"Error during parsing of {self.path_name}: {e.msg}")
 
     def _validate_templates(self):
         pass
