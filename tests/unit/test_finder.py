@@ -250,7 +250,7 @@ def test_file_walker(walker_dir):
         assert os.path.exists(file_name)
 
 
-class TestPatternFinder(unittest.TestCase):
+class TestPatternsFinder(unittest.TestCase):
     def setUp(self):
         self.path = tempfile.mkdtemp()
 

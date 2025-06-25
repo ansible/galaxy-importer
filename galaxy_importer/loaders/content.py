@@ -201,7 +201,7 @@ class ExtensionLoader(PluginLoader):
             return None
 
 
-class PatternLoader(ContentLoader):
+class PatternsLoader(ContentLoader):
 
     def load(self):
         self._log_loading()
@@ -366,6 +366,6 @@ def get_loader_cls(content_type):
     elif content_type.category == constants.ContentCategory.EXTENSION:
         return ExtensionLoader
     elif content_type.category == constants.ContentCategory.PATTERN_EXTENSION:
-        return PatternLoader
+        return PatternsLoader
 
     return None
