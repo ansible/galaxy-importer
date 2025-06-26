@@ -275,7 +275,7 @@ class PatternsLoader(ContentLoader):
         pass
 
     def _validate_execution_environment(self):
-        # TODO: (jerabekjiri): what ansible-builder vrsion schema support?
+        # TODO(jerabekjiri): what ansible-builder vrsion schema support?
         if self.content_type == constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS:
             if not os.path.exists(self.full_path):
                 return
@@ -284,12 +284,15 @@ class PatternsLoader(ContentLoader):
             with open(self.full_path) as fp:
                 try:
                     ee = yaml.safe_load(fp)
-                except Exception:
+                    if ee is None:
+                        raise Exception
+
+                except Exception:  # TODO(jerabekjiri): test this
                     raise exc.FileParserError(f"Error during parsing of {self.path_name}")
 
             try:
                 validate_schema(ee)
-            except DefinitionError as e: # TODO: (jerabekjiri): test this
+            except DefinitionError as e:  # TODO(jerabekjiri): test this
                 raise exc.FileParserError(f"Error during parsing of {self.path_name}: {e.msg}")
 
     def _validate_templates(self):
