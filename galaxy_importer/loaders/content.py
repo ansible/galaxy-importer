@@ -33,8 +33,6 @@ from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils.resource_access import resource_filename_compat
 
-from ansible_builder.exceptions import DefinitionError
-from ansible_builder.ee_schema import validate_schema
 
 default_logger = logging.getLogger(__name__)
 
@@ -275,6 +273,15 @@ class PatternsLoader(ContentLoader):
         pass
 
     def _validate_execution_environment(self):
+        # FIXME(jerabekjiri): is_called_from_skipped_module fails fails on list index out of range
+        # only on python 3.12
+        # FAILED tests/unit/test_markup_utils.py::TestFindGetFiles::test_get_doc_files
+        # FAILED tests/unit/test_markup_utils.py::TestFindGetFiles::test_get_file
+        # FAILED tests/unit/test_markup_utils.py::TestFindGetFiles::test_get_readme_doc_file
+        # temp fix: lazy import
+        from ansible_builder.exceptions import DefinitionError
+        from ansible_builder.ee_schema import validate_schema
+
         # TODO(jerabekjiri): what ansible-builder vrsion schema support?
         if self.content_type == constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS:
             if not os.path.exists(self.full_path):
