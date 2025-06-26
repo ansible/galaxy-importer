@@ -568,6 +568,9 @@ class TestPatternsLoader:
             with patch(
                 "galaxy_importer.loaders.content.PatternsLoader._validate_meta_pattern_file",
                 return_value=True,
+            ), patch(
+                "galaxy_importer.loaders.content.PatternsLoader._validate_execution_environment",
+                return_value=True,
             ):
                 pattern_loader = self._pattern_loader_content_type(path, content_type)
                 content = pattern_loader.load()
