@@ -21,6 +21,8 @@ import shutil
 import tempfile
 from types import SimpleNamespace
 from unittest import mock
+from unittest.mock import patch
+
 
 import attr
 import pytest
@@ -29,6 +31,10 @@ from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
 from galaxy_importer import loaders
 from galaxy_importer import schema
+
+import logging
+
+log = logging.getLogger(__name__)
 
 
 ANSIBLE_DOC_OUTPUT = """
@@ -146,6 +152,17 @@ def test_get_loader_cls():
 
     res = loaders.get_loader_cls(constants.ContentType.EDA_EVENT_SOURCE)
     assert issubclass(res, loaders.ExtensionLoader)
+
+    for content_type in [
+        constants.ContentType.PATTERNS,
+        constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS,
+        constants.ContentType.PATTERNS_META,
+        constants.ContentType.PATTERNS_PLAYBOOKS,
+        constants.ContentType.PATTERNS_TEMPLATES,
+    ]:
+        res = loaders.get_loader_cls(content_type=content_type)
+        assert issubclass(res, loaders.PatternsLoader)
+        assert issubclass(res, loaders.ContentLoader)
 
 
 def test_init_plugin_loader(loader_module):
@@ -349,3 +366,214 @@ def test_no_flake8_bin(mocked_shutil_which, loader_module, caplog):
     assert loader_module.name == "my_module"
     loader_module.load()
     assert "flake8 not found, skipping" in [r.message for r in caplog.records]
+
+
+class TestPatternsLoader:
+    def setup_method(self):
+        self.collection_path = tempfile.mkdtemp()
+        self.patterns_dir = os.path.join(self.collection_path, "extensions", "patterns")
+        os.makedirs(self.patterns_dir, exist_ok=True)
+
+    def _create_pattern_dir(self, dir):
+        pattern_dir = os.path.join(self.patterns_dir, dir)
+        os.makedirs(pattern_dir, exist_ok=True)
+
+        return pattern_dir
+
+    @pytest.fixture(autouse=True)
+    def inject_caplog(self, caplog):
+        self._caplog = caplog
+
+    def _create_path(self, *path, filename=None, content=None):
+        dir_file_path = self._create_pattern_dir(os.path.join(*path))
+
+        path_to_file = os.path.join(dir_file_path, filename)
+
+        with open(path_to_file, "w") as f:
+            extension = filename.split(".")[1]
+            if extension == "json":
+                json.dump(content, f)
+            else:
+                f.write(content)
+                f.flush()
+
+        return os.path.relpath(path_to_file, self.collection_path)
+
+    def _pattern_loader_content_type(self, path, content_type=None):
+        return loaders.PatternsLoader(
+            content_type=content_type,
+            rel_path=path,
+            root=self.collection_path,
+            cfg=SimpleNamespace(run_flake8=True),
+            doc_strings={},
+        )
+
+    def teardown_method(self):
+        shutil.rmtree(self.collection_path)
+
+    def test_load_meta_pattern_schema_validator(self):
+        path = self._create_path("network.backup", "meta", filename="pattern.json", content={})
+
+        pattern_loader = self._pattern_loader_content_type(
+            path, content_type=constants.ContentType.PATTERNS
+        )
+        schema = pattern_loader._load_meta_pattern_schema_validator()
+        schema_keys = schema.keys()
+        assert "$schema" in schema_keys
+        assert "title" in schema_keys
+        assert "description" in schema_keys
+
+    # @patch("galaxy_importer.utils.resource_access.resource_filename_compat")
+    def test_error_load_meta_pattern_schema_validator(self):
+        # mock_getcwd.return_value = "not_existing"
+        # mock_filename_path.return_value = "wrong_path"
+
+        path = self._create_path("network.backup", "meta", filename="pattern.json", content={})
+
+        pattern_loader = self._pattern_loader_content_type(
+            path, content_type=constants.ContentType.PATTERNS
+        )
+        with mock.patch("builtins.open", return_value=None), pytest.raises(
+            exc.FileParserError,
+            match="Error during parsing of loaders/schemas/patterns/pattern.json",
+        ):
+            pattern_loader._load_meta_pattern_schema_validator()
+
+    def test_error_load_meta_pattern_file(self):
+        path = os.path.join("network.backup", "meta", "pattern.json")
+        pattern_loader = self._pattern_loader_content_type(
+            path, content_type=constants.ContentType.PATTERNS_META
+        )
+
+        with pytest.raises(
+            exc.FileParserError, match="Error during parsing of network.backup/meta/pattern.json:"
+        ):
+            pattern_loader._load_meta_pattern_file()
+
+    def test_load_meta_pattern_file(self):
+        path = self._create_path(
+            "network.backup", "meta", filename="pattern.json", content={"foo": "bar"}
+        )
+        pattern_loader = self._pattern_loader_content_type(
+            path, content_type=constants.ContentType.PATTERNS_META
+        )
+        content = pattern_loader._load_meta_pattern_file()
+        assert content == {"foo": "bar"}
+
+    def test_invalid_meta_pattern_schema(self):
+        mock_schema = {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Machine readable name for the pattern, "
+                    "provide guidance on this",
+                    "type": "text",
+                },
+            },
+            "required": ["name"],
+        }
+        with patch(
+            "galaxy_importer.loaders.content.PatternsLoader._load_meta_pattern_schema_validator",
+            return_value=mock_schema,
+        ):
+            path = self._create_path(
+                "network.backup", "meta", filename="pattern.json", content={"name": "test"}
+            )
+            pattern_loader = self._pattern_loader_content_type(
+                path, content_type=constants.ContentType.PATTERNS_META
+            )
+            with pytest.raises(
+                exc.ImporterError,
+                match="Error validating extensions/patterns/network.backup/meta/pattern.json: "
+                "'text' is not valid under any of the given schemas",
+            ):
+                pattern_loader._validate_meta_pattern_file()
+
+    def test_validate_meta_pattern_file(self):
+        mock_schema = {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Machine readable name for the pattern, "
+                    "provide guidance on this",
+                    "type": "string",
+                },
+            },
+            "required": ["name"],
+        }
+
+        self._caplog.set_level(logging.INFO)
+
+        with patch(
+            "galaxy_importer.loaders.content.PatternsLoader._load_meta_pattern_schema_validator",
+            return_value=mock_schema,
+        ):
+            path = self._create_path(
+                "network.backup", "meta", filename="pattern.json", content={"name": "test"}
+            )
+            pattern_loader = self._pattern_loader_content_type(
+                path, content_type=constants.ContentType.PATTERNS_META
+            )
+            pattern_loader._validate_meta_pattern_file()
+
+        assert (
+            "Successfully loaded extensions/patterns/network.backup/meta/pattern.json/pattern.json"
+            in [r.message for r in self._caplog.records]
+        )
+
+    def test_error_validating_meta_pattern_file(self):
+        path = self._create_path(
+            "network.backup", "meta", filename="pattern.json", content={"foo": "bar"}
+        )
+        pattern_loader = self._pattern_loader_content_type(
+            path, content_type=constants.ContentType.PATTERNS_META
+        )
+        with pytest.raises(
+            exc.ImporterError,
+            match="Error validating extensions/patterns/network.backup/meta/pattern.json: "
+            "'schema_version' is a required property",
+        ):
+            pattern_loader._validate_meta_pattern_file()
+
+    def test_load_all_content_types(self):
+        content_types_with_paths = [
+            (
+                constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS,
+                self._create_path(
+                    "network.backup", "execution_environments", filename="ee.yml", content="---"
+                ),
+            ),
+            (
+                constants.ContentType.PATTERNS_META,
+                self._create_path(
+                    "network.backup", "meta", filename="pattern.json", content={"foo": "bar"}
+                ),
+            ),
+            (
+                constants.ContentType.PATTERNS_PLAYBOOKS,
+                self._create_path(
+                    "network.backup", "playbooks", filename="playbook.yml", content="---"
+                ),
+            ),
+            (
+                constants.ContentType.PATTERNS_TEMPLATES,
+                self._create_path(
+                    "network.backup", "templates", filename="rhdh.yml", content="---"
+                ),
+            ),
+        ]
+
+        for content_type, path in content_types_with_paths:
+            # turn off validation for meta/pattern.json
+            with patch(
+                "galaxy_importer.loaders.content.PatternsLoader._validate_meta_pattern_file",
+                return_value=True,
+            ), patch(
+                "galaxy_importer.loaders.content.PatternsLoader._validate_execution_environment",
+                return_value=True,
+            ):
+                pattern_loader = self._pattern_loader_content_type(path, content_type)
+                content = pattern_loader.load()
+
+                assert content_type == content.content_type
+                assert content.name == path.replace("/", ".").replace("extensions.", "")
