@@ -72,25 +72,6 @@ class PatternsFinder:
             content_dir, constants.ContentType.PATTERNS_META, os.path.join("meta", pattern)
         )
 
-    def find_execution_environment(self, content_dir):
-        # execution_environments directory is optional
-        # if present, it should contain exactly one yml file
-        ee_dir = os.path.join(content_dir, "execution_environments")
-        if os.path.exists(ee_dir):
-            ee_files = self._map_dir(ee_dir)
-            if len(ee_files) != 1:
-                rel_path = self.get_rel_path(ee_dir)
-                raise ContentFindError(
-                    f"{rel_path} directory must contain exactly one execution environment file"
-                )
-            else:
-                yield from self.set_result(
-                    content_dir, constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS, ee_files[0]
-                )
-        else:
-            ee_path = self.get_rel_path(ee_dir)
-            self.log.info(f"{ee_path} not found, skipping")
-
     def find_playbooks(self, content_dir):
         playbooks_dir = os.path.join(content_dir, "playbooks")
 
@@ -155,9 +136,6 @@ class PatternsFinder:
 
         # meta/pattern.json
         yield from self.find_meta_pattern(content_dir)
-
-        # execution_environments/
-        yield from self.find_execution_environment(content_dir)
 
         # playbooks/
         yield from self.find_playbooks(content_dir)
