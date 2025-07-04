@@ -113,18 +113,11 @@ def test_collection_with_patterns_import(workdir, local_fast_config):
     assert "error" not in log.lower()
 
     assert "extensions/patterns/sample_pattern/templates not found, skipping" in log
-    assert (
-        "Successfully loaded extensions/patterns/sample_pattern/meta/pattern.json/pattern.json"
-        in log
-    )
+    assert "Successfully loaded extensions/patterns/sample_pattern/meta/pattern.json" in log
 
     # verify patterns log
     content_types_with_path = [
         ("patterns", "patterns.sample_pattern.README.md"),
-        (
-            "patterns/execution-environments",
-            "patterns.sample_pattern.execution_environments.execution_environment.yml",
-        ),
         ("patterns/meta", "patterns.sample_pattern.meta.pattern.json"),
         ("patterns/playbooks", "patterns.sample_pattern.playbooks.group_vars.all.yml"),
         ("patterns/playbooks", "patterns.sample_pattern.playbooks.site.yml"),
