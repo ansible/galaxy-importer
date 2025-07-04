@@ -60,7 +60,6 @@ META_PATTERN_FILENAME = "pattern.json"
 
 # Content-Types
 PATTERNS_NAME = "patterns"
-PATTERNS_EXECUTION_ENVIRONMENTS_NAME = "patterns/execution-environments"
 PATTERNS_META_NAME = "patterns/meta"
 PATTERNS_PLAYBOOKS_NAME = "patterns/playbooks"
 PATTERNS_TEMPLATES_NAME = "patterns/templates"
@@ -120,7 +119,6 @@ class ContentType(str, enum.Enum):
     EDA_EVENT_FILTER = EDA_EVENT_FILTER_NAME
 
     PATTERNS = PATTERNS_NAME
-    PATTERNS_EXECUTION_ENVIRONMENTS = PATTERNS_EXECUTION_ENVIRONMENTS_NAME
     PATTERNS_META = PATTERNS_META_NAME
     PATTERNS_PLAYBOOKS = PATTERNS_PLAYBOOKS_NAME
     PATTERNS_TEMPLATES = PATTERNS_TEMPLATES_NAME
@@ -152,7 +150,6 @@ class ContentType(str, enum.Enum):
             ContentType.EDA_EVENT_SOURCE: ContentCategory.EXTENSION,
             ContentType.EDA_EVENT_FILTER: ContentCategory.EXTENSION,
             ContentType.PATTERNS: ContentCategory.PATTERN_EXTENSION,
-            ContentType.PATTERNS_EXECUTION_ENVIRONMENTS: ContentCategory.PATTERN_EXTENSION,
             ContentType.PATTERNS_META: ContentCategory.PATTERN_EXTENSION,
             ContentType.PATTERNS_PLAYBOOKS: ContentCategory.PATTERN_EXTENSION,
             ContentType.PATTERNS_TEMPLATES: ContentCategory.PATTERN_EXTENSION,
