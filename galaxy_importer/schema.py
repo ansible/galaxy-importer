@@ -574,6 +574,16 @@ class ResultContentItem:
 
 
 @attr.s(frozen=True)
+class PatternsMetadata:
+    name = attr.ib()
+    title = attr.ib()
+    description = attr.ib()
+    short_description = attr.ib()
+    tags = attr.ib()
+    aap_resources = attr.ib(factory=dict)
+
+
+@attr.s(frozen=True)
 class ImportResult:
     """Result of the import process, collection metadata, and contents."""
 
@@ -582,6 +592,7 @@ class ImportResult:
     contents = attr.ib(factory=list, type=ResultContentItem)
     custom_license = attr.ib(default=None)
     requires_ansible = attr.ib(default=None)
+    patterns = attr.ib(factory=list, type=PatternsMetadata)
 
 
 @attr.s(frozen=True)
