@@ -21,10 +21,11 @@ import os
 from pathlib import Path
 import re
 import shutil
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, TimeoutExpired
 import yaml
 import json
 from jsonschema import validate, ValidationError, SchemaError
+from packaging.version import Version
 
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
@@ -32,6 +33,7 @@ from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils.resource_access import resource_filename_compat
+from galaxy_importer.utils.lint_version import get_version_from_metadata
 
 
 default_logger = logging.getLogger(__name__)
@@ -209,8 +211,6 @@ class PatternsLoader(ContentLoader):
 
         self._validate_meta_pattern_file()
 
-        self._validate_execution_environment()
-
         return schema.Content(
             name=self.path_name,
             content_type=self.content_type,
@@ -255,55 +255,81 @@ class PatternsLoader(ContentLoader):
             raise exc.FileParserError(f"Error during parsing of {self.rel_path}: {e}")
         return data
 
+    def _validate_with_jsonschema(self, content):
+        schema = self._load_meta_pattern_schema_validator()
+
+        try:
+            validate(instance=content, schema=schema)
+            self.log.info(f"Successfully loaded {self.rel_path}")
+        except (ValidationError, SchemaError) as e:
+            raise exc.ImporterError(f"Error validating {self.rel_path}: {e.message}")
+
     def _validate_meta_pattern_file(self):
         if self.content_type == constants.ContentType.PATTERNS_META:
-            schema = self._load_meta_pattern_schema_validator()
             meta_pattern_content = self._load_meta_pattern_file()
 
-            try:
-                validate(instance=meta_pattern_content, schema=schema)
-                rel_path = os.path.join(self.rel_path, constants.META_PATTERN_FILENAME)
-                self.log.info(f"Successfully loaded {rel_path}")
-            except (ValidationError, SchemaError) as e:
-                raise exc.ImporterError(f"Error validating {self.rel_path}: {e.message}")
+            self._validate_with_jsonschema(meta_pattern_content)
 
-    def _validate_playbooks(self):
-        # if a pattern contains multiple playbooks,
-        # it MUST define a primary playbook in its setup file.
-        pass
+            self._lint_patterns()
 
-    def _validate_execution_environment(self):
-        # FIXME(jerabekjiri): is_called_from_skipped_module fails fails on list index out of range
-        # only on python 3.12
-        # FAILED tests/unit/test_markup_utils.py::TestFindGetFiles::test_get_doc_files
-        # FAILED tests/unit/test_markup_utils.py::TestFindGetFiles::test_get_file
-        # FAILED tests/unit/test_markup_utils.py::TestFindGetFiles::test_get_readme_doc_file
-        # temp fix: lazy import
-        from ansible_builder.exceptions import DefinitionError
-        from ansible_builder.ee_schema import validate_schema
+    def _lint_patterns(self):
+        """ansible-lint extensions/patterns directory"""
+        if not shutil.which("ansible-lint"):
+            self.log.warning(f"ansible-lint not found, skipping lint of {self.rel_path}")
+            return
 
-        # TODO(jerabekjiri): what ansible-builder vrsion schema support?
-        if self.content_type == constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS:
-            if not os.path.exists(self.full_path):
-                return
+        min_version = Version("25.6.2")
+        lint_version = get_version_from_metadata("ansible-lint")
+        if min_version > Version(lint_version):
+            self.log.warning(
+                f"Skipping lint of {self.rel_path}, minimal "
+                f"ansible-lint version required: {min_version}"
+            )
+            self.log.warning(f"Current ansible-lint version: {lint_version}")
+            return
 
-            ee = None
-            with open(self.full_path) as fp:
-                try:
-                    ee = yaml.safe_load(fp)
-                    if ee is None:
-                        raise Exception
+        self.log.info(f"Linting {self.rel_path} via ansible-lint {lint_version}...")
 
-                except Exception:  # TODO(jerabekjiri): test this
-                    raise exc.FileParserError(f"Error during parsing of {self.path_name}")
+        cmd = [
+            "/usr/bin/env",
+            "ansible-lint",
+            self.full_path,  # path to extensions/patterns/.../meta/patterns.json
+        ]
+        if self.cfg.offline_ansible_lint:
+            cmd.append("--offline")
 
-            try:
-                validate_schema(ee)
-            except DefinitionError as e:  # TODO(jerabekjiri): test this
-                raise exc.FileParserError(f"Error during parsing of {self.path_name}: {e.msg}")
+        self.log.debug("CMD: " + " ".join(cmd))
+        proc = Popen(
+            cmd,
+            cwd=self.root,
+            encoding="utf-8",
+            stdout=PIPE,
+            stderr=PIPE,
+        )
 
-    def _validate_templates(self):
-        pass
+        try:
+            outs, errs = proc.communicate(timeout=180)
+        except (
+            TimeoutExpired
+        ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
+            self.log.error("Timeout on call to ansible-lint")
+            proc.kill()
+            outs, errs = proc.communicate()
+
+        for line in outs.splitlines():
+            self.log.warning(line.strip())
+
+        for line in errs.splitlines():
+            if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
+                self.log.warning(line.rstrip())
+
+        # The prevous code tries to be intelligent about what to display or not display
+        # but we have serious errors from lint that are hidden by that logic. We should
+        # attempt to inform the users of these errors (especially tracebacks).
+        if proc.returncode != 0 and errs and "Traceback (most recent call last):" in errs:
+            self.log.error(errs)
+
+        self.log.info("...ansible-lint run complete")
 
 
 class PlaybookLoader(ContentLoader):
