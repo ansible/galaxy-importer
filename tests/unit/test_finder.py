@@ -269,12 +269,6 @@ class TestPatternsFinder(unittest.TestCase):
             fh.write(content)
             fh.flush()
 
-    def create_execution_environment(self, file="execution-environments.yml", content="---"):
-        self.ee_dir = os.path.join(self.patterns_dir, "execution_environments")
-        os.makedirs(self.ee_dir, exist_ok=True)
-
-        return self.create_playbook(self.ee_dir, file, content)
-
     def create_readme(self, file="readme.md", content=""):
         with open(os.path.join(self.patterns_dir, file), "w") as fh:
             fh.write(content)
@@ -286,40 +280,6 @@ class TestPatternsFinder(unittest.TestCase):
         with open(os.path.join(meta_path, file), "w") as fh:
             fh.write(content)
             fh.flush()
-
-    def test_missing_execution_environment_dir(self):
-        self._caplog.set_level(logging.INFO)
-        with self._caplog.at_level(logging.INFO, logger="galaxy_importer.finder"):
-            ee = PatternsFinder(self.path, log).find_execution_environment(self.patterns_dir)
-
-        assert list(ee) == []
-        assert (
-            "extensions/patterns/foo.bar/execution_environments not found, skipping"
-            in self._caplog.text
-        )
-
-    def test_multiple_execution_environments_files(self):
-        self.create_execution_environment()
-        self.create_playbook(self.ee_dir, "execution-environments-2.yml", "---")
-        ee = PatternsFinder(self.path, log).find_execution_environment(self.patterns_dir)
-        with pytest.raises(ContentFindError) as exc:
-            assert list(ee) == []
-
-        assert (
-            "extensions/patterns/foo.bar/execution_environments directory "
-            "must contain exactly one execution environment file"
-        ) in str(exc.value)
-
-    def test_find_execution_environment(self):
-        self.create_execution_environment()
-        ee = PatternsFinder(self.path, log).find_execution_environment(self.patterns_dir)
-        ee_list = list(ee)
-        assert len(ee_list) == 1
-        assert ee_list[0].content_type == constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS
-        assert (
-            ee_list[0].path
-            == "extensions/patterns/foo.bar/execution_environments/execution-environments.yml"
-        )
 
     def test_missing_readme(self):
         readme_gen = PatternsFinder(self.path, log).find_readme(self.patterns_dir)

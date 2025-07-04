@@ -22,6 +22,7 @@ import tempfile
 from types import SimpleNamespace
 from unittest import mock
 from unittest.mock import patch
+from packaging.version import Version
 
 
 import attr
@@ -31,6 +32,7 @@ from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
 from galaxy_importer import loaders
 from galaxy_importer import schema
+from galaxy_importer.utils.lint_version import get_version_from_metadata
 
 import logging
 
@@ -155,7 +157,6 @@ def test_get_loader_cls():
 
     for content_type in [
         constants.ContentType.PATTERNS,
-        constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS,
         constants.ContentType.PATTERNS_META,
         constants.ContentType.PATTERNS_PLAYBOOKS,
         constants.ContentType.PATTERNS_TEMPLATES,
@@ -404,7 +405,7 @@ class TestPatternsLoader:
             content_type=content_type,
             rel_path=path,
             root=self.collection_path,
-            cfg=SimpleNamespace(run_flake8=True),
+            cfg=SimpleNamespace(run_flake8=True, offline_ansible_lint=False),
             doc_strings={},
         )
 
@@ -415,7 +416,7 @@ class TestPatternsLoader:
         path = self._create_path("network.backup", "meta", filename="pattern.json", content={})
 
         pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS
+            path, content_type=constants.ContentType.PATTERNS_META
         )
         schema = pattern_loader._load_meta_pattern_schema_validator()
         schema_keys = schema.keys()
@@ -423,15 +424,11 @@ class TestPatternsLoader:
         assert "title" in schema_keys
         assert "description" in schema_keys
 
-    # @patch("galaxy_importer.utils.resource_access.resource_filename_compat")
     def test_error_load_meta_pattern_schema_validator(self):
-        # mock_getcwd.return_value = "not_existing"
-        # mock_filename_path.return_value = "wrong_path"
-
         path = self._create_path("network.backup", "meta", filename="pattern.json", content={})
 
         pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS
+            path, content_type=constants.ContentType.PATTERNS_META
         )
         with mock.patch("builtins.open", return_value=None), pytest.raises(
             exc.FileParserError,
@@ -449,6 +446,47 @@ class TestPatternsLoader:
             exc.FileParserError, match="Error during parsing of network.backup/meta/pattern.json:"
         ):
             pattern_loader._load_meta_pattern_file()
+
+    @pytest.mark.skipif(
+        Version(get_version_from_metadata("ansible-lint")) < Version("25.6.2"),
+        reason="requires ansible-lint >=25.6.2",
+    )
+    def test_linting_patterns(self):
+
+        self._caplog.set_level(logging.INFO)
+
+        path = self._create_path("foo.bar", "meta", filename="pattern.json", content={})
+
+        pattern_loader = self._pattern_loader_content_type(
+            path, content_type=constants.ContentType.PATTERNS_META
+        )
+        pattern_loader._lint_patterns()
+
+        logs = "".join([r.message for r in self._caplog.records])
+
+        assert "Linting extensions/patterns/foo.bar/meta/pattern.json via ansible-lint" in logs
+        assert "schema[pattern]: $ 'schema_version' is a required property" in logs
+
+    @mock.patch("galaxy_importer.loaders.content.get_version_from_metadata")
+    def test_linting_patterns_with_wrong_version(self, mocked_version_from_metadata):
+        lint_version = "25.6.1"
+        mocked_version_from_metadata.return_value = lint_version
+
+        self._caplog.set_level(logging.INFO)
+
+        path = self._create_path("foo.bar", "meta", filename="pattern.json", content={})
+        pattern_loader = self._pattern_loader_content_type(
+            path, content_type=constants.ContentType.PATTERNS_META
+        )
+        pattern_loader._lint_patterns()
+
+        logs = [r.message for r in self._caplog.records]
+
+        assert (
+            "Skipping lint of extensions/patterns/foo.bar/meta/pattern.json, "
+            "minimal ansible-lint version required: 25.6.2"
+        ) in logs
+        assert f"Current ansible-lint version: {lint_version}" in logs
 
     def test_load_meta_pattern_file(self):
         path = self._create_path(
@@ -516,10 +554,9 @@ class TestPatternsLoader:
             )
             pattern_loader._validate_meta_pattern_file()
 
-        assert (
-            "Successfully loaded extensions/patterns/network.backup/meta/pattern.json/pattern.json"
-            in [r.message for r in self._caplog.records]
-        )
+        assert "Successfully loaded extensions/patterns/network.backup/meta/pattern.json" in [
+            r.message for r in self._caplog.records
+        ]
 
     def test_error_validating_meta_pattern_file(self):
         path = self._create_path(
@@ -537,12 +574,6 @@ class TestPatternsLoader:
 
     def test_load_all_content_types(self):
         content_types_with_paths = [
-            (
-                constants.ContentType.PATTERNS_EXECUTION_ENVIRONMENTS,
-                self._create_path(
-                    "network.backup", "execution_environments", filename="ee.yml", content="---"
-                ),
-            ),
             (
                 constants.ContentType.PATTERNS_META,
                 self._create_path(
@@ -567,9 +598,6 @@ class TestPatternsLoader:
             # turn off validation for meta/pattern.json
             with patch(
                 "galaxy_importer.loaders.content.PatternsLoader._validate_meta_pattern_file",
-                return_value=True,
-            ), patch(
-                "galaxy_importer.loaders.content.PatternsLoader._validate_execution_environment",
                 return_value=True,
             ):
                 pattern_loader = self._pattern_loader_content_type(path, content_type)
