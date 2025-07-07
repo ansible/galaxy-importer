@@ -157,6 +157,8 @@ class ContentFinder:
         self.path = path
         self.log = logger or default_logger
 
+        self.log.info("Finding content inside collection")
+
         contents = self._find_content()
 
         try:
