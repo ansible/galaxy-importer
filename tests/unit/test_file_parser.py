@@ -24,6 +24,7 @@ import json
 from galaxy_importer import exceptions as exc
 from galaxy_importer import file_parser
 from galaxy_importer import constants
+from galaxy_importer.schema import Content
 
 RUNTIME_REQUIRES_ANSIBLE = "requires_ansible: '>=2.9.10,<2.11.5'"
 
@@ -199,6 +200,18 @@ class TestPatternsParser:
 
         return content
 
+    def _create_playbook(self, dir, filename, content="---"):
+        pattern_dir = self._create_pattern_dir(dir)
+
+        playbooks_dir = os.path.join(pattern_dir, "playbooks")
+        os.makedirs(playbooks_dir, exist_ok=True)
+
+        with open(os.path.join(playbooks_dir, filename), "w") as fh:
+            fh.write(content)
+            fh.flush()
+
+        return content
+
     @pytest.mark.parametrize(
         "dirs", [[], ["foo.bar"], ["network.backup", "network.restore", "network.cleanup"]]
     )
@@ -247,3 +260,27 @@ class TestPatternsParser:
         assert sorted(meta_patterns_content, key=lambda d: d["foo"]) == sorted(
             [dir["content"] for dir in dirs], key=lambda d: d["foo"]
         )
+
+    def test_patterns_validate_playbooks_count(self):
+        pattern = "foo.bar"
+        contents = [
+            Content(
+                name=f"patterns.{pattern}.playbooks.playbook1",
+                content_type=constants.ContentType.PATTERNS_PLAYBOOKS,
+            ),
+            Content(
+                name=f"patterns.{pattern}.playbooks.playbook1",
+                content_type=constants.ContentType.PATTERNS_PLAYBOOKS,
+            ),
+        ]
+        self._create_meta_pattern_file(pattern, content={"foo": "bar"})
+
+        self._create_playbook(pattern, "playbook1.yml")
+        self._create_playbook(pattern, "playbook2.yml")
+
+        patterns_parser = file_parser.PatternsParser(self.collection_path, contents=contents)
+        pattern_content = patterns_parser._load_meta_pattern(pattern)
+        with pytest.raises(
+            exc.FileParserError, match="Multiple playbooks found, primary playbook must be defined"
+        ):
+            patterns_parser.validate_playbooks_count(pattern, pattern_content)
