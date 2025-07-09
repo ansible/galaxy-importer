@@ -126,7 +126,7 @@ class PatternsParser:
     def _get_meta_pattern_path(self, dir):
         return os.path.join(self.path, dir, "meta", constants.META_PATTERN_FILENAME)
 
-    def validate_playbooks_count(self, dir, pattern_content):  # TODO(jerabekiri): test this
+    def validate_playbooks_count(self, dir, pattern_content):
         playbooks = list(
             filter(
                 lambda content: content.content_type == constants.ContentType.PATTERNS_PLAYBOOKS
@@ -136,9 +136,7 @@ class PatternsParser:
         )
         playbooks_count = len(playbooks)
 
-        if playbooks_count > 1 and not self._has_primary_attr(
-            pattern_content
-        ):  # TODO(jerabekkjiri): test this
+        if playbooks_count > 1 and not self._has_primary_attr(pattern_content):
             raise exc.FileParserError("Multiple playbooks found, primary playbook must be defined")
 
     def _has_primary_attr(self, pattern_content):
