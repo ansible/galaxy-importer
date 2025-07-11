@@ -266,11 +266,11 @@ class TestPatternsParser:
         contents = [
             Content(
                 name=f"patterns.{pattern}.playbooks.playbook1",
-                content_type=constants.ContentType.PATTERNS_PLAYBOOKS,
+                content_type=constants.ContentType.PATTERNS,
             ),
             Content(
                 name=f"patterns.{pattern}.playbooks.playbook1",
-                content_type=constants.ContentType.PATTERNS_PLAYBOOKS,
+                content_type=constants.ContentType.PATTERNS,
             ),
         ]
         self._create_meta_pattern_file(pattern, content={"foo": "bar"})

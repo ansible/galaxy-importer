@@ -118,9 +118,9 @@ def test_collection_with_patterns_import(workdir, local_fast_config):
     # verify patterns log
     content_types_with_path = [
         ("patterns", "patterns.sample_pattern.README.md"),
-        ("patterns/meta", "patterns.sample_pattern.meta.pattern.json"),
-        ("patterns/playbooks", "patterns.sample_pattern.playbooks.group_vars.all.yml"),
-        ("patterns/playbooks", "patterns.sample_pattern.playbooks.site.yml"),
+        ("patterns", "patterns.sample_pattern.meta.pattern.json"),
+        ("patterns", "patterns.sample_pattern.playbooks.group_vars.all.yml"),
+        ("patterns", "patterns.sample_pattern.playbooks.site.yml"),
     ]
 
     for content_type, content_path in content_types_with_path:
