@@ -124,7 +124,9 @@ class PatternsParser:
             raise exc.FileParserError(f"Error during parsing of {rel_path}")
 
     def _get_meta_pattern_path(self, dir):
-        return os.path.join(self.path, dir, "meta", constants.META_PATTERN_FILENAME)
+        return os.path.join(
+            self.path, dir, constants.META_PATTERN_DIR, constants.META_PATTERN_FILENAME
+        )
 
     def validate_playbooks_count(self, dir, pattern_content):
         playbooks = list(
