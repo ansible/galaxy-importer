@@ -66,10 +66,14 @@ class PatternsFinder:
 
     def find_meta_pattern(self, content_dir):
         pattern = self._find_file(
-            os.path.join(content_dir, "meta"), "pattern", allowed_extensions=[".json"]
+            os.path.join(content_dir, constants.META_PATTERN_DIR),
+            "pattern",
+            allowed_extensions=[".json"],
         )
         yield from self.set_result(
-            content_dir, constants.ContentType.PATTERNS, os.path.join("meta", pattern)
+            content_dir,
+            constants.ContentType.PATTERNS,
+            os.path.join(constants.META_PATTERN_DIR, pattern),
         )
 
     def find_playbooks(self, content_dir):
