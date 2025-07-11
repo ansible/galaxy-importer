@@ -57,6 +57,7 @@ ALLOWED_EXTENSION_DIRS = [
 
 # Ansible Patterns extension
 META_PATTERN_FILENAME = "pattern.json"
+META_PATTERN_DIR = "meta"
 
 # Content-Type
 PATTERNS_NAME = "patterns"
