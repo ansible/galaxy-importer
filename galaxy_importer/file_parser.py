@@ -129,7 +129,7 @@ class PatternsParser:
     def validate_playbooks_count(self, dir, pattern_content):
         playbooks = list(
             filter(
-                lambda content: content.content_type == constants.ContentType.PATTERNS_PLAYBOOKS
+                lambda content: content.content_type == constants.ContentType.PATTERNS
                 and f"{constants.PATTERNS_NAME}.{dir}.playbooks." in content.name,
                 self.contents,
             )

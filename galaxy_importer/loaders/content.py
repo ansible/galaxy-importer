@@ -265,7 +265,7 @@ class PatternsLoader(ContentLoader):
             raise exc.ImporterError(f"Error validating {self.rel_path}: {e.message}")
 
     def _validate_meta_pattern_file(self):
-        if self.content_type == constants.ContentType.PATTERNS_META:
+        if self.name == constants.META_PATTERN_FILENAME:
             meta_pattern_content = self._load_meta_pattern_file()
 
             self._validate_with_jsonschema(meta_pattern_content)

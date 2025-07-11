@@ -69,7 +69,7 @@ class PatternsFinder:
             os.path.join(content_dir, "meta"), "pattern", allowed_extensions=[".json"]
         )
         yield from self.set_result(
-            content_dir, constants.ContentType.PATTERNS_META, os.path.join("meta", pattern)
+            content_dir, constants.ContentType.PATTERNS, os.path.join("meta", pattern)
         )
 
     def find_playbooks(self, content_dir):
@@ -84,9 +84,7 @@ class PatternsFinder:
             rel_path = self.get_rel_path(playbooks_dir)
             raise ContentFindError(f"{rel_path} must containt atleast one playbook")
 
-        yield from self.set_results(
-            playbooks_dir, constants.ContentType.PATTERNS_PLAYBOOKS, playbooks
-        )
+        yield from self.set_results(playbooks_dir, constants.ContentType.PATTERNS, playbooks)
 
     def find_templates(self, content_dir):
         templates_dir = os.path.join(content_dir, "templates")
@@ -95,9 +93,7 @@ class PatternsFinder:
             self.log.info(f"{rel_path} not found, skipping")
         else:
             templates = self._map_dir(templates_dir)
-            yield from self.set_results(
-                templates_dir, constants.ContentType.PATTERNS_TEMPLATES, templates
-            )
+            yield from self.set_results(templates_dir, constants.ContentType.PATTERNS, templates)
 
     def _find_file(
         self, content_dir, expected_filename, allowed_extensions=(".yml", ".yaml"), required=True

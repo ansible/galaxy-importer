@@ -155,15 +155,9 @@ def test_get_loader_cls():
     res = loaders.get_loader_cls(constants.ContentType.EDA_EVENT_SOURCE)
     assert issubclass(res, loaders.ExtensionLoader)
 
-    for content_type in [
-        constants.ContentType.PATTERNS,
-        constants.ContentType.PATTERNS_META,
-        constants.ContentType.PATTERNS_PLAYBOOKS,
-        constants.ContentType.PATTERNS_TEMPLATES,
-    ]:
-        res = loaders.get_loader_cls(content_type=content_type)
-        assert issubclass(res, loaders.PatternsLoader)
-        assert issubclass(res, loaders.ContentLoader)
+    res = loaders.get_loader_cls(constants.ContentType.PATTERNS)
+    assert issubclass(res, loaders.PatternsLoader)
+    assert issubclass(res, loaders.ContentLoader)
 
 
 def test_init_plugin_loader(loader_module):
@@ -416,7 +410,7 @@ class TestPatternsLoader:
         path = self._create_path("network.backup", "meta", filename="pattern.json", content={})
 
         pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS_META
+            path, content_type=constants.ContentType.PATTERNS
         )
         schema = pattern_loader._load_meta_pattern_schema_validator()
         schema_keys = schema.keys()
@@ -428,7 +422,7 @@ class TestPatternsLoader:
         path = self._create_path("network.backup", "meta", filename="pattern.json", content={})
 
         pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS_META
+            path, content_type=constants.ContentType.PATTERNS
         )
         with mock.patch("builtins.open", return_value=None), pytest.raises(
             exc.FileParserError,
@@ -439,7 +433,7 @@ class TestPatternsLoader:
     def test_error_load_meta_pattern_file(self):
         path = os.path.join("network.backup", "meta", "pattern.json")
         pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS_META
+            path, content_type=constants.ContentType.PATTERNS
         )
 
         with pytest.raises(
@@ -458,7 +452,7 @@ class TestPatternsLoader:
         path = self._create_path("foo.bar", "meta", filename="pattern.json", content={})
 
         pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS_META
+            path, content_type=constants.ContentType.PATTERNS
         )
         pattern_loader._lint_patterns()
 
@@ -476,7 +470,7 @@ class TestPatternsLoader:
 
         path = self._create_path("foo.bar", "meta", filename="pattern.json", content={})
         pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS_META
+            path, content_type=constants.ContentType.PATTERNS
         )
         pattern_loader._lint_patterns()
 
@@ -493,7 +487,7 @@ class TestPatternsLoader:
             "network.backup", "meta", filename="pattern.json", content={"foo": "bar"}
         )
         pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS_META
+            path, content_type=constants.ContentType.PATTERNS
         )
         content = pattern_loader._load_meta_pattern_file()
         assert content == {"foo": "bar"}
@@ -518,7 +512,7 @@ class TestPatternsLoader:
                 "network.backup", "meta", filename="pattern.json", content={"name": "test"}
             )
             pattern_loader = self._pattern_loader_content_type(
-                path, content_type=constants.ContentType.PATTERNS_META
+                path, content_type=constants.ContentType.PATTERNS
             )
             with pytest.raises(
                 exc.ImporterError,
@@ -550,7 +544,7 @@ class TestPatternsLoader:
                 "network.backup", "meta", filename="pattern.json", content={"name": "test"}
             )
             pattern_loader = self._pattern_loader_content_type(
-                path, content_type=constants.ContentType.PATTERNS_META
+                path, content_type=constants.ContentType.PATTERNS
             )
             pattern_loader._validate_meta_pattern_file()
 
@@ -563,7 +557,7 @@ class TestPatternsLoader:
             "network.backup", "meta", filename="pattern.json", content={"foo": "bar"}
         )
         pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS_META
+            path, content_type=constants.ContentType.PATTERNS
         )
         with pytest.raises(
             exc.ImporterError,
@@ -575,19 +569,19 @@ class TestPatternsLoader:
     def test_load_all_content_types(self):
         content_types_with_paths = [
             (
-                constants.ContentType.PATTERNS_META,
+                constants.ContentType.PATTERNS,
                 self._create_path(
                     "network.backup", "meta", filename="pattern.json", content={"foo": "bar"}
                 ),
             ),
             (
-                constants.ContentType.PATTERNS_PLAYBOOKS,
+                constants.ContentType.PATTERNS,
                 self._create_path(
                     "network.backup", "playbooks", filename="playbook.yml", content="---"
                 ),
             ),
             (
-                constants.ContentType.PATTERNS_TEMPLATES,
+                constants.ContentType.PATTERNS,
                 self._create_path(
                     "network.backup", "templates", filename="rhdh.yml", content="---"
                 ),

@@ -306,7 +306,7 @@ class TestPatternsFinder(unittest.TestCase):
         self.create_pattern()
         pattern_gen = PatternsFinder(self.path, log).find_meta_pattern(self.patterns_dir)
         pattern = list(pattern_gen)
-        assert pattern[0].content_type == constants.ContentType.PATTERNS_META
+        assert pattern[0].content_type == constants.ContentType.PATTERNS
         assert pattern[0].path == "extensions/patterns/foo.bar/meta/pattern.json"
 
     def test_missing_playbooks_dir(self):
@@ -334,7 +334,7 @@ class TestPatternsFinder(unittest.TestCase):
         playbooks_gen = PatternsFinder(self.path, log).find_playbooks(self.patterns_dir)
         playbooks = list(playbooks_gen)
 
-        assert playbooks[0].content_type == constants.ContentType.PATTERNS_PLAYBOOKS
+        assert playbooks[0].content_type == constants.ContentType.PATTERNS
         assert playbooks[0].path == "extensions/patterns/foo.bar/playbooks/playbook.yml"
 
     def test_missing_templates_dir(self):
@@ -363,7 +363,7 @@ class TestPatternsFinder(unittest.TestCase):
 
         assert len(templates) == 2
         for template in templates:
-            assert template.content_type == constants.ContentType.PATTERNS_TEMPLATES
+            assert template.content_type == constants.ContentType.PATTERNS
 
         template_paths = [t.path for t in templates]
         assert "extensions/patterns/foo.bar/templates/template_01.yml" in template_paths

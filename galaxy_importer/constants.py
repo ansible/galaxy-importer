@@ -58,11 +58,8 @@ ALLOWED_EXTENSION_DIRS = [
 # Ansible Patterns extension
 META_PATTERN_FILENAME = "pattern.json"
 
-# Content-Types
+# Content-Type
 PATTERNS_NAME = "patterns"
-PATTERNS_META_NAME = "patterns/meta"
-PATTERNS_PLAYBOOKS_NAME = "patterns/playbooks"
-PATTERNS_TEMPLATES_NAME = "patterns/templates"
 
 # Match github's allowable usernames, but also include underscores
 # because of old-galaxy's preference for replacing hyphens with underscores
@@ -119,9 +116,6 @@ class ContentType(str, enum.Enum):
     EDA_EVENT_FILTER = EDA_EVENT_FILTER_NAME
 
     PATTERNS = PATTERNS_NAME
-    PATTERNS_META = PATTERNS_META_NAME
-    PATTERNS_PLAYBOOKS = PATTERNS_PLAYBOOKS_NAME
-    PATTERNS_TEMPLATES = PATTERNS_TEMPLATES_NAME
 
     @property
     def category(self):
@@ -150,7 +144,4 @@ class ContentType(str, enum.Enum):
             ContentType.EDA_EVENT_SOURCE: ContentCategory.EXTENSION,
             ContentType.EDA_EVENT_FILTER: ContentCategory.EXTENSION,
             ContentType.PATTERNS: ContentCategory.PATTERN_EXTENSION,
-            ContentType.PATTERNS_META: ContentCategory.PATTERN_EXTENSION,
-            ContentType.PATTERNS_PLAYBOOKS: ContentCategory.PATTERN_EXTENSION,
-            ContentType.PATTERNS_TEMPLATES: ContentCategory.PATTERN_EXTENSION,
         }.get(self)
