@@ -9,7 +9,7 @@ metadata:
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "master"
   creationTimestamp:
   labels:
-    appstudio.openshift.io/application: automation-hub-master
+    appstudio.openshift.io/application: automation-hub-main
     appstudio.openshift.io/component: automation-hub-galaxy-importer-master
     pipelines.appstudio.openshift.io/type: build
   name: automation-hub-galaxy-importer-master-on-push
@@ -21,7 +21,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/ansible-automationhu-tenant/automation-hub-master/automation-hub-galaxy-importer-master:{{revision}}
+    value: quay.io/redhat-user-workloads/ansible-automationhu-tenant/automation-hub-main/automation-hub-galaxy-importer-master:{{revision}}
   - name: dockerfile
     value: Dockerfile
   - name: path-context
