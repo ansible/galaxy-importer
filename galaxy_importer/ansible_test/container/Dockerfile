@@ -42,7 +42,8 @@ ENV HOME /
 
 RUN cd /ansible_collections/ns/col && \
     ansible-test sanity --prime-venvs && \
-    chmod -R 0775 /.ansible
+    chmod -R 0775 /.ansible && \
+    export PIP_NO_WHEEL="true" && for VENV in $(find /.ansible/test/venv/sanity.* -name activate); do echo ${VENV}; . ${VENV}; python /.ansible/test/cache/get_pip_*.py; python -m pip install --upgrade setuptools; python -m pip uninstall -y pip; deactivate; done
 
 ENTRYPOINT ["/entrypoint"]
 
