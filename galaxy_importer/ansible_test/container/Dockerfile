@@ -31,6 +31,7 @@ RUN useradd user1 \
     # On updating ansible-core version, update the FROM statement to the matching base-test-container version
     python3.11 -m pip install ansible-core==2.16.0 --disable-pip-version-check && \
     python3.11 -m pip install tox && \
+    python3.11 -m pip install --upgrade setuptools && \
     # Creates dir with correct permissions for where ansible-test sanity writes files, needed for non-privileged containers
     mkdir -m 0775 -p /.cache/pylint && \
     mkdir -m 0775 -p /eda /eda/tox
@@ -41,7 +42,8 @@ ENV HOME /
 
 RUN cd /ansible_collections/ns/col && \
     ansible-test sanity --prime-venvs && \
-    chmod -R 0775 /.ansible
+    chmod -R 0775 /.ansible && \
+    export PIP_NO_WHEEL="true" && for VENV in $(find /.ansible/test/venv/sanity.* -name activate); do echo ${VENV}; . ${VENV}; python /.ansible/test/cache/get_pip_*.py; python -m pip install --upgrade setuptools; python -m pip uninstall -y pip; deactivate; done
 
 ENTRYPOINT ["/entrypoint"]
 
