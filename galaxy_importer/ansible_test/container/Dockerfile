@@ -19,6 +19,7 @@ RUN useradd user1 \
       --no-create-home \
       --gid root && \
     apt-get update -y && \
+    apt-get remove -y git && \
     # upgrade all packages except python, as they can conflict with python setup in base image
     apt-mark hold python* && \
     apt-get upgrade -y && \
