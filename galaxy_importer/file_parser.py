@@ -18,6 +18,7 @@
 import logging
 import os
 import yaml
+import json
 
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
@@ -93,3 +94,67 @@ class ExtensionsFileParser:
             return [ext["args"]["ext_dir"] for ext in self.data["extensions"]]
         except KeyError:
             raise exc.FileParserError("'meta/extensions.yml is not in the expected format'")
+
+
+class PatternsParser:
+    """Load Ansible Patterns directories"""
+
+    def __init__(self, collection_path, contents=None):
+        self.collection_path = collection_path
+        self.contents = contents or []
+        self.relative_path = os.path.join("extensions", "patterns")
+        self.path = os.path.join(self.collection_path, self.relative_path)
+        self.dirs = []
+        self._load()
+
+    def _load(self):
+        if not os.path.exists(self.path):
+            return
+        self.dirs = os.listdir(self.path)
+
+    def _load_meta_pattern(self, dir):
+        """Loads meta/pattern.json for specified patterns directory"""
+        pattern_path = self._get_meta_pattern_path(dir)
+
+        try:
+            with open(pattern_path) as fp:
+                return json.load(fp)
+        except Exception:
+            rel_path = os.path.relpath(pattern_path, self.collection_path)
+            raise exc.FileParserError(f"Error during parsing of {rel_path}")
+
+    def _get_meta_pattern_path(self, dir):
+        return os.path.join(
+            self.path, dir, constants.META_PATTERN_DIR, constants.META_PATTERN_FILENAME
+        )
+
+    def validate_playbooks_count(self, dir, pattern_content):
+        playbooks = list(
+            filter(
+                lambda content: content.content_type == constants.ContentType.PATTERNS
+                and f"{constants.PATTERNS_NAME}.{dir}.playbooks." in content.name,
+                self.contents,
+            )
+        )
+        playbooks_count = len(playbooks)
+
+        if playbooks_count > 1 and not self._has_primary_attr(pattern_content):
+            raise exc.FileParserError("Multiple playbooks found, primary playbook must be defined")
+
+    def _has_primary_attr(self, pattern_content):
+        templates = pattern_content.get("aap_resources", {}).get("controller_job_templates", [])
+        has_primary = any("primary" in t for t in templates)
+
+        return has_primary
+
+    def get_dirs(self):
+        return self.dirs
+
+    def get_meta_patterns(self):
+        meta_patterns = []
+        for dir in self.dirs:
+            pattern_content = self._load_meta_pattern(dir)
+            self.validate_playbooks_count(dir, pattern_content)
+            meta_patterns.append(pattern_content)
+
+        return meta_patterns

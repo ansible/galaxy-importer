@@ -11,6 +11,7 @@ from .content import (
     PluginLoader,
     ExtensionLoader,
     RoleLoader,
+    PatternsLoader,
     get_loader_cls,
 )
 
@@ -24,6 +25,7 @@ __all__ = (
     "DocStringLoader",
     "ExtensionLoader",
     "LegacyRoleLoader",
+    "PatternsLoader",
     "PluginLoader",
     "RoleLoader",
     "get_loader_cls",
