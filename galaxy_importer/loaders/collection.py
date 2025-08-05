@@ -150,6 +150,8 @@ class CollectionLoader:
             "tests/unit/",
             "--parseable",
             "--nocolor",
+            "-x",
+            "yaml,var-naming,avoid-dot-notation,import-task-no-when,single-entry-point,use-loop",
         ]
         if self.cfg.offline_ansible_lint:
             cmd.append("--offline")
