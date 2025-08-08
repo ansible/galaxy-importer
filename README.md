@@ -46,6 +46,7 @@ View log output in terminal, and view the importer result in the written file `i
  * `contents`
 * `contents`
 * `requires_ansible`
+* `patterns`
 
 
 ### Configuration

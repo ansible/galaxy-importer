@@ -111,11 +111,14 @@ class CollectionLoader:
             self._lint_collection()
         self._check_ansible_test_ignore_files()
 
+        meta_patterns = file_parser.PatternsParser(self.path, self.content_objs).get_meta_patterns()
+
         return schema.ImportResult(
             metadata=self.metadata,
             docs_blob=self.docs_blob,
             contents=self.contents,
             requires_ansible=self.requires_ansible,
+            patterns=meta_patterns,
         )
 
     def _lint_collection(self):
