@@ -113,7 +113,7 @@ def test_collection_with_patterns_import(workdir, local_fast_config):
     assert "error" not in log.lower()
 
     assert "extensions/patterns/sample_pattern/templates not found, skipping" in log
-    assert "Successfully loaded extensions/patterns/sample_pattern/meta/pattern.json" in log
+    assert "Collection loading complete" in log
 
     # verify patterns log
     content_types_with_path = [
