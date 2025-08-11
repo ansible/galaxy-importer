@@ -21,9 +21,6 @@ import shutil
 import tempfile
 from types import SimpleNamespace
 from unittest import mock
-from unittest.mock import patch
-from packaging.version import Version
-
 
 import attr
 import pytest
@@ -32,7 +29,6 @@ from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
 from galaxy_importer import loaders
 from galaxy_importer import schema
-from galaxy_importer.utils.lint_version import get_version_from_metadata
 
 import logging
 
@@ -375,10 +371,6 @@ class TestPatternsLoader:
 
         return pattern_dir
 
-    @pytest.fixture(autouse=True)
-    def inject_caplog(self, caplog):
-        self._caplog = caplog
-
     def _create_path(self, *path, filename=None, content=None):
         dir_file_path = self._create_pattern_dir(os.path.join(*path))
 
@@ -406,166 +398,6 @@ class TestPatternsLoader:
     def teardown_method(self):
         shutil.rmtree(self.collection_path)
 
-    def test_load_meta_pattern_schema_validator(self):
-        path = self._create_path("network.backup", "meta", filename="pattern.json", content={})
-
-        pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS
-        )
-        schema = pattern_loader._load_meta_pattern_schema_validator()
-        schema_keys = schema.keys()
-        assert "$schema" in schema_keys
-        assert "title" in schema_keys
-        assert "description" in schema_keys
-
-    def test_error_load_meta_pattern_schema_validator(self):
-        path = self._create_path("network.backup", "meta", filename="pattern.json", content={})
-
-        pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS
-        )
-        with mock.patch("builtins.open", return_value=None), pytest.raises(
-            exc.FileParserError,
-            match="Error during parsing of loaders/schemas/patterns/pattern.json",
-        ):
-            pattern_loader._load_meta_pattern_schema_validator()
-
-    def test_error_load_meta_pattern_file(self):
-        path = os.path.join("network.backup", "meta", "pattern.json")
-        pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS
-        )
-
-        with pytest.raises(
-            exc.FileParserError, match="Error during parsing of network.backup/meta/pattern.json:"
-        ):
-            pattern_loader._load_meta_pattern_file()
-
-    @pytest.mark.skipif(
-        Version(get_version_from_metadata("ansible-lint")) < Version("25.6.2"),
-        reason="requires ansible-lint >=25.6.2",
-    )
-    def test_linting_patterns(self):
-
-        self._caplog.set_level(logging.INFO)
-
-        path = self._create_path("foo.bar", "meta", filename="pattern.json", content={})
-
-        pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS
-        )
-        pattern_loader._lint_patterns()
-
-        logs = "".join([r.message for r in self._caplog.records])
-
-        assert "Linting extensions/patterns/foo.bar/meta/pattern.json via ansible-lint" in logs
-        assert "schema[pattern]: $ 'schema_version' is a required property" in logs
-
-    @mock.patch("galaxy_importer.loaders.content.get_version_from_metadata")
-    def test_linting_patterns_with_wrong_version(self, mocked_version_from_metadata):
-        lint_version = "25.6.1"
-        mocked_version_from_metadata.return_value = lint_version
-
-        self._caplog.set_level(logging.INFO)
-
-        path = self._create_path("foo.bar", "meta", filename="pattern.json", content={})
-        pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS
-        )
-        pattern_loader._lint_patterns()
-
-        logs = [r.message for r in self._caplog.records]
-
-        assert (
-            "Skipping lint of extensions/patterns/foo.bar/meta/pattern.json, "
-            "minimal ansible-lint version required: 25.6.2"
-        ) in logs
-        assert f"Current ansible-lint version: {lint_version}" in logs
-
-    def test_load_meta_pattern_file(self):
-        path = self._create_path(
-            "network.backup", "meta", filename="pattern.json", content={"foo": "bar"}
-        )
-        pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS
-        )
-        content = pattern_loader._load_meta_pattern_file()
-        assert content == {"foo": "bar"}
-
-    def test_invalid_meta_pattern_schema(self):
-        mock_schema = {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "description": "Machine readable name for the pattern, "
-                    "provide guidance on this",
-                    "type": "text",
-                },
-            },
-            "required": ["name"],
-        }
-        with patch(
-            "galaxy_importer.loaders.content.PatternsLoader._load_meta_pattern_schema_validator",
-            return_value=mock_schema,
-        ):
-            path = self._create_path(
-                "network.backup", "meta", filename="pattern.json", content={"name": "test"}
-            )
-            pattern_loader = self._pattern_loader_content_type(
-                path, content_type=constants.ContentType.PATTERNS
-            )
-            with pytest.raises(
-                exc.ImporterError,
-                match="Error validating extensions/patterns/network.backup/meta/pattern.json: "
-                "'text' is not valid under any of the given schemas",
-            ):
-                pattern_loader._validate_meta_pattern_file()
-
-    def test_validate_meta_pattern_file(self):
-        mock_schema = {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "description": "Machine readable name for the pattern, "
-                    "provide guidance on this",
-                    "type": "string",
-                },
-            },
-            "required": ["name"],
-        }
-
-        self._caplog.set_level(logging.INFO)
-
-        with patch(
-            "galaxy_importer.loaders.content.PatternsLoader._load_meta_pattern_schema_validator",
-            return_value=mock_schema,
-        ):
-            path = self._create_path(
-                "network.backup", "meta", filename="pattern.json", content={"name": "test"}
-            )
-            pattern_loader = self._pattern_loader_content_type(
-                path, content_type=constants.ContentType.PATTERNS
-            )
-            pattern_loader._validate_meta_pattern_file()
-
-        assert "Successfully loaded extensions/patterns/network.backup/meta/pattern.json" in [
-            r.message for r in self._caplog.records
-        ]
-
-    def test_error_validating_meta_pattern_file(self):
-        path = self._create_path(
-            "network.backup", "meta", filename="pattern.json", content={"foo": "bar"}
-        )
-        pattern_loader = self._pattern_loader_content_type(
-            path, content_type=constants.ContentType.PATTERNS
-        )
-        with pytest.raises(
-            exc.ImporterError,
-            match="Error validating extensions/patterns/network.backup/meta/pattern.json: "
-            "'schema_version' is a required property",
-        ):
-            pattern_loader._validate_meta_pattern_file()
-
     def test_load_all_content_types(self):
         content_types_with_paths = [
             (
@@ -589,13 +421,8 @@ class TestPatternsLoader:
         ]
 
         for content_type, path in content_types_with_paths:
-            # turn off validation for meta/pattern.json
-            with patch(
-                "galaxy_importer.loaders.content.PatternsLoader._validate_meta_pattern_file",
-                return_value=True,
-            ):
-                pattern_loader = self._pattern_loader_content_type(path, content_type)
-                content = pattern_loader.load()
+            pattern_loader = self._pattern_loader_content_type(path, content_type)
+            content = pattern_loader.load()
 
-                assert content_type == content.content_type
-                assert content.name == path.replace("/", ".").replace("extensions.", "")
+            assert content_type == content.content_type
+            assert content.name == path.replace("/", ".").replace("extensions.", "")

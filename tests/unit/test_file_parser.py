@@ -172,7 +172,6 @@ def test_no_extensions_file(tmpdir):
 
 
 class TestPatternsParser:
-
     def setup_method(self):
         self.collection_path = tempfile.mkdtemp()
         self.patterns_dir = os.path.join(self.collection_path, "extensions", "patterns")
