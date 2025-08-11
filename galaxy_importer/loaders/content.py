@@ -21,20 +21,14 @@ import os
 from pathlib import Path
 import re
 import shutil
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE
 import yaml
-import json
-from jsonschema import validate, ValidationError, SchemaError
-from packaging.version import Version
 
 from galaxy_importer import constants
 from galaxy_importer import exceptions as exc
 from galaxy_importer import loaders
 from galaxy_importer import schema
 from galaxy_importer.utils import markup as markup_utils
-from galaxy_importer.utils.resource_access import resource_filename_compat
-from galaxy_importer.utils.lint_version import get_version_from_metadata
-
 
 default_logger = logging.getLogger(__name__)
 
@@ -205,11 +199,8 @@ class ExtensionLoader(PluginLoader):
 
 
 class PatternsLoader(ContentLoader):
-
     def load(self):
         self._log_loading()
-
-        self._validate_meta_pattern_file()
 
         return schema.Content(
             name=self.path_name,
@@ -232,108 +223,8 @@ class PatternsLoader(ContentLoader):
     def full_path(self):
         return os.path.join(self.root, self.rel_path)
 
-    def _load_meta_pattern_schema_validator(self):
-        schema_pattern_path = "loaders/schemas/patterns/pattern.json"
-
-        try:
-            with (
-                resource_filename_compat("galaxy_importer", schema_pattern_path) as file_path,
-                open(file_path) as f,
-            ):
-                schema = json.load(f)
-        except Exception:
-            raise exc.FileParserError(f"Error during parsing of {schema_pattern_path}")
-
-        return schema
-
-    def _load_meta_pattern_file(self):
-        full_path = os.path.join(self.root, self.rel_path)
-        try:
-            with open(full_path) as f:
-                data = json.load(f)
-        except Exception as e:
-            raise exc.FileParserError(f"Error during parsing of {self.rel_path}: {e}")
-        return data
-
-    def _validate_with_jsonschema(self, content):
-        schema = self._load_meta_pattern_schema_validator()
-
-        try:
-            validate(instance=content, schema=schema)
-            self.log.info(f"Successfully loaded {self.rel_path}")
-        except (ValidationError, SchemaError) as e:
-            raise exc.ImporterError(f"Error validating {self.rel_path}: {e.message}")
-
-    def _validate_meta_pattern_file(self):
-        if self.name == constants.META_PATTERN_FILENAME:
-            meta_pattern_content = self._load_meta_pattern_file()
-
-            self._validate_with_jsonschema(meta_pattern_content)
-
-            self._lint_patterns()
-
-    def _lint_patterns(self):
-        """ansible-lint extensions/patterns directory"""
-        if not shutil.which("ansible-lint"):
-            self.log.warning(f"ansible-lint not found, skipping lint of {self.rel_path}")
-            return
-
-        min_version = Version("25.6.2")
-        lint_version = get_version_from_metadata("ansible-lint")
-        if min_version > Version(lint_version):
-            self.log.warning(
-                f"Skipping lint of {self.rel_path}, minimal "
-                f"ansible-lint version required: {min_version}"
-            )
-            self.log.warning(f"Current ansible-lint version: {lint_version}")
-            return
-
-        self.log.info(f"Linting {self.rel_path} via ansible-lint {lint_version}...")
-
-        cmd = [
-            "/usr/bin/env",
-            "ansible-lint",
-            self.full_path,  # path to extensions/patterns/.../meta/patterns.json
-        ]
-        if self.cfg.offline_ansible_lint:
-            cmd.append("--offline")
-
-        self.log.debug("CMD: " + " ".join(cmd))
-        proc = Popen(
-            cmd,
-            cwd=self.root,
-            encoding="utf-8",
-            stdout=PIPE,
-            stderr=PIPE,
-        )
-
-        try:
-            outs, errs = proc.communicate(timeout=180)
-        except (
-            TimeoutExpired
-        ):  # pragma: no cover - a TimeoutExpired mock would apply to both calls to commnicate()
-            self.log.error("Timeout on call to ansible-lint")
-            proc.kill()
-            outs, errs = proc.communicate()
-
-        for line in outs.splitlines():
-            self.log.warning(line.strip())
-
-        for line in errs.splitlines():
-            if line.startswith(constants.ANSIBLE_LINT_ERROR_PREFIXES):
-                self.log.warning(line.rstrip())
-
-        # The prevous code tries to be intelligent about what to display or not display
-        # but we have serious errors from lint that are hidden by that logic. We should
-        # attempt to inform the users of these errors (especially tracebacks).
-        if proc.returncode != 0 and errs and "Traceback (most recent call last):" in errs:
-            self.log.error(errs)
-
-        self.log.info("...ansible-lint run complete")
-
 
 class PlaybookLoader(ContentLoader):
-
     def load(self):
         self._log_loading()
 
