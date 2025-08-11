@@ -728,3 +728,78 @@ def test_no_ansible_lint_bin(mocked_shutil_which, tmp_collection_root, caplog):
     assert "ansible-lint not found, skipping lint of collection" in [
         r.message for r in caplog.records
     ]
+
+
+@pytest.mark.parametrize(
+    ("pattern", "message"),
+    [
+        ({"foo": "bar"}, "schema[pattern][/]: $ 'schema_version' is a required property"),
+        (
+            {
+                "schema_version": "1.0",
+                "name": "weather_forecasting",
+                "title": "Weather Forecasting",
+                "description": "lorem ipsum",
+                "short_description": "foo bar",
+                "aap_resources": {
+                    "controller_project": {"name": "Default Project", "description": "foo bar"},
+                    "controller_job_templates": [
+                        {
+                            "name": "JT Demo",
+                            "description": "JobTemplate Demo",
+                            "playbook": "demo.yml",
+                        }
+                    ],
+                },
+            },
+            "pattern[name-mismatch]: Pattern directory name 'foo_bar' does not match the name key"
+            " in pattern.json file: 'weather_forecasting'",
+        ),
+        (
+            {
+                "schema_version": "1.0",
+                "name": "foo_bar",
+                "title": "Foo bar",
+                "description": "foo bar",
+                "short_description": "foo bar",
+                "aap_resources": {
+                    "controller_project": {"name": "Default Project", "description": "foo bar"},
+                    "controller_job_templates": [
+                        {
+                            "name": "JT Demo",
+                            "description": "JobTemplate Demo",
+                            "playbook": "demo.yml",
+                        }
+                    ],
+                },
+            },
+            "extensions/patterns/foo_bar' is missing required: playbooks directory",
+        ),
+    ],
+)
+def test_lint_meta_patterns(
+    pattern, message, caplog, tmp_collection_root, populated_collection_root
+):
+    os.makedirs(os.path.join(tmp_collection_root, "extensions", "patterns", "foo_bar", "meta"))
+    with open(
+        os.path.join(
+            tmp_collection_root, "extensions", "patterns", "foo_bar", "meta", "pattern.json"
+        ),
+        "w",
+    ) as f:
+        json.dump(pattern, f)
+
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=True,
+            offline_ansible_lint=True,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader._lint_collection()
+
+    logs = " ".join([r.message for r in caplog.records])
+    assert message in logs
