@@ -31,12 +31,13 @@ from packaging.version import Version
 
 from galaxy_importer import collection
 from galaxy_importer.collection import CollectionLoader
-from galaxy_importer.constants import ContentType
+from galaxy_importer.constants import ContentType, MIN_ANSIBLE_LINT_PATTERNS_VERSION
 from galaxy_importer import exceptions as exc
 from galaxy_importer import schema
 from galaxy_importer.utils import chksums as chksums_utils
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils.lint_version import get_version_from_metadata
+
 
 log = logging.getLogger(__name__)
 
@@ -733,7 +734,7 @@ def test_no_ansible_lint_bin(mocked_shutil_which, tmp_collection_root, caplog):
 
 
 @pytest.mark.skipif(
-    Version("25.7.0") > Version(get_version_from_metadata("ansible-lint")),
+    Version(MIN_ANSIBLE_LINT_PATTERNS_VERSION) > Version(get_version_from_metadata("ansible-lint")),
     reason="Requires ansible-lint>=25.7.0",
 )
 @pytest.mark.parametrize(

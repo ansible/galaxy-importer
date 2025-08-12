@@ -1,7 +1,14 @@
+import pytest
+
 import copy
 import json
 import os
 import subprocess
+
+from packaging.version import Version
+
+from galaxy_importer import constants
+from galaxy_importer.utils.lint_version import get_version_from_metadata
 
 
 def test_collection_community_general_import(workdir, local_fast_config):
@@ -85,6 +92,11 @@ def test_collection_community_general_import(workdir, local_fast_config):
     assert ("action", "shutdown") in docs_contents
 
 
+@pytest.mark.skipif(
+    Version(constants.MIN_ANSIBLE_LINT_PATTERNS_VERSION)
+    > Version(get_version_from_metadata("ansible-lint")),
+    reason="Requires ansible-lint>=25.7.0",
+)
 def test_collection_with_patterns_import(workdir, local_fast_config):
     assert os.path.exists(workdir)
     url = (
