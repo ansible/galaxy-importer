@@ -30,6 +30,10 @@ from galaxy_importer import exceptions as exc
 from galaxy_importer import loaders
 from galaxy_importer import schema
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 ANSIBLE_DOC_OUTPUT = """
     {"module": {
@@ -146,6 +150,10 @@ def test_get_loader_cls():
 
     res = loaders.get_loader_cls(constants.ContentType.EDA_EVENT_SOURCE)
     assert issubclass(res, loaders.ExtensionLoader)
+
+    res = loaders.get_loader_cls(constants.ContentType.PATTERNS)
+    assert issubclass(res, loaders.PatternsLoader)
+    assert issubclass(res, loaders.ContentLoader)
 
 
 def test_init_plugin_loader(loader_module):
@@ -349,3 +357,72 @@ def test_no_flake8_bin(mocked_shutil_which, loader_module, caplog):
     assert loader_module.name == "my_module"
     loader_module.load()
     assert "flake8 not found, skipping" in [r.message for r in caplog.records]
+
+
+class TestPatternsLoader:
+    def setup_method(self):
+        self.collection_path = tempfile.mkdtemp()
+        self.patterns_dir = os.path.join(self.collection_path, "extensions", "patterns")
+        os.makedirs(self.patterns_dir, exist_ok=True)
+
+    def _create_pattern_dir(self, dir):
+        pattern_dir = os.path.join(self.patterns_dir, dir)
+        os.makedirs(pattern_dir, exist_ok=True)
+
+        return pattern_dir
+
+    def _create_path(self, *path, filename=None, content=None):
+        dir_file_path = self._create_pattern_dir(os.path.join(*path))
+
+        path_to_file = os.path.join(dir_file_path, filename)
+
+        with open(path_to_file, "w") as f:
+            extension = filename.split(".")[1]
+            if extension == "json":
+                json.dump(content, f)
+            else:
+                f.write(content)
+                f.flush()
+
+        return os.path.relpath(path_to_file, self.collection_path)
+
+    def _pattern_loader_content_type(self, path, content_type=None):
+        return loaders.PatternsLoader(
+            content_type=content_type,
+            rel_path=path,
+            root=self.collection_path,
+            cfg=SimpleNamespace(run_flake8=True, offline_ansible_lint=False),
+            doc_strings={},
+        )
+
+    def teardown_method(self):
+        shutil.rmtree(self.collection_path)
+
+    def test_load_all_content_types(self):
+        content_types_with_paths = [
+            (
+                constants.ContentType.PATTERNS,
+                self._create_path(
+                    "network.backup", "meta", filename="pattern.json", content={"foo": "bar"}
+                ),
+            ),
+            (
+                constants.ContentType.PATTERNS,
+                self._create_path(
+                    "network.backup", "playbooks", filename="playbook.yml", content="---"
+                ),
+            ),
+            (
+                constants.ContentType.PATTERNS,
+                self._create_path(
+                    "network.backup", "templates", filename="rhdh.yml", content="---"
+                ),
+            ),
+        ]
+
+        for content_type, path in content_types_with_paths:
+            pattern_loader = self._pattern_loader_content_type(path, content_type)
+            content = pattern_loader.load()
+
+            assert content_type == content.content_type
+            assert content.name == path.replace("/", ".").replace("extensions.", "")
