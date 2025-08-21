@@ -1,3 +1,12 @@
+galaxy-importer 0.4.32 (2025-08-21)
+===================================
+
+Features
+--------
+
+- Upgrade the ansible-lint dependency bound from 25.5.x to 25.8.x. (`AAP-51946 <https://issues.redhat.com/browse/AAP-51946>`_)
+
+
 galaxy-importer 0.4.31 (2025-06-13)
 ===================================
 
