@@ -198,8 +198,33 @@ class ExtensionLoader(PluginLoader):
             return None
 
 
-class PlaybookLoader(ContentLoader):
+class PatternsLoader(ContentLoader):
+    def load(self):
+        self._log_loading()
 
+        return schema.Content(
+            name=self.path_name,
+            content_type=self.content_type,
+        )
+
+    @staticmethod
+    def _make_name(rel_path):
+        return os.path.basename(rel_path)
+
+    @staticmethod
+    def _make_path_name(rel_path, name):
+        dirname_parts = Path(os.path.dirname(rel_path)).parts[1:]
+        return ".".join([*dirname_parts, name])
+
+    def _validate_name(self):
+        return True
+
+    @property
+    def full_path(self):
+        return os.path.join(self.root, self.rel_path)
+
+
+class PlaybookLoader(ContentLoader):
     def load(self):
         self._log_loading()
 
@@ -291,5 +316,7 @@ def get_loader_cls(content_type):
         return PluginLoader
     elif content_type.category == constants.ContentCategory.EXTENSION:
         return ExtensionLoader
+    elif content_type.category == constants.ContentCategory.PATTERN_EXTENSION:
+        return PatternsLoader
 
     return None
