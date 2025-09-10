@@ -115,3 +115,16 @@ def test_config_with_non_boolean(temp_config_file):
         assert cfg.ansible_test_local_image is False
         assert cfg.local_image_docker is False
         assert cfg.infra_osd is False
+
+
+@pytest.mark.parametrize(
+    "patterns_cfg",
+    [True, False, None],
+)
+def test_config_with_patterns(temp_config_file, patterns_cfg):
+    with open(temp_config_file, "w") as f:
+        f.write(f"[galaxy-importer]\nPATTERNS = {patterns_cfg}\n")
+        f.flush()
+        config_data = config.ConfigFile.load()
+        cfg = config.Config(config_data=config_data)
+        assert str(cfg.patterns) == str(patterns_cfg)

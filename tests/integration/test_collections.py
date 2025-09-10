@@ -92,12 +92,7 @@ def test_collection_community_general_import(workdir, local_fast_config):
     assert ("action", "shutdown") in docs_contents
 
 
-@pytest.mark.skipif(
-    Version(constants.MIN_ANSIBLE_LINT_PATTERNS_VERSION)
-    > Version(get_version_from_metadata("ansible-lint")),
-    reason="Requires ansible-lint>=25.7.0",
-)
-def test_collection_with_patterns_import(workdir, local_fast_config):
+def _cli_import_collection(workdir, local_fast_config):
     assert os.path.exists(workdir)
     url = (
         "https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/"
@@ -120,6 +115,65 @@ def test_collection_with_patterns_import(workdir, local_fast_config):
 
     # the log should contain all the relevant messages
     log = pid.stdout.decode("utf-8")
+
+    return log
+
+
+@pytest.mark.skipif(
+    Version(constants.MIN_ANSIBLE_LINT_PATTERNS_VERSION)
+    > Version(get_version_from_metadata("ansible-lint")),
+    reason="Requires ansible-lint>=25.7.0",
+)
+def test_collection_with_patterns_import_disabled(workdir, local_fast_config):
+    log = _cli_import_collection(workdir, local_fast_config)
+
+    # should have no errors
+    assert "error" not in log.lower()
+
+    assert "extensions/patterns/sample_pattern/templates not found, skipping" not in log
+    assert "Collection loading complete" in log
+
+    # verify patterns log
+    content_types_with_path = [
+        ("patterns", "patterns.sample_pattern.README.md"),
+        ("patterns", "patterns.sample_pattern.meta.pattern.json"),
+        ("patterns", "patterns.sample_pattern.playbooks.group_vars.all.yml"),
+        ("patterns", "patterns.sample_pattern.playbooks.site.yml"),
+    ]
+
+    for content_type, content_path in content_types_with_path:
+        assert f"Loading {content_type} {content_path}" not in log
+
+    # check for success message
+    assert "Importer processing completed successfully" in log
+
+    # it should have stored structured data in the pwd
+    results_file = os.path.join(workdir, "importer_result.json")
+    assert os.path.exists(results_file)
+    with open(results_file) as f:
+        results = json.loads(f.read())
+
+    for content_type, content_path in content_types_with_path:
+        assert {
+            "name": content_path,
+            "content_type": content_type,
+            "description": None,
+        } not in results["contents"]
+
+    # verify patterns metadata
+    patterns = results["patterns"]
+    assert len(patterns) == 0
+
+
+@pytest.mark.skipif(
+    Version(constants.MIN_ANSIBLE_LINT_PATTERNS_VERSION)
+    > Version(get_version_from_metadata("ansible-lint")),
+    reason="Requires ansible-lint>=25.7.0",
+)
+def test_collection_with_patterns_import_enabled(workdir, local_fast_config, monkeypatch):
+    monkeypatch.setenv("GALAXY_IMPORTER_PATTERNS", True)
+
+    log = _cli_import_collection(workdir, local_fast_config)
 
     # should have no errors
     assert "error" not in log.lower()
@@ -147,7 +201,6 @@ def test_collection_with_patterns_import(workdir, local_fast_config):
     with open(results_file) as f:
         results = json.loads(f.read())
 
-    # for content in results["contents"]:
     for content_type, content_path in content_types_with_path:
         assert {
             "name": content_path,
