@@ -27,13 +27,11 @@ try:
 except ImportError:
     from ansible_builder._target_scripts import introspect
 
-from packaging.version import Version
-
 from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder, FileWalker, Result
 from galaxy_importer import constants
 from galaxy_importer import loaders, file_parser, schema
-from galaxy_importer.utils.lint_version import get_version_from_metadata
+from galaxy_importer.utils.lint_version import get_version_from_metadata, is_patterns_load_enabled
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils import chksums
 
@@ -115,9 +113,7 @@ class CollectionLoader:
         self._check_ansible_test_ignore_files()
 
         meta_patterns = []
-        if Version(get_version_from_metadata("ansible-lint")) >= Version(
-            constants.MIN_ANSIBLE_LINT_PATTERNS_VERSION
-        ):
+        if is_patterns_load_enabled():
             meta_patterns = file_parser.PatternsParser(
                 self.path, self.content_objs
             ).get_meta_patterns()

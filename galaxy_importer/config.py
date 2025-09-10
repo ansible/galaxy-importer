@@ -55,6 +55,7 @@ class Config:
         "run_ansible_test": False,
         "run_flake8": False,
         "tmp_root_dir": None,
+        "patterns": False,
     }
 
     def __init__(self, config_data=None):

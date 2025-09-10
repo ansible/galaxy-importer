@@ -25,6 +25,7 @@ import attr
 from galaxy_importer import constants
 from galaxy_importer.file_parser import ExtensionsFileParser, PatternsParser
 from galaxy_importer.exceptions import ContentFindError
+from galaxy_importer.utils.lint_version import is_patterns_load_enabled
 
 default_logger = logging.getLogger(__name__)
 
@@ -234,9 +235,10 @@ class ContentFinder:
         for content_type, full_path in self._get_ext_types_and_path():
             yield content_type, full_path, self._find_plugins
 
-        patterns_finder = PatternsFinder(self.path, self.log)
-        for content_type, full_path in self._get_patterns_path():
-            yield content_type, full_path, patterns_finder.find_content
+        if is_patterns_load_enabled():
+            patterns_finder = PatternsFinder(self.path, self.log)
+            for content_type, full_path in self._get_patterns_path():
+                yield content_type, full_path, patterns_finder.find_content
 
     def _get_ext_types_and_path(self):
         extension_dirs = ExtensionsFileParser(self.path).get_extension_dirs()
