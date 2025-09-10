@@ -99,6 +99,8 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 - `RUN_FLAKE8` - Set to `True` to run flake8. Defaults to `False`. 
 
+- `PATTERNS` - Set to `True` to extract patterns from collection. Defaults to `False`.
+
 
 ### Issues and Process
 
