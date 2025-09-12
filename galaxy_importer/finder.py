@@ -254,7 +254,7 @@ class ContentFinder:
             for content_type, full_path in self._get_patterns_path():
                 yield content_type, full_path, patterns_finder.find_content
 
-        self.omit_patterns = patterns_finder.omit_patterns
+            self.omit_patterns = patterns_finder.omit_patterns
 
     def _get_ext_types_and_path(self):
         extension_dirs = ExtensionsFileParser(self.path).get_extension_dirs()
