@@ -811,7 +811,10 @@ def test_lint_meta_patterns(
     logs = " ".join([r.message for r in caplog.records])
     assert message in logs
 
-
+@pytest.mark.skipif(
+    Version(MIN_ANSIBLE_LINT_PATTERNS_VERSION) > Version(get_version_from_metadata("ansible-lint")),
+    reason="Requires ansible-lint>=25.7.0",
+)
 def test_omitting_patterns_message(tmp_collection_root, populated_collection_root, caplog):
     os.makedirs(os.path.join(tmp_collection_root, "extensions", "patterns", "foo_bar", "meta"))
 
