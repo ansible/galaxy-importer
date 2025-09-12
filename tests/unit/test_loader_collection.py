@@ -810,3 +810,23 @@ def test_lint_meta_patterns(
 
     logs = " ".join([r.message for r in caplog.records])
     assert message in logs
+
+
+def test_omitting_patterns_message(tmp_collection_root, populated_collection_root, caplog):
+    os.makedirs(os.path.join(tmp_collection_root, "extensions", "patterns", "foo_bar", "meta"))
+
+    collection_loader = CollectionLoader(
+        populated_collection_root,
+        filename=None,
+        cfg=SimpleNamespace(
+            run_ansible_doc=False,
+            run_ansible_lint=False,
+            offline_ansible_lint=False,
+            ansible_local_tmp=tmp_collection_root,
+        ),
+    )
+    collection_loader.doc_strings = {}
+    list(collection_loader._load_contents())
+
+    logs = " ".join([f"{r.levelname}: {r.message}" for r in caplog.records])
+    assert "WARNING: Extracting patterns failed, skipping patterns directory loading" in logs
