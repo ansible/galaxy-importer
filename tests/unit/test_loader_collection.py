@@ -811,6 +811,7 @@ def test_lint_meta_patterns(
     logs = " ".join([r.message for r in caplog.records])
     assert message in logs
 
+
 @pytest.mark.skipif(
     Version(MIN_ANSIBLE_LINT_PATTERNS_VERSION) > Version(get_version_from_metadata("ansible-lint")),
     reason="Requires ansible-lint>=25.7.0",
