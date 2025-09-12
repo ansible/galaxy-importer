@@ -25,6 +25,7 @@ import attr
 from galaxy_importer import constants
 from galaxy_importer.file_parser import ExtensionsFileParser, PatternsParser
 from galaxy_importer.exceptions import ContentFindError
+from galaxy_importer.utils.lint_version import is_lint_patterns_supported
 
 default_logger = logging.getLogger(__name__)
 
@@ -34,12 +35,6 @@ class Result(NamedTuple):
     path: str
 
 
-class PatternsFindError(ContentFindError):
-    def __init__(self, message="Default overwrite error occurred"):
-        self.message = message
-        super().__init__(self.message)
-
-
 ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 
 
@@ -47,8 +42,12 @@ ROLE_SUBDIRS = ["tasks", "vars", "handlers", "meta"]
 class PatternsFinder:
     path = attr.ib()
     log = attr.ib()
+    omit_patterns = attr.ib(default=False)
 
     def set_result(self, content_dir, content_type, file):
+        if file is None:
+            return
+
         file_path = os.path.join(content_dir, file)
         rel_path = self.get_rel_path(file_path)
         yield Result(content_type, rel_path)
@@ -70,6 +69,10 @@ class PatternsFinder:
             "pattern",
             allowed_extensions=[".json"],
         )
+
+        if pattern is None:
+            return
+
         yield from self.set_result(
             content_dir,
             constants.ContentType.PATTERNS,
@@ -81,12 +84,12 @@ class PatternsFinder:
 
         if not os.path.exists(playbooks_dir):
             rel_path = self.get_rel_path(content_dir)
-            raise ContentFindError(f"{rel_path} must contain playbooks directory")
+            self.warn_or_raise(f"{rel_path} must contain playbooks directory")
 
         playbooks = self._map_dir(playbooks_dir)
         if len(playbooks) < 1:
             rel_path = self.get_rel_path(playbooks_dir)
-            raise ContentFindError(f"{rel_path} must containt atleast one playbook")
+            self.warn_or_raise(f"{rel_path} must contain atleast one playbook")
 
         yield from self.set_results(playbooks_dir, constants.ContentType.PATTERNS, playbooks)
 
@@ -107,7 +110,9 @@ class PatternsFinder:
         req_file_exc_msg = f"{rel_path}({'/'.join(allowed_extensions)}) not found"
 
         if not os.path.exists(content_dir) and required:
-            raise ContentFindError(req_file_exc_msg)
+            self.warn_or_raise(req_file_exc_msg)
+            self.omit_patterns = True
+            return
         else:
             for content in os.listdir(content_dir):
                 if os.path.isfile(os.path.join(content_dir, content)):
@@ -120,7 +125,9 @@ class PatternsFinder:
                         return content
 
         if required:
-            raise ContentFindError(req_file_exc_msg)
+            self.warn_or_raise(req_file_exc_msg)
+            self.omit_patterns = True
+            return
 
     def _map_dir(self, content_dir):
         dirs = []
@@ -143,9 +150,17 @@ class PatternsFinder:
         # templates/
         yield from self.find_templates(content_dir)
 
+    def warn_or_raise(self, message):
+        if constants.SKIP_PATTERNS_IMPORT_ON_ERROR:
+            self.log.warning(message)
+        else:
+            raise ContentFindError(message)
+
 
 class ContentFinder:
     """Searches for content in directories inside collection."""
+
+    omit_patterns = False
 
     def find_contents(self, path, logger=None):
         """Finds contents in path and return the results.
@@ -234,9 +249,12 @@ class ContentFinder:
         for content_type, full_path in self._get_ext_types_and_path():
             yield content_type, full_path, self._find_plugins
 
-        patterns_finder = PatternsFinder(self.path, self.log)
-        for content_type, full_path in self._get_patterns_path():
-            yield content_type, full_path, patterns_finder.find_content
+        if is_lint_patterns_supported():
+            patterns_finder = PatternsFinder(self.path, self.log)
+            for content_type, full_path in self._get_patterns_path():
+                yield content_type, full_path, patterns_finder.find_content
+
+            self.omit_patterns = patterns_finder.omit_patterns
 
     def _get_ext_types_and_path(self):
         extension_dirs = ExtensionsFileParser(self.path).get_extension_dirs()

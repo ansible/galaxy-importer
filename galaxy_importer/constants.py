@@ -61,6 +61,11 @@ META_PATTERN_DIR = "meta"
 
 MIN_ANSIBLE_LINT_PATTERNS_VERSION = "25.7.0"
 
+# Controls how galaxy-importer handles invalid patterns spec:
+# True -> Skip the patterns directory and log a warning, import continues.
+# False -> import fails.
+SKIP_PATTERNS_IMPORT_ON_ERROR = True
+
 # Content-Type
 PATTERNS_NAME = "patterns"
 
