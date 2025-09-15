@@ -1,3 +1,12 @@
+galaxy-importer 0.4.34 (2025-09-15)
+===================================
+
+Features
+--------
+
+- Make patterns extraction warning (`AAP-53303 <https://issues.redhat.com/browse/AAP-53303>`_)
+
+
 galaxy-importer 0.4.33 (2025-08-27)
 ===================================
 
