@@ -20,6 +20,7 @@ import os
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 import yaml
 
 import pytest
@@ -281,6 +282,7 @@ class TestPatternsFinder(unittest.TestCase):
             fh.write(content)
             fh.flush()
 
+    @mock.patch("galaxy_importer.constants.SKIP_PATTERNS_IMPORT_ON_ERROR", False)
     def test_missing_readme(self):
         readme_gen = PatternsFinder(self.path, log).find_readme(self.patterns_dir)
         with pytest.raises(ContentFindError) as exc:
@@ -295,12 +297,22 @@ class TestPatternsFinder(unittest.TestCase):
         assert readme[0].content_type == constants.ContentType.PATTERNS
         assert readme[0].path == "extensions/patterns/foo.bar/readme.md"
 
-    def test_missing_meta_dir(self):
+    @mock.patch("galaxy_importer.constants.SKIP_PATTERNS_IMPORT_ON_ERROR", False)
+    def test_missing_meta_dir_should_fail(self):
         pattern_gen = PatternsFinder(self.path, log).find_meta_pattern(self.patterns_dir)
         with pytest.raises(ContentFindError) as exc:
             next(pattern_gen)
 
         assert "extensions/patterns/foo.bar/meta/pattern(.json) not found" in str(exc.value)
+
+    def test_missing_meta_dir_warning(self):
+        self._caplog.set_level(logging.WARNING)
+        with self._caplog.at_level(logging.WARNING, logger="galaxy_importer.finder"):
+            pattern_gen = PatternsFinder(self.path, log).find_meta_pattern(self.patterns_dir)
+            list(pattern_gen)
+
+            assert "WARNING" in self._caplog.text
+            assert "extensions/patterns/foo.bar/meta/pattern(.json) not found" in self._caplog.text
 
     def test_find_meta_pattern(self):
         self.create_pattern()
@@ -309,13 +321,26 @@ class TestPatternsFinder(unittest.TestCase):
         assert pattern[0].content_type == constants.ContentType.PATTERNS
         assert pattern[0].path == "extensions/patterns/foo.bar/meta/pattern.json"
 
-    def test_missing_playbooks_dir(self):
+    @mock.patch("galaxy_importer.constants.SKIP_PATTERNS_IMPORT_ON_ERROR", False)
+    def test_missing_playbooks_dir_should_fail(self):
         playbooks_gen = PatternsFinder(self.path, log).find_playbooks(self.patterns_dir)
         with pytest.raises(ContentFindError) as exc:
             next(playbooks_gen)
         assert "extensions/patterns/foo.bar must contain playbooks directory" in str(exc.value)
 
-    def test_no_playbooks_in_dir(self):
+    def test_missing_playbooks_dir_warning(self):
+        self._caplog.set_level(logging.WARNING)
+        with self._caplog.at_level(logging.WARNING, logger="galaxy_importer.finder"):
+            playbooks_gen = PatternsFinder(self.path, log).find_playbooks(self.patterns_dir)
+            list(playbooks_gen)
+
+            assert "WARNING" in self._caplog.text
+            assert (
+                "extensions/patterns/foo.bar must contain playbooks directory" in self._caplog.text
+            )
+
+    @mock.patch("galaxy_importer.constants.SKIP_PATTERNS_IMPORT_ON_ERROR", False)
+    def test_no_playbooks_in_dir_should_fail(self):
         playbooks_dir = os.path.join(self.patterns_dir, "playbooks")
         os.makedirs(playbooks_dir, exist_ok=True)
 
@@ -323,8 +348,23 @@ class TestPatternsFinder(unittest.TestCase):
         with pytest.raises(ContentFindError) as exc:
             next(playbooks_gen)
 
-        assert "extensions/patterns/foo.bar/playbooks must containt atleast one playbook" in str(
+        assert "WARNING" not in str(exc.value)
+        assert "extensions/patterns/foo.bar/playbooks must contain atleast one playbook" in str(
             exc.value
+        )
+
+    def test_no_playbooks_in_dir_warning(self):
+        self._caplog.set_level(logging.WARNING)
+        playbooks_dir = os.path.join(self.patterns_dir, "playbooks")
+        os.makedirs(playbooks_dir, exist_ok=True)
+        with self._caplog.at_level(logging.WARNING, logger="galaxy_importer.finder"):
+            playbooks_gen = PatternsFinder(self.path, log).find_playbooks(self.patterns_dir)
+            list(playbooks_gen)
+
+        assert "WARNING" in self._caplog.text
+        assert (
+            "extensions/patterns/foo.bar/playbooks must contain atleast one playbook"
+            in self._caplog.text
         )
 
     def test_find_playbooks(self):

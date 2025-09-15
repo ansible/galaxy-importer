@@ -27,13 +27,11 @@ try:
 except ImportError:
     from ansible_builder._target_scripts import introspect
 
-from packaging.version import Version
-
 from galaxy_importer import exceptions as exc
 from galaxy_importer.finder import ContentFinder, FileWalker, Result
 from galaxy_importer import constants
 from galaxy_importer import loaders, file_parser, schema
-from galaxy_importer.utils.lint_version import get_version_from_metadata
+from galaxy_importer.utils.lint_version import get_version_from_metadata, is_lint_patterns_supported
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils import chksums
 
@@ -57,6 +55,7 @@ class CollectionLoader:
         self.file_manifest_file = None
         self.docs_blob = None
         self.contents = None
+        self.omit_patterns = False
 
         # build the collections path for lint's module resolution
         self.collections_path = self.path
@@ -115,9 +114,7 @@ class CollectionLoader:
         self._check_ansible_test_ignore_files()
 
         meta_patterns = []
-        if Version(get_version_from_metadata("ansible-lint")) >= Version(
-            constants.MIN_ANSIBLE_LINT_PATTERNS_VERSION
-        ):
+        if is_lint_patterns_supported() and self.omit_patterns is False:
             meta_patterns = file_parser.PatternsParser(
                 self.path, self.content_objs
             ).get_meta_patterns()
@@ -398,7 +395,18 @@ class CollectionLoader:
         # This adds all .py and .ps1 paths in a collection. The effect is finding content
         # in collections such as extensions (eda). Once ansible-doc supports enumerating
         # extensions this could be made conditional
-        found_contents.update(ContentFinder().find_contents(self.path, self.log))
+        cf = ContentFinder()
+        contents = cf.find_contents(self.path, self.log)
+        found_contents.update(contents)
+
+        self.omit_patterns = cf.omit_patterns
+        if cf.omit_patterns:
+            # remove any previously loaded patterns content
+            # so loader or parser doesn't complain
+            self.log.warning("Extracting patterns failed, skipping patterns directory loading")
+            found_contents = [
+                c for c in found_contents if c.content_type != constants.ContentType.PATTERNS
+            ]
 
         for content_type, rel_path in sorted(found_contents):
             loader_cls = loaders.get_loader_cls(content_type)
