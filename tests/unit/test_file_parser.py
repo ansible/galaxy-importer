@@ -20,6 +20,7 @@ import pytest
 import tempfile
 import shutil
 import json
+import re
 
 from galaxy_importer import exceptions as exc
 from galaxy_importer import file_parser
@@ -86,7 +87,7 @@ def test_no_runtime_file(tmpdir):
 
 def test_runtime_file_bad_yaml(tmpdir):
     tmpdir.mkdir("meta").join("runtime.yml").write(BAD_YAML)
-    with pytest.raises(exc.FileParserError, match="Error during parsing of runtime.yml"):
+    with pytest.raises(exc.FileParserError, match=re.escape("Error during parsing of runtime.yml")):
         file_parser.RuntimeFileParser(collection_path=tmpdir)
 
 
@@ -138,7 +139,9 @@ def test_bad_version_spec(tmpdir):
 
 def test_extensions_file_bad_yaml(tmpdir):
     tmpdir.mkdir("meta").join("extensions.yml").write(BAD_YAML)
-    with pytest.raises(exc.FileParserError, match="Error during parsing of extensions.yml"):
+    with pytest.raises(
+        exc.FileParserError, match=re.escape("Error during parsing of extensions.yml")
+    ):
         file_parser.ExtensionsFileParser(collection_path=tmpdir)
 
 
@@ -160,7 +163,7 @@ def test_extensions_file_missing_keys(tmpdir, extensions_yaml):
     tmpdir.mkdir("meta").join("extensions.yml").write(extensions_yaml)
     parser = file_parser.ExtensionsFileParser(collection_path=tmpdir)
     with pytest.raises(
-        exc.FileParserError, match="meta/extensions.yml is not in the expected format"
+        exc.FileParserError, match=re.escape("meta/extensions.yml is not in the expected format")
     ):
         parser.get_extension_dirs()
 
@@ -235,7 +238,9 @@ class TestPatternsParser:
         patterns_parser = file_parser.PatternsParser(self.collection_path)
         with pytest.raises(
             exc.FileParserError,
-            match="Error during parsing of extensions/patterns/foo.bar/meta/pattern.json",
+            match=re.escape(
+                "Error during parsing of extensions/patterns/foo.bar/meta/pattern.json"
+            ),
         ):
             patterns_parser._load_meta_pattern("foo.bar")
 

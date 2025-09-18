@@ -179,7 +179,6 @@ class TestContentFinder(unittest.TestCase):
         assert len(contents) == 0
 
     def test_find_playbooks(self):
-
         content = [
             {
                 "name": "a test playbook",

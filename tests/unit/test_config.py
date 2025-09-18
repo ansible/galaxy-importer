@@ -66,7 +66,7 @@ def test_config_set_from_file(temp_config_file):
 
 def test_config_set_from_env(temp_config_file_b, monkeypatch):
     with open(temp_config_file_b, "w") as f:
-        f.write("[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n" "INFRA_PULP = True")
+        f.write("[galaxy-importer]\nRUN_ANSIBLE_TEST = True\nINFRA_PULP = True")
         f.flush()
         monkeypatch.setenv("GALAXY_IMPORTER_CONFIG", temp_config_file_b)
         config_data = config.ConfigFile.load()
@@ -106,7 +106,7 @@ def test_config_bad_ini_section(temp_config_file):
 
 def test_config_with_non_boolean(temp_config_file):
     with open(temp_config_file, "w") as f:
-        f.write("[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n" "LOG_LEVEL_MAIN = DEBUG")
+        f.write("[galaxy-importer]\nRUN_ANSIBLE_TEST = True\nLOG_LEVEL_MAIN = DEBUG")
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)

@@ -185,7 +185,7 @@ def test_valid_dependencies(galaxy_info, valid_dependency):
 def test_invalid_dependency_type(galaxy_info, invalid_dependency):
     with pytest.raises(
         exc.LegacyRoleSchemaError,
-        match="must be either a list of strings or a list of dictionaries.",
+        match=re.escape("must be either a list of strings or a list of dictionaries."),
     ):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dependency)
 
@@ -206,7 +206,7 @@ def test_invalid_dependency_type(galaxy_info, invalid_dependency):
 def test_invalid_dependency_dict_type(galaxy_info, invalid_dict):
     with pytest.raises(
         exc.LegacyRoleSchemaError,
-        match="dependency must include either the 'role,' 'name,' or 'src' keyword.",
+        match=re.escape("dependency must include either the 'role,' 'name,' or 'src' keyword."),
     ):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), invalid_dict)
 
@@ -237,7 +237,9 @@ def test_valid_dependency_types(galaxy_info, dependencies):
 def test_invalid_dependency_separation(galaxy_info):
     dependencies = ["foo.bar.baz"]
 
-    with pytest.raises(exc.LegacyRoleSchemaError, match="namespace and name separated by '.'"):
+    with pytest.raises(
+        exc.LegacyRoleSchemaError, match=re.escape("namespace and name separated by '.'")
+    ):
         LegacyMetadata(LegacyGalaxyInfo(**galaxy_info), dependencies)
 
 
