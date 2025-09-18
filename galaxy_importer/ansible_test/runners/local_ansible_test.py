@@ -65,7 +65,7 @@ class LocalAnsibleTestRunner(BaseTestRunner):
 
         collection_name = f"{self.metadata.namespace}-{self.metadata.name}-{self.metadata.version}"
         self.log.info(f"Running ansible-test sanity on {collection_name} ...")
-        self.log.info(f'{" ".join(cmd)}')
+        self.log.info(f"{' '.join(cmd)}")
 
         proc = subprocess.Popen(
             cmd,

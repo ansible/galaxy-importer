@@ -47,8 +47,7 @@ class RuntimeFileParser:
     def get_requires_ansible(self):
         if not self.data:
             raise exc.FileParserError(
-                "'requires_ansible' in meta/runtime.yml is mandatory, "
-                "but no meta/runtime.yml found"
+                "'requires_ansible' in meta/runtime.yml is mandatory, but no meta/runtime.yml found"
             )
         requires_ansible = self.data.get("requires_ansible")
         if not requires_ansible:

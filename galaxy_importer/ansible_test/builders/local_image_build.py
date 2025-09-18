@@ -93,7 +93,6 @@ class Build:
 
     @staticmethod
     def _build_image_with_artifact(container_engine, dirname):
-
         with resource_filename_compat(
             "galaxy_importer", "ansible_test/container/entrypoint.sh"
         ) as pkg_entrypoint:

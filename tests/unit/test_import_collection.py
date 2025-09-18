@@ -55,7 +55,7 @@ def test_import_collection(mocker):
 def test_sync_collection(tmp_collection_root):
     git_url = "https://github.com/openshift/community.okd.git"
     Repo.clone_from(git_url, tmp_collection_root, depth=1)
-    metadata, filepath = collection.sync_collection(tmp_collection_root, tmp_collection_root)
+    _metadata, filepath = collection.sync_collection(tmp_collection_root, tmp_collection_root)
     assert "community-okd" in filepath
 
 
@@ -84,7 +84,7 @@ def test__build_collection(tmp_collection_root):
     filepath = collection._build_collection(tmp_collection_root, tmp_collection_root)
     assert "community-okd" in filepath
 
-    with pytest.raises(exc.ImporterError, match="file .+ already exists"):
+    with pytest.raises(exc.ImporterError, match=r"file .+ already exists"):
         collection._build_collection(tmp_collection_root, tmp_collection_root)
 
 
