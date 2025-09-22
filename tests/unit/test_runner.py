@@ -54,7 +54,7 @@ def test_get_runner_ansible_test_local(temp_config_file):
 
 def test_get_runner_local_image(temp_config_file):
     with open(temp_config_file, "w") as f:
-        f.write("[galaxy-importer]\nRUN_ANSIBLE_TEST = True\n" "ANSIBLE_TEST_LOCAL_IMAGE = True")
+        f.write("[galaxy-importer]\nRUN_ANSIBLE_TEST = True\nANSIBLE_TEST_LOCAL_IMAGE = True")
         f.flush()
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)

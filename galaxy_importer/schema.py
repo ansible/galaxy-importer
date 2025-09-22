@@ -239,7 +239,7 @@ class CollectionInfo:
         - tag regular expression
         - tag max length
         """
-        no_req_tag_err = f'At least one tag required from tag list: {", ".join(REQUIRED_TAG_LIST)}'
+        no_req_tag_err = f"At least one tag required from tag list: {', '.join(REQUIRED_TAG_LIST)}"
 
         config_data = config.ConfigFile.load()
         cfg = config.Config(config_data=config_data)

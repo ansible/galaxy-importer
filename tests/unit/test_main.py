@@ -16,6 +16,7 @@
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
 import pytest
+import re
 
 from galaxy_importer import main
 
@@ -40,7 +41,9 @@ def test_parser():
 
 
 def test_main_no_args():
-    with pytest.raises(TypeError, match="expected str, bytes or os.PathLike object, not NoneType"):
+    with pytest.raises(
+        TypeError, match=re.escape("expected str, bytes or os.PathLike object, not NoneType")
+    ):
         main.main(args={})
 
 
