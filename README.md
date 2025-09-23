@@ -1,3 +1,8 @@
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ansible_galaxy-importer&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ansible_galaxy-importer)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=ansible_galaxy-importer&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=ansible_galaxy-importer)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ansible_galaxy-importer&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ansible_galaxy-importer)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ansible_galaxy-importer&metric=coverage)](https://sonarcloud.io/summary/new_code?id=ansible_galaxy-importer)
+
 ### Ansible Requirements
 
 ``galaxy-importer`` requires the following other Ansible projects:
@@ -79,13 +84,13 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 - `ANSIBLE_TEST_LOCAL_IMAGE` - Set to `True` to run `ansible-test` sandboxed within a container image. Requires installation of either Podman or Docker to run the container. Defaults to `False`.
 
-- `CHECK_CHANGELOG` - Set to `False` to not check for a `CHANGELOG.rst or` `CHANGELOG.md` file under the collection root or `docs/` dir, or a `changelogs/changelog.(yml/yaml)` file. Defaults to `True`. 
+- `CHECK_CHANGELOG` - Set to `False` to not check for a `CHANGELOG.rst or` `CHANGELOG.md` file under the collection root or `docs/` dir, or a `changelogs/changelog.(yml/yaml)` file. Defaults to `True`.
 
-- `CHECK_REQUIRED_TAGS` - Set to `True` to check for a set of tags required for Ansible collection certification. Defaults to `False`. 
+- `CHECK_REQUIRED_TAGS` - Set to `True` to check for a set of tags required for Ansible collection certification. Defaults to `False`.
 
 - `LOCAL_IMAGE_DOCKER` - Set to `True` to run the `ansible-test` container image via Docker; otherwise, Podman will be used. Defaults to `False`.
 
-- `LOG_LEVEL_MAIN` - Set to the desired log level. Defaults to `INFO`. 
+- `LOG_LEVEL_MAIN` - Set to the desired log level. Defaults to `INFO`.
 
 - `OFFLINE_ANSIBLE_LINT` - Set to `False` if you want `ansible-lint` to check for a new version. Defaults to `True`.
 
@@ -93,11 +98,11 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 - `RUN_ANSIBLE_DOC` - Set to `False` to skip `ansible-doc`. Defaults to `True`.
 
-- `RUN_ANSIBLE_LINT` - Set to `False` to skip running `ansible-lint --profile production` over the whole collection. Defaults to `True`. 
+- `RUN_ANSIBLE_LINT` - Set to `False` to skip running `ansible-lint --profile production` over the whole collection. Defaults to `True`.
 
 - `RUN_ANSIBLE_TEST` - Set to `True` to run `ansible-test` during collection import. Defaults to `False`.
 
-- `RUN_FLAKE8` - Set to `True` to run flake8. Defaults to `False`. 
+- `RUN_FLAKE8` - Set to `True` to run flake8. Defaults to `False`.
 
 
 ### Issues and Process
@@ -109,4 +114,4 @@ Process details for `galaxy-importer`: [PROCESS.md](PROCESS.md)
 
 ### Additional Notes
 
-Place `.md` files in the `docs/` dir to have them show up in an imported collection's "Documentation" tab on Galaxy or Automation Hub.  
+Place `.md` files in the `docs/` dir to have them show up in an imported collection's "Documentation" tab on Galaxy or Automation Hub.
