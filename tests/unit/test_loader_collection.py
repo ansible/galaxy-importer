@@ -733,8 +733,7 @@ def test_no_ansible_lint_bin(mocked_shutil_which, tmp_collection_root, caplog):
     ]
 
 
-# Skipped due to removed patterns support from ansible-lint (subject to change)
-@pytest.mark.skip
+@pytest.mark.skip(reason="patterns support removed from ansible-lint")
 @pytest.mark.parametrize(
     ("pattern", "message"),
     [
