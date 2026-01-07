@@ -2,7 +2,6 @@ import json
 import logging
 from importlib.resources import files
 
-
 log = logging.getLogger(__name__)
 
 _SPDX_LICENSES = None

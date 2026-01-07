@@ -12,7 +12,6 @@ from galaxy_importer import config
 from galaxy_importer import exceptions as exc
 from galaxy_importer.loaders import LegacyRoleLoader
 
-
 META_YAML = """
 dependencies: []
 

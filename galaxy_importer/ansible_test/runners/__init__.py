@@ -21,7 +21,6 @@ from .local_ansible_test import LocalAnsibleTestRunner
 from .local_image import LocalImageTestRunner
 from .openshift_job import OpenshiftJobTestRunner
 
-
 default_logger = logging.getLogger(__name__)
 
 

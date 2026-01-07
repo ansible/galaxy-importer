@@ -38,7 +38,6 @@ from galaxy_importer.utils import chksums as chksums_utils
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils.lint_version import get_version_from_metadata
 
-
 log = logging.getLogger(__name__)
 
 MANIFEST_JSON = """

@@ -18,7 +18,6 @@
 import configparser
 import os
 
-
 FILENAME = "galaxy-importer.cfg"
 FILE_LOCATIONS = [
     f"/etc/galaxy-importer/{FILENAME}",
