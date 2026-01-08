@@ -23,7 +23,8 @@ import pytest
 from galaxy_importer import config
 from galaxy_importer import loaders
 
-
+# Disabling formatter for compatibility with Python 3.9 (unsupported)
+# fmt: off
 ANSIBLE_DOC_OUTPUT = json.loads(
     """
     {
@@ -41,6 +42,7 @@ ANSIBLE_DOC_OUTPUT = json.loads(
     }
 """
 )
+# fmt: on
 
 
 @pytest.fixture

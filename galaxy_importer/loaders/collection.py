@@ -21,7 +21,6 @@ import re
 import shutil
 from subprocess import Popen, PIPE, TimeoutExpired
 
-
 try:
     from ansible_builder import introspect
 except ImportError:
@@ -34,7 +33,6 @@ from galaxy_importer import loaders, file_parser, schema
 from galaxy_importer.utils.lint_version import get_version_from_metadata, is_lint_patterns_supported
 from galaxy_importer.utils import markup as markup_utils
 from galaxy_importer.utils import chksums
-
 
 default_logger = logging.getLogger(__name__)
 
@@ -157,7 +155,7 @@ class CollectionLoader:
             "tests/integration/",
             "--exclude",
             "tests/unit/",
-            "--parseable",
+            "--format=pep8",
             "--nocolor",
             "-x",
             "yaml,var-naming,avoid-dot-notation,import-task-no-when,single-entry-point,use-loop",

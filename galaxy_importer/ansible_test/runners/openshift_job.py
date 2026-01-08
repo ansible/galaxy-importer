@@ -28,7 +28,6 @@ from galaxy_importer import exceptions
 from galaxy_importer.ansible_test.runners.base import BaseTestRunner
 from galaxy_importer.utils.resource_access import resource_filename_compat
 
-
 default_logger = logging.getLogger(__name__)
 
 cfg = config.Config()

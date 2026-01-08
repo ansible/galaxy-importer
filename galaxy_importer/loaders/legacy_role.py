@@ -124,7 +124,7 @@ class LegacyRoleLoader:
             "ansible-lint",
             "--profile",
             "production",
-            "--parseable",
+            "--format=pep8",
             "--nocolor",
             self.dirname,
         ]
