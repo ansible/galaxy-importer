@@ -116,7 +116,11 @@ class Job:
             cpu_request=os.environ.get("IMPORTER_CPU_REQUEST", "500m"),
             cpu_limit=os.environ.get("IMPORTER_CPU_LIMIT", "500m"),
             job_timeout=os.environ.get("IMPORTER_JOB_TIMEOUT", "900"),
-            image_tag=os.environ.get("IMPORTER_IMAGE_TAG", "0b948de"),
+            image_tag=os.environ.get("IMPORTER_IMAGE_TAG", "79357f4"),
+            image=os.environ.get(
+                "IMPORTER_IMAGE",
+                "quay.io/redhat-user-workloads/ansible-automationhu-tenant/automation-hub-main/automation-hub-galaxy-importer",
+            ),
         )
         self.log = logger or default_logger
 
