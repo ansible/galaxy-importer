@@ -33,6 +33,7 @@ RUN useradd user1 \
     python3.11 -m pip install ansible-core==2.16.0 --disable-pip-version-check && \
     python3.11 -m pip install tox && \
     python3.11 -m pip install --upgrade setuptools && \
+    python3.11 -m pip install --upgrade wheel && \
     # Creates dir with correct permissions for where ansible-test sanity writes files, needed for non-privileged containers
     mkdir -m 0775 -p /.cache/pylint && \
     mkdir -m 0775 -p /eda /eda/tox
