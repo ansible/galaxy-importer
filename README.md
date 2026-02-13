@@ -104,6 +104,10 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 - `RUN_FLAKE8` - Set to `True` to run flake8. Defaults to `False`.
 
+### Maintenance
+
+galaxy-importer uses a list of SPDX licenses stored at [galaxy_importer/utils/spdx_licenses.json](galaxy_importer/utils/spdx_licenses.json). This file must be periodically updated to reflect the addition, removal, and deprecation of licenses in the future. Use [scripts/update_spdx.py](scripts/update_spdx.py) to update licenses: `python scripts/update_spdx.py`.
+
 
 ### Issues and Process
 
