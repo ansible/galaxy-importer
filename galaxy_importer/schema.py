@@ -473,7 +473,7 @@ class LegacyGalaxyInfo:
     def _validate_company(self, attribute, value):
         if value is not None and len(value) > MAX_LEGACY_ROLE_LENGTH_COMPANY:
             raise exc.LegacyRoleSchemaError(
-                f"company must not exceed {MAX_LEGACY_ROLE_LENGTH_DESCRIPTION} characters"
+                f"company must not exceed {MAX_LEGACY_ROLE_LENGTH_COMPANY} characters"
             )
 
     @issue_tracker_url.validator
