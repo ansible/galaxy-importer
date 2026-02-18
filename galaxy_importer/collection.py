@@ -171,15 +171,21 @@ def _extract_archive(fileobj, extract_dir):
         # backported to other some earlier versions, and the default behavior
         # will change in Python 3.14
         _extract_kwargs["filter"] = "data"
+    invalid_path_msg = "Invalid file paths detected."
+    invalid_link_msg = "Invalid link target detected."
     with tarfile.open(fileobj=fileobj, mode="r") as tf:
         for item in tf.getmembers():
             if item.name.startswith("/") or "../" in item.name:
-                raise exc.ImporterError("Invalid file paths detected.")
+                raise exc.ImporterError(invalid_path_msg)
             if item.linkname:
-                # Ensure the link target is within the extraction root
+                # Ensure the symlink destination stays within the extraction directory.
+                # For example, a symlink targeting "../../tmp" must be rejected
+                # because it would allow access to files outside the
+                # extraction directory.
+                # See: https://access.redhat.com/security/cve/cve-2025-4138
                 link_target = os.path.normpath(
                     os.path.join(extract_dir, os.path.dirname(item.name), item.linkname)
                 )
                 if not link_target.startswith(os.path.abspath(extract_dir)):
-                    raise exc.ImporterError("Invalid link target detected.")
+                    raise exc.ImporterError(invalid_link_msg)
         tf.extractall(extract_dir, **_extract_kwargs)

@@ -21,6 +21,7 @@ import tarfile
 import tempfile
 import unittest
 from io import BytesIO
+from unittest.mock import patch
 
 from galaxy_importer.collection import _extract_archive
 from galaxy_importer.exceptions import ImporterError
@@ -121,8 +122,9 @@ class TestCollectionExtractArchive(unittest.TestCase):
         os.rmdir(extract_dir)
 
     def test_valid_relative_symlink_in_subdir(self):
-        # Create a valid archive with a relative symlink in a subdir
-        # and the target in the top dir
+        # Relative symlinks with '..' that resolve within the extraction
+        # directory should be allowed (e.g. collections like community-general
+        # use these legitimately).
         archive_data = b"testfile content"
         archive_file = BytesIO()
         with tarfile.open(fileobj=archive_file, mode="w") as tf:
@@ -141,17 +143,82 @@ class TestCollectionExtractArchive(unittest.TestCase):
             tf.addfile(tarinfo, BytesIO(archive_data))
         archive_file.seek(0)
 
-        # Create a temporary extraction directory
         extract_dir = tempfile.mkdtemp(prefix="collection-archive-extract-test-")
         os.makedirs(extract_dir, exist_ok=True)
 
-        try:
-            _extract_archive(archive_file, extract_dir)
-        finally:
-            pass
+        _extract_archive(archive_file, extract_dir)
 
         extracted_file_path = os.path.join(extract_dir, "testdir2/link")
         self.assertTrue(os.path.islink(extracted_file_path))
 
-        # Clean up the temporary extraction directory
+        shutil.rmtree(extract_dir)
+
+    def test_symlink_traversal_outside_root_rejected(self):
+        # Symlinks targeting paths outside the extraction root via '..'
+        # must be rejected (CVE-2025-4138).
+        archive_file = BytesIO()
+        with tarfile.open(fileobj=archive_file, mode="w") as tf:
+            tarinfo = tarfile.TarInfo("escape_link")
+            tarinfo.type = tarfile.SYMTYPE
+            tarinfo.linkname = "../../tmp"
+            tf.addfile(tarinfo)
+        archive_file.seek(0)
+
+        extract_dir = tempfile.mkdtemp(prefix="collection-archive-extract-test-")
+        os.makedirs(extract_dir, exist_ok=True)
+
+        with self.assertRaises(ImporterError):
+            _extract_archive(archive_file, extract_dir)
+
+        shutil.rmtree(extract_dir)
+
+    def test_valid_relative_symlink_without_traversal(self):
+        # Relative symlinks that don't use '..' should still be allowed.
+        archive_data = b"testfile content"
+        archive_file = BytesIO()
+        with tarfile.open(fileobj=archive_file, mode="w") as tf:
+            tarinfo = tarfile.TarInfo("testdir")
+            tarinfo.type = tarfile.DIRTYPE
+            tarinfo.mode = 493
+            tf.addfile(tarinfo)
+
+            tarinfo = tarfile.TarInfo("testdir/realfile")
+            tarinfo.size = len(archive_data)
+            tf.addfile(tarinfo, BytesIO(archive_data))
+
+            tarinfo = tarfile.TarInfo("testdir/link")
+            tarinfo.type = tarfile.SYMTYPE
+            tarinfo.linkname = "realfile"
+            tf.addfile(tarinfo)
+        archive_file.seek(0)
+
+        extract_dir = tempfile.mkdtemp(prefix="collection-archive-extract-test-")
+        os.makedirs(extract_dir, exist_ok=True)
+
+        _extract_archive(archive_file, extract_dir)
+
+        extracted_link = os.path.join(extract_dir, "testdir/link")
+        self.assertTrue(os.path.islink(extracted_link))
+
+        shutil.rmtree(extract_dir)
+
+    @patch("galaxy_importer.collection.hasattr", side_effect=lambda obj, name: False)
+    def test_valid_archive_without_data_filter(self, mock_hasattr):
+        # Simulate older Python (< 3.12) where tarfile.data_filter doesn't exist.
+        archive_data = b"testfile content"
+        archive_file = BytesIO()
+        with tarfile.open(fileobj=archive_file, mode="w") as tf:
+            tarinfo = tarfile.TarInfo("testfile")
+            tarinfo.size = len(archive_data)
+            tf.addfile(tarinfo, BytesIO(archive_data))
+        archive_file.seek(0)
+
+        extract_dir = tempfile.mkdtemp(prefix="collection-archive-extract-test-")
+        os.makedirs(extract_dir, exist_ok=True)
+
+        _extract_archive(archive_file, extract_dir)
+
+        extracted_file_path = os.path.join(extract_dir, "testfile")
+        self.assertTrue(os.path.isfile(extracted_file_path))
+
         shutil.rmtree(extract_dir)
