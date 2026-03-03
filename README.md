@@ -48,7 +48,6 @@ View log output in terminal, and view the importer result in the written file `i
 * `docs_blob` (set by CollectionLoader.\_build_docs_blob())
  * `collection_readme`
  * `documentation_files`
- * `contents`
 * `contents`
 * `requires_ansible`
 * `patterns`
@@ -69,7 +68,7 @@ You can override the above paths by setting `GALAXY_IMPORTER_CONFIG` in the envi
 $ export GALAXY_IMPORTER_CONFIG=~/galaxy-importer.cfg
 ```
 
-Configuration options and their defaults are defined in `DEFAULTS` at [galaxy_importer/config.py](galaxy_importer/config.py)
+Configuration options and their defaults are defined in `DEFAULTS` at [galaxy_importer/config.py](https://github.com/ansible/galaxy-importer/blob/master/galaxy_importer/config.py)
 
 Example configuration file with subset of config options:
 
@@ -109,7 +108,7 @@ ANSIBLE_LOCAL_TMP = '~/.ansible/tmp'
 
 To file an issue, visit the [Automation Hub Jira project](https://issues.redhat.com/projects/AAH/issues)
 
-Process details for `galaxy-importer`: [PROCESS.md](PROCESS.md)
+Process details for `galaxy-importer`: [PROCESS.md](https://github.com/ansible/galaxy-importer/blob/master/PROCESS.md)
 
 
 ### Additional Notes
