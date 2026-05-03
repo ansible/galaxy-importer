@@ -1,3 +1,18 @@
+galaxy-importer 0.4.38 (2026-04-09)
+===================================
+
+Features
+--------
+
+- Upgrade the ansible-lint dependency bound from 26.1.0 to 26.4.0. (`AAP-lint-26-4-0 <https://issues.redhat.com/browse/AAP-lint-26-4-0>`_)
+
+
+Bugfixes
+--------
+
+- In _validate_company the constant referenced in the exception message is wrong. Fixed the constant variable to reference MAX_LEGACY_ROLE_LENGTH_COMPANY. (`ACA-5083 <https://issues.redhat.com/browse/ACA-5083>`_)
+
+
 galaxy-importer 0.4.37 (2026-01-09)
 ===================================
 
