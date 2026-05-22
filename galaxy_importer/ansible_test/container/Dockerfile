@@ -31,6 +31,7 @@ RUN useradd user1 \
     touch /ansible_collections/ns/col/placeholder.txt && \
     # On updating ansible-core version, update the FROM statement to the matching base-test-container version
     python3.11 -m pip install ansible-core==2.16.0 --disable-pip-version-check && \
+    python3.11 -m pip install "cryptography>=46.0.7" --disable-pip-version-check && \
     python3.11 -m pip install tox && \
     python3.11 -m pip install --upgrade setuptools && \
     python3.11 -m pip install --upgrade wheel && \
