@@ -10,7 +10,8 @@ LABEL   com.redhat.component="ansible-test" \
         summary="Container used by galaxy for running ansible-test validation." \
         url="https://github.com/ansible/galaxy-importer" \
         vendor="Red Hat, Inc." \
-        version="0.4.26"
+        version="0.4.26" \
+        cpe="cpe:/a:redhat:galaxy-importer:0.4::appstream"
 
 COPY entrypoint.sh /entrypoint
 
