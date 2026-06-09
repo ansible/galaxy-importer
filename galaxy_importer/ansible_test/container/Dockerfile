@@ -1,4 +1,4 @@
-FROM quay.io/ansible/base-test-container:6.1.0
+FROM quay.io/ansible/base-test-container:6.2.0
 
 LABEL   com.redhat.component="ansible-test" \
         description="Container used by galaxy for running ansible-test validation." \
@@ -29,6 +29,7 @@ RUN useradd user1 \
     mkdir -m 0775 /archive && \
     mkdir -p -m 0775 /ansible_collections /ansible_collections/ns /ansible_collections/ns/col && \
     touch /ansible_collections/ns/col/placeholder.txt && \
+    python3.11 -m pip install "pip>=26.1.2" --disable-pip-version-check && \
     # On updating ansible-core version, update the FROM statement to the matching base-test-container version
     python3.11 -m pip install ansible-core==2.16.0 --disable-pip-version-check && \
     python3.11 -m pip install "cryptography>=46.0.7" --disable-pip-version-check && \
