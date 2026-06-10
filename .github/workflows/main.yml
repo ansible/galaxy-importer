@@ -56,6 +56,14 @@ jobs:
         name: coverage
         path: coverage.xml
 
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.xml
+        flags: unit-tests
+        fail_ci_if_error: false
+
     - name: SonarCloud Scan
       uses: SonarSource/sonarqube-scan-action@v6
       if: github.event_name == 'push' && github.repository == 'ansible/galaxy-importer' && github.ref_name == 'master' && matrix.python-version == '3.11'

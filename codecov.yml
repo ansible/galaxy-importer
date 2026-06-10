@@ -1,0 +1,8 @@
+coverage:
+  ignore:
+    - "tests/**"
+    - "**/*.test.py"
+    - "**/*.spec.py"
+    - "**/test_*.py"
+    - "setup.py"
+    - "build_deploy.sh"
