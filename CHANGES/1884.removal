@@ -1,0 +1,1 @@
+Remove use of docker build, instead use quay image to run ansible-test sanity
