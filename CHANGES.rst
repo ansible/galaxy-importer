@@ -1,4 +1,4 @@
-galaxy-importer 0.4.40 (2026-08-04)
+galaxy-importer 0.4.41 (2026-08-04)
 ===================================
 
 No significant changes.
