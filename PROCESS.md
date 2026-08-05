@@ -27,6 +27,7 @@ Versioning (x.y.z) following https://semver.org/
 #### Release steps
 
 * Open PR with title `Release #.#.#`
+* Update partner engineering about new release at #wg-galaxy-importer Slack channel 
   * Update `galaxy_importer/__init__.py` with new version number
     * Be aware of `galaxy-importer` version range dependencies in [pulp_ansible](https://github.com/pulp/pulp_ansible/blob/main/requirements.txt) and [galaxy_ng](https://github.com/ansible/galaxy_ng/blob/master/setup.py)
   * Run `$ towncrier` to update `CHANGES.rst`
