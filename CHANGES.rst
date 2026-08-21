@@ -1,3 +1,9 @@
+galaxy-importer 0.4.43 (2026-08-21)
+===================================
+
+- Bump ansible-core to 2.16.19 in ansible-test container.
+
+
 galaxy-importer 0.4.42 (2026-08-13)
 ===================================
 
