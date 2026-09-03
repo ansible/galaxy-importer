@@ -1,0 +1,1 @@
+Force curl/libcurl upgrade in ansible-test container image.

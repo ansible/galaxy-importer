@@ -24,6 +24,9 @@ RUN useradd user1 \
     # upgrade all packages except python, as they can conflict with python setup in base image
     apt-mark hold python* && \
     apt-get upgrade -y && \
+    # explicit re-upgrade of curl/libcurl to bust any cached layer and ensure the
+    # latest security fixes are picked up, see AAP-85952
+    apt-get install --only-upgrade --no-install-recommends -y curl libcurl3-gnutls libcurl4 && \
     apt-get install -y wget && \
     apt-get clean && \
     chmod +x /entrypoint && \
