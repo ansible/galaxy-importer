@@ -3,7 +3,9 @@
 
 function download_archive {
   echo "Downloading collection archive..."
-  wget $ARCHIVE_URL -q -O /archive/archive.tar.gz
+  # Use curl instead of wget, which doesn't re-encode the query string
+  # and doesn't break the signature -> 403.
+  curl -fsSL "$ARCHIVE_URL" -o /archive/archive.tar.gz
 }
 
 set -e
