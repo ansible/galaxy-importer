@@ -1,3 +1,14 @@
+galaxy-importer 0.4.45 (2026-11-27)
+===================================
+
+Features
+--------
+
+- Add the ``galaxy-importer`` console command and a ``--fail-on-error`` option. (`#460 <https://github.com/ansible/galaxy-importer/pull/460>`_)
+- Raise the minimum Markdown dependency to 3.11.4 to avoid slow parsing of malformed documentation. (`#458 <https://github.com/ansible/galaxy-importer/pull/458>`_)
+- Raise the ansible-lint dependency upper bound to 26.11.1. (`#459 <https://github.com/ansible/galaxy-importer/pull/459>`_)
+
+
 galaxy-importer 0.4.44 (2026-10-13)
 ===================================
 
