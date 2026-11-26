@@ -28,17 +28,23 @@ Install into environment the local setup.py including its development dependenci
 
 ### Run importer
 
-Run parsing/validation standalone to view log output and importer result for a build collection artifact file:
+Run parsing/validation standalone to view log output and importer result for a collection artifact file:
 
-`python -m galaxy_importer.main [collection_artifact_file]`
+`galaxy-importer [collection_artifact_file]`
+
+Use `--fail-on-error` to return a non-zero exit code if the importer logs an error, including errors from `ansible-doc`:
+
+`galaxy-importer --fail-on-error [collection_artifact_file]`
 
 Supports legacy roles (note: must be in the parent directory of the legacy role):
 
-`python -m galaxy_importer.main --legacy-role [legacy_role_directory] --namespace [namespace]`
+`galaxy-importer --legacy-role [legacy_role_directory] --namespace [namespace]`
 
 Supports converting markdown to html:
 
-`python -m galaxy_importer.main --markdown [readme_md_directory]`
+`galaxy-importer --markdown [readme_md_directory]`
+
+The module can also be run directly with `python -m galaxy_importer.main`.
 
 View log output in terminal, and view the importer result in the written file `importer_result.json`
 

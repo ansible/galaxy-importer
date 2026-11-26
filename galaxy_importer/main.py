@@ -38,14 +38,25 @@ def main(args=None):
     setup_logger(cfg)
     args = parse_args(args)
 
-    data = call_importer(args, cfg=cfg)
-    if not data:
-        return 1
+    error_handler = ErrorTrackingHandler() if args.fail_on_error else None
+    if error_handler:
+        logger.addHandler(error_handler)
 
-    if args.print_result:
-        print(json.dumps(data, indent=4))
+    try:
+        data = call_importer(args, cfg=cfg)
+        if not data:
+            return 1
 
-    write_output_file(data)
+        if args.print_result:
+            print(json.dumps(data, indent=4))
+
+        write_output_file(data)
+        if error_handler and error_handler.has_errors:
+            return 1
+        return 0
+    finally:
+        if error_handler:
+            logger.removeHandler(error_handler)
 
 
 def setup_logger(cfg):
@@ -65,6 +76,18 @@ class CustomFormatter(logging.Formatter):
             return "{message}".format(**vars(record))
         else:
             return "{levelname}: {message}".format(**vars(record))
+
+
+class ErrorTrackingHandler(logging.Handler):
+    """Track whether an error was logged during an importer run."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.has_errors: bool = False
+
+    def emit(self, record: logging.LogRecord) -> None:
+        if record.levelno >= logging.ERROR:
+            self.has_errors = True
 
 
 def parse_args(args):
@@ -87,6 +110,11 @@ def parse_args(args):
         dest="print_result",
         action="store_true",
         help="print importer result to console",
+    )
+    parser.add_argument(
+        "--fail-on-error",
+        action="store_true",
+        help="return a non-zero exit code if an error is logged during import",
     )
     parser.add_argument(
         "--legacy-role",

@@ -15,8 +15,10 @@
 # You should have received a copy of the Apache License
 # along with Galaxy.  If not, see <http://www.apache.org/licenses/>.
 
-import pytest
 import re
+
+import pytest
+from pytest_mock import MockerFixture
 
 from galaxy_importer import main
 
@@ -38,6 +40,25 @@ def test_parser():
     parser = main.parse_args(["--namespace", "my-namespace", "--legacy-role"])
     assert parser.namespace == "my-namespace"
     assert parser.legacy_role
+
+
+@pytest.mark.parametrize(
+    ("cli_args", "expected"),
+    [([], 0), (["--fail-on-error"], 1)],
+)
+def test_main_fail_on_logged_error(
+    mocker: MockerFixture, cli_args: list[str], expected: int
+) -> None:
+    mocker.patch.object(main, "setup_logger")
+    mocker.patch.object(main, "write_output_file")
+
+    def import_with_error(*args: object, **kwargs: object) -> dict[str, bool]:
+        main.logger.error("expected error")
+        return {"ok": True}
+
+    mocker.patch.object(main, "call_importer", side_effect=import_with_error)
+
+    assert main.main(["artifact.tar.gz", *cli_args]) == expected
 
 
 def test_main_no_args():
