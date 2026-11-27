@@ -11,6 +11,39 @@ from galaxy_importer import constants
 from galaxy_importer.utils.lint_version import get_version_from_metadata
 
 
+def test_fail_on_ansible_doc_error(workdir, local_fast_config, simple_artifact):
+    bin_dir = os.path.join(workdir, "bin")
+    os.makedirs(bin_dir)
+    ansible_doc = os.path.join(bin_dir, "ansible-doc")
+    with open(ansible_doc, "w") as executable:
+        executable.write("#!/bin/sh\necho 'forced ansible-doc failure' >&2\nexit 1\n")
+    os.chmod(ansible_doc, 0o755)
+
+    env = copy.deepcopy(dict(os.environ))
+    env.update(local_fast_config)
+    env["PATH"] = os.pathsep.join((bin_dir, env.get("PATH", "")))
+
+    result = subprocess.run(
+        [
+            "python3",
+            "-m",
+            "galaxy_importer.main",
+            str(simple_artifact),
+            "--fail-on-error",
+        ],
+        cwd=workdir,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+
+    assert result.returncode == 1, result.stdout
+    assert "Error running ansible-doc" in result.stdout
+    assert "Importer processing completed successfully" in result.stdout
+    assert os.path.exists(os.path.join(workdir, "importer_result.json"))
+
+
 def test_collection_community_general_import(workdir, local_fast_config):
     assert os.path.exists(workdir)
     url = (
